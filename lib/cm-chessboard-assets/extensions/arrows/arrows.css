@@ -1,47 +1,52 @@
 .cm-chessboard .arrow-warning .arrow-head {
   fill: orange;
+  color: orange;
   fill-rule: nonzero;
 }
 .cm-chessboard .arrow-warning .arrow-line {
   stroke: orange;
   stroke-linecap: round;
-  opacity: 0.6;
+  opacity: 0.85;
 }
 .cm-chessboard .arrow-danger .arrow-head {
   fill: red;
+  color: red;
   fill-rule: nonzero;
 }
 .cm-chessboard .arrow-danger .arrow-line {
   stroke: red;
   stroke-linecap: round;
-  opacity: 0.5;
+  opacity: 0.8;
 }
 .cm-chessboard .arrow-success .arrow-head {
   fill: green;
+  color: green;
   fill-rule: nonzero;
 }
 .cm-chessboard .arrow-success .arrow-line {
   stroke: green;
   stroke-linecap: round;
-  opacity: 0.5;
+  opacity: 0.8;
 }
 .cm-chessboard .arrow-info .arrow-head {
   fill: blue;
+  color: blue;
   fill-rule: nonzero;
 }
 .cm-chessboard .arrow-info .arrow-line {
   stroke: blue;
   stroke-linecap: round;
-  opacity: 0.4;
+  opacity: 0.75;
 }
 .cm-chessboard .arrow-secondary .arrow-head {
   fill: #666;
+  color: #666;
   fill-rule: nonzero;
 }
 .cm-chessboard .arrow-secondary .arrow-line {
   stroke: #666;
   stroke-linecap: butt;
-  opacity: 0.5;
+  opacity: 0.8;
 }
 
 /*# sourceMappingURL=arrows.css.map */

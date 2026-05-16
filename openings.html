@@ -146,14 +146,24 @@
             justify-content: center;
         }
 
-        /* Gradient bg */
+        /* Banner image bg */
         .hero-bg {
             position: absolute;
             inset: 0;
-            background:
-                radial-gradient(ellipse 70% 80% at 50% 100%, #1a0e3a 0%, transparent 65%),
-                radial-gradient(ellipse 40% 40% at 20% 80%, #0e1a2e 0%, transparent 60%),
-                var(--bg);
+            background: url('img/banner.png') center -195px / cover no-repeat;
+            z-index: 0;
+        }
+
+        /* Fade overlay */
+        .hero-bg-fade {
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 300px;
+            background: linear-gradient(to bottom, rgba(7,7,10,0) 0%, rgba(7,7,10,0.7) 60%, var(--bg) 100%);
+            z-index: 1;
+            pointer-events: none;
         }
 
         /* Noise grain */
@@ -387,29 +397,26 @@
             width: 150px;
             position: relative;
             overflow: hidden;
+            background: var(--surface);
         }
 
-        /* CSS chessboard */
-        .cb-grid {
-            position: absolute;
-            inset: 0;
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            grid-template-rows: repeat(8, 1fr);
-            opacity: 0.28;
-            transition: opacity .3s;
+        .card-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.85;
+            transition: opacity 0.35s;
         }
-        .card:hover .cb-grid { opacity: 0.38; }
-
-        .cb-cell { width: 100%; height: 100%; }
-        .cb-cell.light { background: #d4b896; }
-        .cb-cell.dark  { background: #8b6a4a; }
+        .card:hover .card-thumb img {
+            opacity: 0.95;
+        }
 
         /* Fade right */
         .card-thumb-fade {
             position: absolute;
             inset: 0;
-            background: linear-gradient(to right, transparent 50%, var(--surface) 100%);
+            background: linear-gradient(to right, transparent 40%, var(--surface) 100%);
+            pointer-events: none;
         }
 
         /* Piece on board */
@@ -420,12 +427,13 @@
             align-items: center;
             justify-content: center;
             font-size: 64px;
-            opacity: 0.5;
-            filter: drop-shadow(0 2px 12px rgba(0,0,0,.5));
+            opacity: 0.15;
+            filter: drop-shadow(0 0 18px rgba(212,168,67,0.4));
             transition: opacity .3s, transform .3s;
             user-select: none;
+            pointer-events: none;
         }
-        .card:hover .card-thumb-piece { opacity: 0.65; transform: scale(1.06); }
+        .card:hover .card-thumb-piece { opacity: 0.3; filter: drop-shadow(0 0 28px rgba(212,168,67,0.6)); }
 
         /* Content */
         .card-body {
@@ -507,12 +515,35 @@
             justify-content: space-between;
         }
 
+        .card-progress-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 1;
+            margin-right: 20px;
+        }
+
         .card-lines {
-            font-size: 10px;
+            font-size: 9px;
             color: var(--muted2);
-            letter-spacing: .06em;
+            letter-spacing: .1em;
+            text-align: right;
         }
         .card-lines strong { color: var(--muted); }
+
+        .progress-track {
+            height: 3px;
+            background: #222230;
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #7c5cbf, var(--gold));
+            border-radius: 99px;
+            transition: width 0.6s cubic-bezier(.22,.68,0,1.2);
+        }
 
         .card-cta {
             font-size: 9px;
@@ -700,6 +731,7 @@
     <!-- ── HERO ── -->
     <div class="hero">
         <div class="hero-bg"></div>
+        <div class="hero-bg-fade"></div>
         <div class="hero-pieces">
             <span class="hero-piece hp-1">♜</span>
             <span class="hero-piece hp-2">♚</span>
@@ -791,18 +823,6 @@
             document.getElementById('authError').textContent = 'Connection error. Please refresh.';
         }
 
-        // Build CSS chessboard
-        function buildBoard() {
-            let html = '';
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
-                    const cls = (r + c) % 2 === 0 ? 'light' : 'dark';
-                    html += `<div class="cb-cell ${cls}"></div>`;
-                }
-            }
-            return html;
-        }
-
         // Fetch openings
         fetch('data/openings.json')
             .then(r => r.json())
@@ -862,13 +882,14 @@
                     const progress = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
                     learnedCount = progress[slug]?.learnedLines?.length || 0;
                 } catch (e) { /* ignore */ }
+                const pct = lineCount > 0 ? Math.round((learnedCount / lineCount) * 100) : 0;
 
                 // Get piece emoji based on opening side
                 const pieceEmoji = o.playerSide === 'w' ? '♙' : '♟';
 
                 card.innerHTML = `
                     <div class="card-thumb">
-                        <div class="cb-grid">${buildBoard()}</div>
+                        <img src="boards/${slug}.png" alt="${o.displayName} board">
                         <div class="card-thumb-fade"></div>
                         <div class="card-thumb-piece">${pieceEmoji}</div>
                     </div>
@@ -881,7 +902,12 @@
                         </div>
                         <p class="card-desc">${shortDesc}</p>
                         <div class="card-foot">
-                            <span class="card-lines"><strong>${learnedCount}/${lineCount}</strong> lines</span>
+                            <div class="card-progress-wrap">
+                                <span class="card-lines"><strong>${learnedCount}/${lineCount}</strong> lines</span>
+                                <div class="progress-track">
+                                    <div class="progress-fill" style="width: ${pct}%"></div>
+                                </div>
+                            </div>
                             <span class="card-cta">Start training <span class="cta-arrow">→</span></span>
                         </div>
                     </div>
