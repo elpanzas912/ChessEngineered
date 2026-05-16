@@ -163,6 +163,17 @@ function updateModeStats() {
             timeBtn.disabled = true;
         }
     }
+    // Unlock puzzles at 2 lines learned
+    const puzzleBtn = document.getElementById('modePuzzles');
+    if (puzzleBtn) {
+        if (learned.length >= 2) {
+            puzzleBtn.classList.remove('locked');
+            puzzleBtn.disabled = false;
+        } else {
+            puzzleBtn.classList.add('locked');
+            puzzleBtn.disabled = true;
+        }
+    }
 }
 
 function updateLineProgress(slug, linePgn, update) {
@@ -475,6 +486,10 @@ class Trainer {
         this._playing = false; // guard against concurrent playOpponentMoves
         this.drillScore = 0; // current streak in drill mode
         this.timeScore = 0; // lines completed in time trial mode
+        this.puzzleStreak = 0; // consecutive puzzles solved
+        this.puzzles = []; // loaded puzzles for current opening
+        this.currentPuzzle = null; // currently active puzzle
+        this.puzzleIndex = 0; // index in puzzles array
     }
 
     loadOpening(slug) {
@@ -515,6 +530,8 @@ class Trainer {
             }
             const idx = Math.floor(Math.random() * available.length);
             this.loadLine(available[idx]);
+        } else if (this.mode === 'puzzle') {
+            this.loadNextPuzzle();
         }
     }
 
@@ -554,6 +571,84 @@ class Trainer {
         this.loadLine(this.linePgn);
     }
 
+    async loadPuzzles() {
+        if (this.puzzles.length > 0) return;
+        try {
+            const res = await fetch(`puzzles/${this.slug}.json`);
+            if (!res.ok) return;
+            this.puzzles = await res.json();
+            // Shuffle puzzles
+            for (let i = this.puzzles.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [this.puzzles[i], this.puzzles[j]] = [this.puzzles[j], this.puzzles[i]];
+            }
+        } catch (e) { /* silently fail */ }
+    }
+
+    async loadNextPuzzle() {
+        await this.loadPuzzles();
+        if (!this.puzzles.length) {
+            const instEl = document.getElementById('instruction');
+            const bubbleText = document.querySelector('.instruction-text');
+            const msg = 'No puzzles available for this opening.';
+            if (instEl) instEl.textContent = msg;
+            if (bubbleText) bubbleText.textContent = msg;
+            return;
+        }
+        
+        if (this.puzzleIndex >= this.puzzles.length) {
+            this.puzzleIndex = 0; // loop back
+        }
+        
+        const puzzle = this.puzzles[this.puzzleIndex];
+        this.currentPuzzle = puzzle;
+        this.puzzleIndex++;
+        
+        // Parse moves from UCI format (e.g., "f3e5 d8d1")
+        const moveUcis = puzzle.Moves.split(' ').filter(m => m.length === 4);
+        this.moves = moveUcis.map(uci => {
+            const from = uci.substring(0, 2);
+            const to = uci.substring(2, 4);
+            // Try to get SAN by making the move on a temporary board
+            const tempGame = new Chess(puzzle.FEN);
+            const moveResult = tempGame.move({ from, to });
+            return {
+                from,
+                to,
+                san: moveResult ? moveResult.san : `${from}-${to}`
+            };
+        });
+        this.moveIndex = 0;
+        this.completed = false;
+        this.wrongAttempts = 0;
+        this.hintShown = false;
+        
+        // Set position from FEN
+        game.load(puzzle.FEN);
+        board.setPosition(game.fen(), true);
+        
+        // Determine orientation from FEN (who's turn)
+        const turn = puzzle.FEN.split(' ')[1];
+        const orientation = turn === 'b' ? COLOR.black : COLOR.white;
+        board.setOrientation(orientation);
+        
+        // Update instruction
+        const instEl = document.getElementById('instruction');
+        const bubbleText = document.querySelector('.instruction-text');
+        if (instEl) instEl.textContent = 'Solve the puzzle! Find the best move.';
+        if (bubbleText) bubbleText.textContent = 'Solve the puzzle! Find the best move.';
+        
+        // Enable move input for the side to move
+        const playerColor = turn === 'b' ? COLOR.black : COLOR.white;
+        try { board.disableMoveInput(); } catch(e) {}
+        board.enableMoveInput(moveInputHandler, playerColor);
+        
+        // Update UI
+        if (typeof updatePuzzleUI === 'function') updatePuzzleUI();
+        updateLineHeader('Puzzle', this.opening.displayName);
+        updateProgress(0);
+    }
+
     playOpponentMoves() {
         if (this.completed || this._playing) return;
         this._playing = true;
@@ -575,8 +670,10 @@ class Trainer {
 
             const next = this.moves[this.moveIndex];
             const side = game.turn();
+            const isPuzzle = this.mode === 'puzzle';
+            const isOpponentTurn = isPuzzle ? (this.moveIndex % 2 === 1) : (side !== this.opening.playerSide);
 
-            if (side !== this.opening.playerSide) {
+            if (isOpponentTurn) {
                 const moveResult = game.move(next.san);
                 this.moveIndex++;
                 board.setPosition(game.fen(), true);
@@ -587,11 +684,14 @@ class Trainer {
                 updateProgress(this.getProgress());
                 
                 // Continue with delay for animation visibility
-                setTimeout(() => playNext(), this.mode === 'drill' ? 200 : 600);
+                const delay = this.mode === 'drill' ? 200 : (isPuzzle ? 400 : 600);
+                setTimeout(() => playNext(), delay);
             } else {
                 finish();
                 this.updateInstruction();
-                const playerColor = this.opening.playerSide === 'w' ? COLOR.white : COLOR.black;
+                const playerColor = isPuzzle 
+                    ? (side === 'w' ? COLOR.white : COLOR.black)
+                    : (this.opening.playerSide === 'w' ? COLOR.white : COLOR.black);
                 try { board.disableMoveInput(); } catch(e) {}
                 board.enableMoveInput(moveInputHandler, playerColor);
                 updateProgress(this.getProgress());
@@ -624,6 +724,9 @@ class Trainer {
             } else if (this.mode === 'time') {
                 // Reset current line in time mode
                 this.resetLine();
+            } else if (this.mode === 'puzzle') {
+                // Reset puzzle to starting position
+                this.loadNextPuzzle();
             }
             return false;
         }
@@ -717,6 +820,8 @@ class Trainer {
 
         if (this.mode === 'drill') {
             text = `Streak: ${this.drillScore} — Get as many openings correct in a row as you can!`;
+        } else if (this.mode === 'puzzle') {
+            text = `Streak: ${this.puzzleStreak} — Solve the puzzle! Find the best move.`;
         } else if (isUserTurn) {
             if (desc) text = desc;
             else if (short) text = short;
@@ -781,6 +886,18 @@ class Trainer {
             setTimeout(() => {
                 this.nextLine();
             }, 300);
+            return;
+        }
+        
+        // Puzzle mode: increment streak and load next puzzle
+        if (this.mode === 'puzzle') {
+            this.puzzleStreak++;
+            if (typeof updatePuzzleUI === 'function') updatePuzzleUI();
+            // Play success sound
+            playCompletionSound();
+            setTimeout(() => {
+                this.nextLine();
+            }, 600);
             return;
         }
         
