@@ -374,19 +374,23 @@ function moveInputHandler(event) {
 
     if (event.type === INPUT_EVENT_TYPE.moveInputFinished) {
         if (pendingIncorrectMove) {
-            // Incorrect move: show X, wait, then animated snapback
+            // Incorrect move: show X, wait, then reset or snapback
             showIncorrectCross(pendingIncorrectMove.to);
             // showFeedback('Try again!', 'error');
             setTimeout(() => {
                 clearIncorrectCross();
-                board.setPosition(game.fen(), true); // animated snapback
-                setTimeout(() => {
-                    if (trainer && !trainer.completed) {
-                        const playerColor = trainer.opening.playerSide === 'w' ? COLOR.white : COLOR.black;
-                        board.enableMoveInput(moveInputHandler, playerColor);
-                    }
-                    pendingIncorrectMove = null;
-                }, 300);
+                if (trainer && trainer.mode === 'puzzle' && trainer.currentPuzzle) {
+                    trainer.resetCurrentPuzzle();
+                } else {
+                    board.setPosition(game.fen(), true); // animated snapback
+                    setTimeout(() => {
+                        if (trainer && !trainer.completed) {
+                            const playerColor = trainer.opening.playerSide === 'w' ? COLOR.white : COLOR.black;
+                            board.enableMoveInput(moveInputHandler, playerColor);
+                        }
+                    }, 300);
+                }
+                pendingIncorrectMove = null;
             }, 700);
             return;
         }
@@ -735,6 +739,46 @@ class Trainer {
         this.updateHistoryButtons();
     }
 
+    resetCurrentPuzzle() {
+        if (!this.currentPuzzle) return;
+
+        this._playing = false;
+        clearHintSquare();
+        clearLastMove();
+        clearCorrectCheckmark();
+        clearIncorrectCross();
+        this.hintShown = false;
+        document.getElementById('btnHint').textContent = 'Hint';
+
+        this.moveIndex = 0;
+        this.completed = false;
+        this.positionHistory = [];
+        this.historyIndex = 0;
+        this.playedSans = [];
+
+        game.load(this.currentPuzzle.FEN);
+        board.setPosition(game.fen(), true);
+        this.recordPosition(null);
+
+        const turn = this.currentPuzzle.FEN.split(' ')[1];
+        const orientation = turn === 'b' ? COLOR.black : COLOR.white;
+        board.setOrientation(orientation);
+
+        const instEl = document.getElementById('instruction');
+        const bubbleText = document.querySelector('.instruction-text');
+        if (instEl) instEl.textContent = 'Solve the puzzle! Find the best move.';
+        if (bubbleText) bubbleText.textContent = 'Solve the puzzle! Find the best move.';
+
+        const playerColor = turn === 'b' ? COLOR.black : COLOR.white;
+        try { board.disableMoveInput(); } catch(e) {}
+        board.enableMoveInput(moveInputHandler, playerColor);
+
+        updateLineHeader('Puzzle', this.opening.displayName);
+        updateProgress(0);
+        renderMoveHistory([]);
+        this.updateHistoryButtons();
+    }
+
     recordPosition(lastMove) {
         if (this.mode !== 'puzzle') return;
 
@@ -886,7 +930,7 @@ class Trainer {
                 const result = updatePuzzleELO(puzzleRating, 0);
                 showFeedback(`${result.change} ELO`, 'error');
                 if (typeof updatePuzzleUI === 'function') updatePuzzleUI();
-                this.loadNextPuzzle();
+                // Don't load next puzzle here; moveInputHandler will reset the current puzzle position
             }
             return false;
         }
@@ -1314,7 +1358,15 @@ function updateLineHeader(name, openingName) {
     const progressLineName = document.getElementById('progressLineName');
 
     if (openingNameEl) openingNameEl.textContent = openingName || '';
-    if (lineCounter) lineCounter.textContent = '#' + (stats.linesDone + 1);
+    
+    // Show actual line number based on current line in the opening
+    let lineNum = 1;
+    if (trainer && trainer.opening && trainer.linePgn) {
+        const idx = trainer.opening.lines.indexOf(trainer.linePgn);
+        if (idx >= 0) lineNum = idx + 1;
+    }
+    if (lineCounter) lineCounter.textContent = '#' + lineNum;
+    
     if (progressLineName) progressLineName.textContent = name || '';
 }
 
