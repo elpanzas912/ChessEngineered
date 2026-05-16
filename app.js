@@ -577,7 +577,8 @@ class Trainer {
             if (stored) {
                 const saved = JSON.parse(stored);
                 this.learnIndex = saved.learnIndex || 0;
-                if (saved.mode) this.mode = saved.mode;
+                // Always default to learn mode on reopening
+                this.mode = 'learn';
                 return saved;
             }
         } catch (e) { /* ignore corrupt storage */ }
