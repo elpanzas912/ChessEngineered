@@ -1049,6 +1049,11 @@ class Trainer {
                                     this.recordPosition(opp);
                                 }
                             }
+                            // If puzzle is now complete after opponent response, load next
+                            if (this.moveIndex >= this.moves.length) {
+                                setTimeout(() => this.loadNextPuzzle(), 600);
+                                return;
+                            }
                             // Re-enable input so user can continue the puzzle
                             this.enableCurrentMoveInput();
                             this.updateHistoryButtons();
