@@ -65,6 +65,12 @@ function loadLocalProgress() {
             window.userProgress = JSON.parse(stored);
         }
     } catch (e) { /* ignore corrupt storage */ }
+    try {
+        const unlocked = localStorage.getItem('chesspeps_drill_unlocks');
+        if (unlocked) {
+            window.drillUnlocks = JSON.parse(unlocked);
+        }
+    } catch (e) { /* ignore corrupt storage */ }
 }
 
 function saveLocalProgress() {
@@ -123,9 +129,11 @@ function updateModeStats() {
             const wasLocked = drillBtn.disabled;
             drillBtn.classList.remove('locked');
             drillBtn.disabled = false;
-            // Show unlock animation the first time
-            if (wasLocked && !window.drillUnlockShown) {
-                window.drillUnlockShown = true;
+            // Show unlock animation once per opening
+            if (wasLocked && !window.drillUnlocks?.includes(trainer.slug)) {
+                if (!window.drillUnlocks) window.drillUnlocks = [];
+                window.drillUnlocks.push(trainer.slug);
+                localStorage.setItem('chesspeps_drill_unlocks', JSON.stringify(window.drillUnlocks));
                 const overlay = document.getElementById('unlockOverlay');
                 if (overlay) {
                     setTimeout(() => overlay.classList.add('open'), 600);
