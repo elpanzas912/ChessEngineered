@@ -431,163 +431,237 @@
 
         .course-card {
             display: flex;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
+            background: #111114;
+            border: 1px solid #2a2a30;
+            border-radius: 5px;
             overflow: hidden;
-            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            transition: border-color 0.35s ease, transform 0.3s cubic-bezier(.22,.68,0,1.2), box-shadow 0.35s ease;
             position: relative;
             cursor: pointer;
+            text-decoration: none;
+            color: inherit;
         }
 
         .course-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--border-light);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-        }
-
-        .course-card .card-link {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
+            border-color: #c8a84b;
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 20px 48px rgba(0,0,0,.7), 0 0 0 1px #c8a84b33;
         }
 
         .course-card .card-board {
+            flex-shrink: 0;
             width: 200px;
             min-width: 200px;
             height: 200px;
-            background: var(--bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
             position: relative;
-            z-index: 1;
-            pointer-events: none;
+            overflow: hidden;
+            background: #111114;
         }
 
         .course-card .card-board img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            opacity: 0.9;
+            opacity: 0.85;
+            transition: opacity 0.35s;
         }
 
-        .course-card .card-board-placeholder {
-            width: 100%;
-            height: 100%;
+        .course-card:hover .card-board img {
+            opacity: 0.95;
+        }
+
+        .board-fade {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to right, transparent 40%, #111114 100%);
+            pointer-events: none;
+        }
+
+        .board-piece {
+            position: absolute;
+            inset: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #27272a 0%, #18181b 100%);
-            color: var(--text-dim);
-            font-size: 3rem;
+            font-size: 80px;
+            opacity: 0.15;
+            filter: drop-shadow(0 0 18px rgba(200,168,75,0.4));
+            transition: opacity 0.35s, filter 0.35s;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .course-card:hover .board-piece {
+            opacity: 0.3;
+            filter: drop-shadow(0 0 28px rgba(200,168,75,0.6));
         }
 
         .course-card .card-body {
             flex: 1;
-            padding: 20px 24px;
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
+            padding: 18px 20px 16px;
             position: relative;
-            z-index: 1;
+            overflow: hidden;
+        }
+
+        .card-body-bg {
+            position: absolute;
+            inset: 0;
+            opacity: 0.02;
+            background: radial-gradient(circle at 80% 20%, rgba(139,92,246,0.15) 0%, transparent 50%);
+            transition: opacity 0.35s;
             pointer-events: none;
+        }
+
+        .course-card:hover .card-body-bg {
+            opacity: 0.05;
+        }
+
+        .card-corner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50px;
+            height: 50px;
+            border-top: 1px solid #c8a84b;
+            border-left: 1px solid #c8a84b;
+            opacity: 0;
+            transition: opacity 0.35s;
+            pointer-events: none;
+        }
+
+        .course-card:hover .card-corner {
+            opacity: 0.6;
+        }
+
+        .card-shimmer {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(110deg, transparent 30%, rgba(200,168,75,.035) 50%, transparent 70%);
+            background-size: 200% 100%;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .course-card:hover .card-shimmer {
+            opacity: 1;
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            from { background-position: 200% 0; }
+            to   { background-position: -200% 0; }
         }
 
         .course-card .card-header {
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
-            margin-bottom: 8px;
+            gap: 12px;
+            position: relative;
         }
 
         .course-card h3 {
+            font-family: 'Playfair Display', serif;
             font-size: 1.2rem;
             font-weight: 700;
-            color: var(--text);
+            color: #f0e8d0;
             margin: 0;
-            letter-spacing: -0.01em;
+            line-height: 1.2;
         }
 
         .badge-side {
-            font-size: 0.7rem;
-            font-weight: 700;
+            flex-shrink: 0;
+            font-size: 9px;
+            letter-spacing: .12em;
+            color: #c8a84b;
+            background: #c8a84b18;
+            border: 1px solid #c8a84b44;
+            padding: 3px 8px;
+            border-radius: 2px;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 4px 10px;
-            border-radius: 20px;
-            pointer-events: auto;
-        }
-
-        .badge-side.white {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-        }
-
-        .badge-side.black {
-            background: rgba(0, 0, 0, 0.3);
-            color: #a1a1aa;
-            border: 1px solid var(--border-light);
+            white-space: nowrap;
+            margin-top: 3px;
         }
 
         .course-card .card-desc {
-            color: var(--text-muted);
-            font-size: 0.88rem;
-            line-height: 1.5;
-            margin-bottom: 16px;
-            flex: 1;
+            font-size: 11px;
+            color: #6a6a7e;
+            line-height: 1.6;
+            letter-spacing: .02em;
+            position: relative;
+            transition: color 0.3s;
+            margin: 8px 0;
         }
 
-        .progress-wrap {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
-        }
-
-        .progress-bar {
-            flex: 1;
-            height: 6px;
-            background: var(--bg);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #a78bfa 0%, #8b5cf6 100%);
-            border-radius: 3px;
-            width: 0%;
-        }
-
-        .lines-count {
-            color: var(--text-dim);
-            font-size: 0.8rem;
-            font-weight: 500;
-            white-space: nowrap;
+        .course-card:hover .card-desc {
+            color: #8a8a9e;
         }
 
         .card-footer {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-top: auto;
-            padding-top: 8px;
+            position: relative;
+        }
+
+        .card-progress-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 1;
+            margin-right: 20px;
+        }
+
+        .card-lines {
+            font-size: 9px;
+            color: #45455a;
+            letter-spacing: .1em;
+            text-align: right;
+        }
+
+        .progress-track {
+            height: 3px;
+            background: #222230;
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #7c5cbf, #c8a84b);
+            border-radius: 99px;
+            transition: width 0.6s cubic-bezier(.22,.68,0,1.2);
         }
 
         .try-link {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            font-weight: 500;
-            text-decoration: none;
             display: flex;
             align-items: center;
             gap: 6px;
-            transition: color 0.15s;
-            pointer-events: auto;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: .12em;
+            color: #c8a84b;
+            text-transform: uppercase;
+            white-space: nowrap;
+            transition: gap 0.25s;
+            text-decoration: none;
         }
 
-        .try-link:hover {
-            color: var(--text);
+        .course-card:hover .try-link {
+            gap: 10px;
+        }
+
+        .cta-arrow {
+            display: inline-block;
+            transition: transform 0.25s;
+        }
+
+        .course-card:hover .cta-arrow {
+            transform: translateX(3px);
         }
     </style>
 </head>
@@ -704,28 +778,48 @@
                 } catch (e) { /* ignore */ }
                 const pct = lineCount > 0 ? Math.round((learnedCount / lineCount) * 100) : 0;
                 
+                // Get piece emoji based on opening side
+                const pieceEmoji = o.playerSide === 'w' ? '♙' : '♟';
+                
                 card.innerHTML = `
-                    <a href="opening.html?slug=${slug}" aria-label="${o.displayName}" class="card-link"></a>
                     <div class="card-board">
-                        <img src="boards/${slug}.png" alt="${o.displayName} board" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
+                        <img src="boards/${slug}.png" alt="${o.displayName} board">
+                        <div class="board-fade"></div>
+                        <div class="board-piece">${pieceEmoji}</div>
                     </div>
                     <div class="card-body">
+                        <div class="card-body-bg"></div>
+                        <div class="card-corner"></div>
+                        <div class="card-shimmer"></div>
+                        
                         <div class="card-header">
                             <h3>${o.displayName}</h3>
-                            <span class="badge-side ${side}">${sideLabel}</span>
+                            <span class="badge-side">${sideLabel}</span>
                         </div>
+                        
                         <p class="card-desc">${shortDesc || 'Practice this opening with interactive training.'}</p>
-                        <div class="progress-wrap">
-                            <div class="progress-bar">
-                                <div class="progress-bar-fill" style="width: ${pct}%"></div>
-                            </div>
-                            <span class="lines-count">${learnedCount}/${lineCount} lines</span>
-                        </div>
+                        
                         <div class="card-footer">
-                            <a href="opening.html?slug=${slug}" class="try-link">Start training →</a>
+                            <div class="card-progress-wrap">
+                                <span class="card-lines">${learnedCount}/${lineCount} lines</span>
+                                <div class="progress-track">
+                                    <div class="progress-fill" style="width: ${pct}%"></div>
+                                </div>
+                            </div>
+                            <a href="opening.html?slug=${slug}" class="try-link">
+                                Start learning <span class="cta-arrow">→</span>
+                            </a>
                         </div>
                     </div>
                 `;
+                
+                // Make entire card clickable
+                card.addEventListener('click', (e) => {
+                    // Don't navigate if clicking the "Start learning" link directly
+                    if (e.target.closest('.try-link')) return;
+                    window.location.href = `opening.html?slug=${slug}`;
+                });
+                
                 grid.appendChild(card);
             });
         }
