@@ -81,6 +81,32 @@ function getLineProgress(slug, linePgn) {
     return window.userProgress[slug]?.lines?.[linePgn] || {};
 }
 
+// ── Puzzle ELO System ──
+const K_FACTOR = 32; // ELO K factor for puzzles
+
+function getPuzzleELO() {
+    return window.userProgress.puzzleELO || 1500;
+}
+
+function updatePuzzleELO(puzzleRating, score) {
+    const playerRating = getPuzzleELO();
+    const expectedScore = 1 / (1 + Math.pow(10, (puzzleRating - playerRating) / 400));
+    const change = Math.round(K_FACTOR * (score - expectedScore));
+    const newRating = Math.max(400, playerRating + change);
+    window.userProgress.puzzleELO = newRating;
+    saveLocalProgress();
+    syncToCloud();
+    return { change, newRating };
+}
+
+function findPuzzleInELORange(puzzles, elo, range = 150) {
+    const candidates = puzzles.filter(p => Math.abs(p.Rating - elo) <= range);
+    if (candidates.length === 0 && range < 1000) {
+        return findPuzzleInELORange(puzzles, elo, range + 100);
+    }
+    return candidates;
+}
+
 function getLearnedLines(slug) {
     return window.userProgress[slug]?.learnedLines || [];
 }
@@ -259,9 +285,19 @@ function initApp() {
     if (selectEl) {
         selectEl.addEventListener('change', onOpeningChange);
     }
-    document.getElementById('btnNext').addEventListener('click', () => trainer && trainer.nextLine());
+    document.getElementById('btnNext').addEventListener('click', () => {
+        if (!trainer) return;
+        if (trainer.mode === 'puzzle') trainer.navigatePuzzleHistory(1);
+        else trainer.nextLine();
+    });
     const prevBtn = document.getElementById('btnPrev');
-    if (prevBtn) prevBtn.addEventListener('click', () => trainer && trainer.resetLine());
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if (!trainer) return;
+            if (trainer.mode === 'puzzle') trainer.navigatePuzzleHistory(-1);
+            else trainer.resetLine();
+        });
+    }
     const resetBtn = document.getElementById('btnReset');
     if (resetBtn) resetBtn.addEventListener('click', () => trainer && trainer.resetLine());
     document.getElementById('btnHint').addEventListener('click', () => trainer && trainer.showHint());
@@ -300,8 +336,11 @@ function moveInputHandler(event) {
 
     if (event.type === INPUT_EVENT_TYPE.moveInputStarted) {
         clearIncorrectCross();
+        if (trainer.mode === 'puzzle' && trainer.historyIndex !== trainer.positionHistory.length - 1) {
+            return false;
+        }
         const piece = game.get(event.squareFrom);
-        const playerColor = trainer.opening.playerSide;
+        const playerColor = trainer.mode === 'puzzle' ? game.turn() : trainer.opening.playerSide;
         if (!piece || piece.color !== playerColor) {
             return false;
         }
@@ -490,6 +529,9 @@ class Trainer {
         this.puzzles = []; // loaded puzzles for current opening
         this.currentPuzzle = null; // currently active puzzle
         this.puzzleIndex = 0; // index in puzzles array
+        this.positionHistory = [];
+        this.historyIndex = 0;
+        this.playedSans = [];
     }
 
     loadOpening(slug) {
@@ -561,6 +603,10 @@ class Trainer {
         renderMoveHistory([]);
         updateProgress(0);
         renderLineDropdown();
+        const prevBtn = document.getElementById('btnPrev');
+        const nextBtn = document.getElementById('btnNext');
+        if (prevBtn) prevBtn.disabled = false;
+        if (nextBtn) nextBtn.disabled = false;
 
         this.playOpponentMoves();
         renderLinesList();
@@ -585,7 +631,7 @@ class Trainer {
         } catch (e) { /* silently fail */ }
     }
 
-    async loadNextPuzzle() {
+    async loadNextPuzzle(skipCount = 0) {
         await this.loadPuzzles();
         if (!this.puzzles.length) {
             const instEl = document.getElementById('instruction');
@@ -595,37 +641,46 @@ class Trainer {
             if (bubbleText) bubbleText.textContent = msg;
             return;
         }
-        
-        if (this.puzzleIndex >= this.puzzles.length) {
-            this.puzzleIndex = 0; // loop back
+
+        if (skipCount >= this.puzzles.length) {
+            const instEl = document.getElementById('instruction');
+            const bubbleText = document.querySelector('.instruction-text');
+            const msg = 'No playable puzzles available for this opening.';
+            if (instEl) instEl.textContent = msg;
+            if (bubbleText) bubbleText.textContent = msg;
+            return;
         }
         
-        const puzzle = this.puzzles[this.puzzleIndex];
-        this.currentPuzzle = puzzle;
-        this.puzzleIndex++;
+        // Find puzzle matching user's ELO
+        const userELO = getPuzzleELO();
+        const candidates = findPuzzleInELORange(this.puzzles, userELO);
         
-        // Parse moves from UCI format (e.g., "f3e5 d8d1")
-        const moveUcis = puzzle.Moves.split(' ').filter(m => m.length === 4);
-        this.moves = moveUcis.map(uci => {
-            const from = uci.substring(0, 2);
-            const to = uci.substring(2, 4);
-            // Try to get SAN by making the move on a temporary board
-            const tempGame = new Chess(puzzle.FEN);
-            const moveResult = tempGame.move({ from, to });
-            return {
-                from,
-                to,
-                san: moveResult ? moveResult.san : `${from}-${to}`
-            };
-        });
+        if (!candidates.length) {
+            this.loadNextPuzzle(skipCount + 1);
+            return;
+        }
+        
+        // Pick random from candidates
+        const puzzle = candidates[Math.floor(Math.random() * candidates.length)];
+        this.currentPuzzle = puzzle;
+        
+        this.moves = parsePuzzleMoves(puzzle);
+        if (!this.moves.length) {
+            this.loadNextPuzzle(skipCount + 1);
+            return;
+        }
         this.moveIndex = 0;
         this.completed = false;
         this.wrongAttempts = 0;
         this.hintShown = false;
+        this.positionHistory = [];
+        this.historyIndex = 0;
+        this.playedSans = [];
         
         // Set position from FEN
         game.load(puzzle.FEN);
         board.setPosition(game.fen(), true);
+        this.recordPosition(null);
         
         // Determine orientation from FEN (who's turn)
         const turn = puzzle.FEN.split(' ')[1];
@@ -647,6 +702,65 @@ class Trainer {
         if (typeof updatePuzzleUI === 'function') updatePuzzleUI();
         updateLineHeader('Puzzle', this.opening.displayName);
         updateProgress(0);
+        renderMoveHistory([]);
+        this.updateHistoryButtons();
+    }
+
+    recordPosition(lastMove) {
+        if (this.mode !== 'puzzle') return;
+
+        this.positionHistory = this.positionHistory.slice(0, this.historyIndex + 1);
+        this.positionHistory.push({
+            fen: game.fen(),
+            moveIndex: this.moveIndex,
+            lastMove: lastMove ? { from: lastMove.from, to: lastMove.to } : null,
+            sans: this.playedSans.slice()
+        });
+        this.historyIndex = this.positionHistory.length - 1;
+        this.updateHistoryButtons();
+    }
+
+    navigatePuzzleHistory(direction) {
+        if (this.mode !== 'puzzle' || !this.positionHistory.length) return;
+
+        const nextIndex = Math.max(0, Math.min(this.positionHistory.length - 1, this.historyIndex + direction));
+        if (nextIndex === this.historyIndex) return;
+
+        this.historyIndex = nextIndex;
+        const entry = this.positionHistory[this.historyIndex];
+        try { board.disableMoveInput(); } catch(e) {}
+        clearHintSquare();
+        clearCorrectCheckmark();
+        clearIncorrectCross();
+
+        game.load(entry.fen);
+        this.moveIndex = entry.moveIndex;
+        board.setPosition(game.fen(), true);
+        clearLastMove();
+        if (entry.lastMove) highlightLastMove(entry.lastMove.from, entry.lastMove.to);
+        renderMoveHistory(entry.sans);
+        updateProgress(this.getProgress());
+        this.updateInstruction();
+        this.updateHistoryButtons();
+
+        if (this.historyIndex === this.positionHistory.length - 1 && !this.completed) {
+            this.enableCurrentMoveInput();
+        }
+    }
+
+    updateHistoryButtons() {
+        if (this.mode !== 'puzzle') return;
+        const prevBtn = document.getElementById('btnPrev');
+        const nextBtn = document.getElementById('btnNext');
+        if (prevBtn) prevBtn.disabled = this.historyIndex <= 0;
+        if (nextBtn) nextBtn.disabled = this.historyIndex >= this.positionHistory.length - 1;
+    }
+
+    enableCurrentMoveInput() {
+        if (this.completed || this._playing) return;
+        const playerColor = game.turn() === 'b' ? COLOR.black : COLOR.white;
+        try { board.disableMoveInput(); } catch(e) {}
+        board.enableMoveInput(moveInputHandler, playerColor);
     }
 
     playOpponentMoves() {
@@ -675,12 +789,22 @@ class Trainer {
 
             if (isOpponentTurn) {
                 const moveResult = game.move(next.san);
+                if (!moveResult) {
+                    finish();
+                    return;
+                }
                 this.moveIndex++;
                 board.setPosition(game.fen(), true);
                 highlightLastMove(next.from, next.to);
                 playMoveSound(moveResult);
                 this.updateInstruction();
-                renderMoveHistory(game.history({ verbose: false }));
+                if (isPuzzle) {
+                    this.playedSans.push(moveResult.san);
+                    this.recordPosition(next);
+                    renderMoveHistory(this.playedSans);
+                } else {
+                    renderMoveHistory(game.history({ verbose: false }));
+                }
                 updateProgress(this.getProgress());
                 
                 // Continue with delay for animation visibility
@@ -689,11 +813,14 @@ class Trainer {
             } else {
                 finish();
                 this.updateInstruction();
-                const playerColor = isPuzzle 
-                    ? (side === 'w' ? COLOR.white : COLOR.black)
-                    : (this.opening.playerSide === 'w' ? COLOR.white : COLOR.black);
-                try { board.disableMoveInput(); } catch(e) {}
-                board.enableMoveInput(moveInputHandler, playerColor);
+                if (isPuzzle) {
+                    this.enableCurrentMoveInput();
+                    this.updateHistoryButtons();
+                } else {
+                    const playerColor = this.opening.playerSide === 'w' ? COLOR.white : COLOR.black;
+                    try { board.disableMoveInput(); } catch(e) {}
+                    board.enableMoveInput(moveInputHandler, playerColor);
+                }
                 updateProgress(this.getProgress());
             }
         };
@@ -725,7 +852,11 @@ class Trainer {
                 // Reset current line in time mode
                 this.resetLine();
             } else if (this.mode === 'puzzle') {
-                // Reset puzzle to starting position
+                this.puzzleStreak = 0;
+                const puzzleRating = this.currentPuzzle?.Rating || 1500;
+                const result = updatePuzzleELO(puzzleRating, 0);
+                showFeedback(`${result.change} ELO`, 'error');
+                if (typeof updatePuzzleUI === 'function') updatePuzzleUI();
                 this.loadNextPuzzle();
             }
             return false;
@@ -764,12 +895,21 @@ class Trainer {
         stats.movesMade++;
 
         const moveResult = game.move(expected.san);
+        if (!moveResult) return;
         this.moveIndex++;
+        if (this.mode === 'puzzle') {
+            this.playedSans.push(moveResult.san);
+        }
         highlightLastMove(expected.from, expected.to);
         showCorrectCheckmark(expected.to);
         playMoveSound(moveResult);
 
-        renderMoveHistory(game.history({ verbose: false }));
+        if (this.mode === 'puzzle') {
+            this.recordPosition(expected);
+            renderMoveHistory(this.playedSans);
+        } else {
+            renderMoveHistory(game.history({ verbose: false }));
+        }
         updateProgress(this.getProgress());
 
         const desc = this.findDescription();
@@ -788,7 +928,22 @@ class Trainer {
             this.hintShown = false;
             document.getElementById('btnHint').textContent = 'Hint';
 
+            // In puzzle mode, using hint counts as a fail for ELO
+            if (this.mode === 'puzzle') {
+                this.puzzleStreak = 0;
+                const puzzleRating = this.currentPuzzle?.Rating || 1500;
+                const result = updatePuzzleELO(puzzleRating, 0);
+                showFeedback(`${result.change} ELO`, 'error');
+                if (typeof updatePuzzleUI === 'function') updatePuzzleUI();
+                // Load next puzzle after showing the move
+                setTimeout(() => {
+                    this.loadNextPuzzle();
+                }, 800);
+                return;
+            }
+
             const moveResult = game.move(exp.san);
+            if (!moveResult) return;
             this.moveIndex++;
             board.setPosition(game.fen(), true);
             highlightLastMove(exp.from, exp.to);
@@ -889,12 +1044,16 @@ class Trainer {
             return;
         }
         
-        // Puzzle mode: increment streak and load next puzzle
+        // Puzzle mode: increment streak, update ELO, and load next puzzle
         if (this.mode === 'puzzle') {
             this.puzzleStreak++;
+            const puzzleRating = this.currentPuzzle?.Rating || 1500;
+            const result = updatePuzzleELO(puzzleRating, 1);
             if (typeof updatePuzzleUI === 'function') updatePuzzleUI();
             // Play success sound
             playCompletionSound();
+            // Show ELO change feedback
+            showFeedback(`+${result.change} ELO`, 'success');
             setTimeout(() => {
                 this.nextLine();
             }, 600);
@@ -983,6 +1142,44 @@ class Trainer {
 }
 
 // ── Helpers ──
+function parsePuzzleMoves(puzzle) {
+    const temp = new Chess(puzzle.FEN);
+    const tokens = String(puzzle.Moves || '').split(/\s+/).filter(uci => /^[a-h][1-8][a-h][1-8][qrbn]?$/i.test(uci));
+    const moves = [];
+
+    for (const uci of tokens) {
+        const from = uci.substring(0, 2);
+        const to = uci.substring(2, 4);
+        const promotion = uci.length > 4 ? uci.substring(4, 5).toLowerCase() : undefined;
+        const legalMove = temp.moves({ verbose: true }).find(move => (
+            move.from === from &&
+            move.to === to &&
+            (!promotion || move.promotion === promotion)
+        ));
+
+        if (!legalMove) break;
+
+        const moveResult = temp.move({
+            from,
+            to,
+            ...(promotion ? { promotion } : {})
+        });
+
+        if (!moveResult) break;
+
+        moves.push({
+            from,
+            to,
+            promotion,
+            san: moveResult.san,
+            color: moveResult.color,
+            fen: temp.fen()
+        });
+    }
+
+    return moves;
+}
+
 function parsePgnToMoves(pgn) {
     const temp = new Chess();
     const clean = pgn.replace(/\d+\./g, ' ').trim();

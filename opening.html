@@ -1092,8 +1092,8 @@
                 <!-- Puzzle Panel (shown only in puzzle mode) -->
                 <div class="puzzle-panel" id="puzzlePanel">
                     <div class="puzzle-rating-display">
-                        <span class="puzzle-rating-label" id="puzzleRatingLabel">Puzzle Rating</span>
-                        <span class="puzzle-rating-value" id="puzzleRating">---</span>
+                        <span class="puzzle-rating-label" id="puzzleRatingLabel">Your Puzzle ELO</span>
+                        <span class="puzzle-rating-value" id="puzzleRating">1500</span>
                     </div>
 
                     <div class="puzzle-divider"></div>
@@ -1105,6 +1105,13 @@
                         <div class="puzzle-streak-info">
                             <span class="puzzle-streak-label">Current streak</span>
                             <span class="puzzle-streak-value" id="puzzleStreak">0</span>
+                        </div>
+                    </div>
+
+                    <div class="puzzle-streak" style="margin-top:8px;">
+                        <div class="puzzle-streak-info" style="align-items:center;">
+                            <span class="puzzle-streak-label">Puzzle difficulty</span>
+                            <span class="puzzle-streak-value" id="puzzleDifficulty" style="font-size:1rem;color:var(--text-muted);">---</span>
                         </div>
                     </div>
 
@@ -1435,14 +1442,19 @@
             const streakEl = document.getElementById('puzzleStreak');
             const ratingEl = document.getElementById('puzzleRating');
             const labelEl = document.getElementById('puzzleRatingLabel');
+            const diffEl = document.getElementById('puzzleDifficulty');
             if (streakEl) streakEl.textContent = trainer?.puzzleStreak || 0;
-            if (ratingEl && trainer?.currentPuzzle) {
-                ratingEl.textContent = trainer.currentPuzzle.Rating;
-            } else if (ratingEl) {
-                ratingEl.textContent = '---';
-            }
-            if (labelEl && trainer?.opening) {
-                labelEl.textContent = (trainer.opening.displayName || 'Puzzle') + ' ELO';
+            
+            // Show user's puzzle ELO
+            const userELO = window.userProgress?.puzzleELO || 1500;
+            if (ratingEl) ratingEl.textContent = userELO;
+            if (labelEl) labelEl.textContent = 'Your Puzzle ELO';
+            
+            // Show current puzzle difficulty
+            if (diffEl && trainer?.currentPuzzle) {
+                diffEl.textContent = `~${trainer.currentPuzzle.Rating} rating`;
+            } else if (diffEl) {
+                diffEl.textContent = '---';
             }
         };
     </script>
