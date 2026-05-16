@@ -380,9 +380,12 @@ function moveInputHandler(event) {
             setTimeout(() => {
                 clearIncorrectCross();
                 if (trainer && trainer.mode === 'puzzle' && trainer.currentPuzzle) {
-                    // Stay on current puzzle position, just re-enable input
-                    trainer.enableCurrentMoveInput();
-                    trainer.updateHistoryButtons();
+                    // Stay on current puzzle position, snapback piece, then re-enable input
+                    board.setPosition(game.fen(), true); // animated snapback
+                    setTimeout(() => {
+                        trainer.enableCurrentMoveInput();
+                        trainer.updateHistoryButtons();
+                    }, 300);
                 } else {
                     board.setPosition(game.fen(), true); // animated snapback
                     setTimeout(() => {
