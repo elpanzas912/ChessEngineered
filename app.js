@@ -534,6 +534,7 @@ class Trainer {
             } else {
                 this.updateInstruction();
                 const playerColor = this.opening.playerSide === 'w' ? COLOR.white : COLOR.black;
+                try { board.disableMoveInput(); } catch(e) {}
                 board.enableMoveInput(moveInputHandler, playerColor);
                 updateProgress(this.getProgress());
             }
