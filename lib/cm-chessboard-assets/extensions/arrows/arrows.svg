@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <title>arrows</title>
-    <g id="arrows" stroke="none" fill="none" fill-rule="evenodd" stroke-width="1">
+    <g id="arrows" stroke="none" fill-rule="evenodd" stroke-width="1">
         <g id="cm-chessboard-arrowheads" transform="translate(5, 1)">
             <g id="arrowPointy" fill-rule="nonzero">
                 <path d="M13.5896955,18.4060262 L3.04774642,4.12789972 C2.71970374,3.68359527 2.81395252,3.05748421 3.25825697,2.72944153 C3.58591001,2.48752592 4.02754261,2.46849386 4.37479285,2.68132465 L29.6089137,18.1473987 C30.0797924,18.4360018 30.227556,19.0516834 29.9389529,19.5225621 C29.8565135,19.6570685 29.7434202,19.7701618 29.6089137,19.8526013 L4.37479285,35.3186754 C3.90391418,35.6072784 3.28823259,35.4595148 2.99962954,34.9886362 C2.78679874,34.6413859 2.80583081,34.1997533 3.04774642,33.8721003 L13.5896955,19.5939738 C13.850383,19.2408959 13.850383,18.7591041 13.5896955,18.4060262 Z" id="Path"></path>
