@@ -1411,38 +1411,193 @@ function updateProgress(pct) {
 }
 
 // ── Evaluation Bar ──
+// Piece-square tables (encourage good piece placement)
+const PST = {
+    p: [ // Pawns: encourage center control and advancement
+        [0,  0,  0,  0,  0,  0,  0,  0],
+        [50, 50, 50, 50, 50, 50, 50, 50],
+        [10, 10, 20, 30, 30, 20, 10, 10],
+        [5,  5, 10, 25, 25, 10,  5,  5],
+        [0,  0,  0, 20, 20,  0,  0,  0],
+        [5, -5,-10,  0,  0,-10, -5,  5],
+        [5, 10, 10,-20,-20, 10, 10,  5],
+        [0,  0,  0,  0,  0,  0,  0,  0]
+    ],
+    n: [ // Knights: strongly favor center
+        [-50,-40,-30,-30,-30,-30,-40,-50],
+        [-40,-20,  0,  0,  0,  0,-20,-40],
+        [-30,  0, 10, 15, 15, 10,  0,-30],
+        [-30,  5, 15, 20, 20, 15,  5,-30],
+        [-30,  0, 15, 20, 20, 15,  0,-30],
+        [-30,  5, 10, 15, 15, 10,  5,-30],
+        [-40,-20,  0,  5,  5,  0,-20,-40],
+        [-50,-40,-30,-30,-30,-30,-40,-50]
+    ],
+    b: [ // Bishops: favor long diagonals
+        [-20,-10,-10,-10,-10,-10,-10,-20],
+        [-10,  0,  0,  0,  0,  0,  0,-10],
+        [-10,  0, 10, 10, 10, 10,  0,-10],
+        [-10,  5,  5, 10, 10,  5,  5,-10],
+        [-10,  0,  5, 10, 10,  5,  0,-10],
+        [-10, 10, 10, 10, 10, 10, 10,-10],
+        [-10,  5,  0,  0,  0,  0,  5,-10],
+        [-20,-10,-10,-10,-10,-10,-10,-20]
+    ],
+    r: [ // Rooks: favor 7th rank and open files
+        [0,  0,  0,  0,  0,  0,  0,  0],
+        [5, 10, 10, 10, 10, 10, 10,  5],
+        [-5,  0,  0,  0,  0,  0,  0, -5],
+        [-5,  0,  0,  0,  0,  0,  0, -5],
+        [-5,  0,  0,  0,  0,  0,  0, -5],
+        [-5,  0,  0,  0,  0,  0,  0, -5],
+        [-5,  0,  0,  0,  0,  0,  0, -5],
+        [0,  0,  0,  5,  5,  0,  0,  0]
+    ],
+    q: [ // Queen: slightly favor center but keep flexible
+        [-20,-10,-10, -5, -5,-10,-10,-20],
+        [-10,  0,  0,  0,  0,  0,  0,-10],
+        [-10,  0,  5,  5,  5,  5,  0,-10],
+        [-5,   0,  5,  5,  5,  5,  0, -5],
+        [0,    0,  5,  5,  5,  5,  0, -5],
+        [-10,  5,  5,  5,  5,  5,  0,-10],
+        [-10,  0,  5,  0,  0,  0,  0,-10],
+        [-20,-10,-10, -5, -5,-10,-10,-20]
+    ],
+    k: [ // King: safety in opening/middlegame
+        [-30,-40,-40,-50,-50,-40,-40,-30],
+        [-30,-40,-40,-50,-50,-40,-40,-30],
+        [-30,-40,-40,-50,-50,-40,-40,-30],
+        [-30,-40,-40,-50,-50,-40,-40,-30],
+        [-20,-30,-30,-40,-40,-30,-30,-20],
+        [-10,-20,-20,-20,-20,-20,-20,-10],
+        [20, 20,  0,  0,  0,  0, 20, 20],
+        [20, 30, 10,  0,  0, 10, 30, 20]
+    ]
+};
+
+const PIECE_VAL = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
+
+function evaluatePosition() {
+    if (!game) return 0;
+    const board = game.board();
+    let score = 0;
+    let whiteMobility = 0, blackMobility = 0;
+    let whiteKingShield = 0, blackKingShield = 0;
+    
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            const sq = board[r][c];
+            if (!sq) continue;
+            
+            const type = sq.type;
+            const isWhite = sq.color === 'w';
+            const sign = isWhite ? 1 : -1;
+            
+            // Material value
+            score += sign * PIECE_VAL[type];
+            
+            // Piece-square table (flip for black)
+            const pstRow = isWhite ? (7 - r) : r;
+            const pstVal = PST[type][pstRow][c];
+            score += sign * pstVal;
+        }
+    }
+    
+    // Mobility (number of legal moves)
+    const moves = game.moves({ verbose: true });
+    for (const m of moves) {
+        if (m.color === 'w') whiteMobility++;
+        else blackMobility++;
+    }
+    score += (whiteMobility - blackMobility) * 5;
+    
+    // King safety: bonus for pawns near king
+    const wKing = findKing(board, 'w');
+    const bKing = findKing(board, 'b');
+    if (wKing) whiteKingShield = countPawnShield(board, wKing, 'w');
+    if (bKing) blackKingShield = countPawnShield(board, bKing, 'b');
+    score += (whiteKingShield - blackKingShield) * 15;
+    
+    // Center control bonus
+    score += countCenterControl(board, 'w') * 10;
+    score -= countCenterControl(board, 'b') * 10;
+    
+    return score;
+}
+
+function findKing(board, color) {
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            const sq = board[r][c];
+            if (sq && sq.type === 'k' && sq.color === color) {
+                return { r, c };
+            }
+        }
+    }
+    return null;
+}
+
+function countPawnShield(board, kingPos, color) {
+    let count = 0;
+    const dir = color === 'w' ? -1 : 1; // pawns move toward enemy
+    for (let dc = -1; dc <= 1; dc++) {
+        const r = kingPos.r + dir;
+        const c = kingPos.c + dc;
+        if (r >= 0 && r < 8 && c >= 0 && c < 8) {
+            const sq = board[r][c];
+            if (sq && sq.type === 'p' && sq.color === color) {
+                count++;
+            }
+        }
+    }
+    return count;
+}
+
+function countCenterControl(board, color) {
+    // Count pieces attacking or occupying center squares (d4, d5, e4, e5)
+    const center = [[3,3],[3,4],[4,3],[4,4]]; // 0-indexed: d4,d5,e4,e5
+    let count = 0;
+    // This is simplified - just count pieces in center
+    for (const [r,c] of center) {
+        const sq = board[r][c];
+        if (sq && sq.color === color) count++;
+    }
+    return count;
+}
+
 function updateEvalBar() {
     const whiteEl = document.getElementById('evalBarWhite');
     const blackEl = document.getElementById('evalBarBlack');
     const scoreEl = document.getElementById('evalBarScore');
     if (!whiteEl || !blackEl || !scoreEl || !game) return;
 
-    // Simple material evaluation
-    const pieceValues = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
-    let evalScore = 0;
-    const board = game.board();
-    for (let row of board) {
-        for (let sq of row) {
-            if (sq) {
-                const val = pieceValues[sq.type] || 0;
-                evalScore += sq.color === 'w' ? val : -val;
-            }
-        }
-    }
+    const evalScore = evaluatePosition();
+    
+    // Convert centipawns to pawns display
+    const pawnScore = evalScore / 100;
+    
+    // Clamp display between -5 and +5 pawns for visual purposes
+    const clamped = Math.max(-500, Math.min(500, evalScore));
+    // Map -500..500 centipawns to 0%..100% white height (0 eval = 50%)
+    const whitePct = 50 + (clamped / 1000) * 50;
+    const blackPct = 100 - Math.min(100, Math.max(0, whitePct));
+    const whiteHeight = Math.min(100, Math.max(0, whitePct));
 
-    // Clamp display between -10 and +10 for visual purposes
-    const clamped = Math.max(-10, Math.min(10, evalScore));
-    // Map -10..10 to 0%..100% white height (0 eval = 50%)
-    const whitePct = 50 + (clamped / 20) * 50;
-    const blackPct = 100 - whitePct;
-
-    whiteEl.style.height = whitePct + '%';
+    whiteEl.style.height = whiteHeight + '%';
     blackEl.style.height = blackPct + '%';
 
-    // Show score text (absolute value, white positive)
-    const displayScore = evalScore >= 0 ? '+' + evalScore.toFixed(1) : evalScore.toFixed(1);
+    // Show score text
+    const displayScore = pawnScore >= 0 ? '+' + pawnScore.toFixed(1) : pawnScore.toFixed(1);
     scoreEl.textContent = displayScore;
-    scoreEl.style.color = evalScore > 0 ? '#18181b' : (evalScore < 0 ? '#e4e4e7' : '#a1a1aa');
+    
+    // Color: black text if white advantage (white area), white text if black advantage
+    if (pawnScore > 0.3) {
+        scoreEl.style.color = '#18181b';
+    } else if (pawnScore < -0.3) {
+        scoreEl.style.color = '#e4e4e7';
+    } else {
+        scoreEl.style.color = '#a1a1aa';
+    }
 }
 
 function renderMoveHistory(moves) {
