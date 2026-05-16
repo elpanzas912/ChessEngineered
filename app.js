@@ -127,11 +127,25 @@ function updateLineProgress(slug, linePgn, update) {
 
 async function syncToCloud() {
     const user = window.currentUser;
-    if (!user) return;
+    const supabase = window.supabaseClient;
+    if (!user || !supabase) {
+        window.lastSyncError = 'No user or no supabase client';
+        return;
+    }
     try {
-        const { updateProgress } = await import('./supabaseClient.js');
-        await updateProgress(user.id, window.userProgress);
-    } catch (e) { /* silently fail */ }
+        const { error } = await supabase
+            .from('profiles')
+            .update({ user_progress: window.userProgress, updated_at: new Date().toISOString() })
+            .eq('id', user.id);
+        if (error) {
+            window.lastSyncError = error.message;
+        } else {
+            window.lastSyncError = null;
+            window.lastSyncSuccess = Date.now();
+        }
+    } catch (e) {
+        window.lastSyncError = e.message;
+    }
 }
 
 // ── Load Database ──
@@ -940,3 +954,14 @@ function esc(text) {
 function cap(s) {
     return s.charAt(0).toUpperCase() + s.slice(1);
 }
+
+// Debug helper
+window.debugProgress = function() {
+    return {
+        userProgress: window.userProgress,
+        currentUser: window.currentUser ? window.currentUser.email : null,
+        lastSyncError: window.lastSyncError,
+        lastSyncSuccess: window.lastSyncSuccess,
+        localStorage: JSON.parse(localStorage.getItem('chesspeps_progress') || '{}')
+    };
+};
