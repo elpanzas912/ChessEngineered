@@ -717,6 +717,7 @@ class Trainer {
         this.completed = false;
         this.wrongAttempts = 0;
         this.hintShown = false;
+        this.puzzleELOPenalized = false;
         this.positionHistory = [];
         this.historyIndex = 0;
         this.playedSans = [];
@@ -937,11 +938,14 @@ class Trainer {
                 this.resetLine();
             } else if (this.mode === 'puzzle') {
                 this.puzzleStreak = 0;
-                const puzzleRating = this.currentPuzzle?.Rating || 1500;
-                const result = updatePuzzleELO(puzzleRating, 0);
-                showFeedback(`${result.change} ELO`, 'error');
-                if (typeof updatePuzzleUI === 'function') updatePuzzleUI();
-                // Don't load next puzzle here; moveInputHandler will reset the current puzzle position
+                if (!this.puzzleELOPenalized) {
+                    const puzzleRating = this.currentPuzzle?.Rating || 1500;
+                    const result = updatePuzzleELO(puzzleRating, 0);
+                    showFeedback(`${result.change} ELO`, 'error');
+                    if (typeof updatePuzzleUI === 'function') updatePuzzleUI();
+                    this.puzzleELOPenalized = true;
+                }
+                // Don't load next puzzle here; moveInputHandler will keep the current puzzle position
             }
             return false;
         }
@@ -1015,10 +1019,13 @@ class Trainer {
             // In puzzle mode, using hint counts as a fail for ELO, but only plays the next move
             if (this.mode === 'puzzle') {
                 this.puzzleStreak = 0;
-                const puzzleRating = this.currentPuzzle?.Rating || 1500;
-                const result = updatePuzzleELO(puzzleRating, 0);
-                showFeedback(`${result.change} ELO`, 'error');
-                if (typeof updatePuzzleUI === 'function') updatePuzzleUI();
+                if (!this.puzzleELOPenalized) {
+                    const puzzleRating = this.currentPuzzle?.Rating || 1500;
+                    const result = updatePuzzleELO(puzzleRating, 0);
+                    showFeedback(`${result.change} ELO`, 'error');
+                    if (typeof updatePuzzleUI === 'function') updatePuzzleUI();
+                    this.puzzleELOPenalized = true;
+                }
                 
                 // Execute the correct move for visual feedback
                 const moveResult = game.move(exp.san);
