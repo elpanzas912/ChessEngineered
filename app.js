@@ -641,6 +641,7 @@ class Trainer {
         updateLineHeader(this.lineName, this.opening.displayName);
         renderMoveHistory([]);
         updateProgress(0);
+        updateEvalBar();
         renderLineDropdown();
         const prevBtn = document.getElementById('btnPrev');
         const nextBtn = document.getElementById('btnNext');
@@ -821,6 +822,7 @@ class Trainer {
         game.load(entry.fen);
         this.moveIndex = entry.moveIndex;
         board.setPosition(game.fen(), true);
+        updateEvalBar();
         clearLastMove();
         if (entry.lastMove) highlightLastMove(entry.lastMove.from, entry.lastMove.to);
         renderMoveHistory(entry.sans);
@@ -880,6 +882,7 @@ class Trainer {
                 }
                 this.moveIndex++;
                 board.setPosition(game.fen(), true);
+                updateEvalBar();
                 highlightLastMove(next.from, next.to);
                 playMoveSound(moveResult);
                 this.updateInstruction();
@@ -999,6 +1002,7 @@ class Trainer {
             renderMoveHistory(game.history({ verbose: false }));
         }
         updateProgress(this.getProgress());
+        updateEvalBar();
 
         const desc = this.findDescription();
         // const msg = desc ? 'Correct! ' + desc.substring(0, 50) + '...' : 'Correct!';
@@ -1404,6 +1408,41 @@ function updateProgress(pct) {
             moveNum.textContent = `Move ${current}/${total}`;
         }
     }
+}
+
+// ── Evaluation Bar ──
+function updateEvalBar() {
+    const whiteEl = document.getElementById('evalBarWhite');
+    const blackEl = document.getElementById('evalBarBlack');
+    const scoreEl = document.getElementById('evalBarScore');
+    if (!whiteEl || !blackEl || !scoreEl || !game) return;
+
+    // Simple material evaluation
+    const pieceValues = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+    let evalScore = 0;
+    const board = game.board();
+    for (let row of board) {
+        for (let sq of row) {
+            if (sq) {
+                const val = pieceValues[sq.type] || 0;
+                evalScore += sq.color === 'w' ? val : -val;
+            }
+        }
+    }
+
+    // Clamp display between -10 and +10 for visual purposes
+    const clamped = Math.max(-10, Math.min(10, evalScore));
+    // Map -10..10 to 0%..100% white height (0 eval = 50%)
+    const whitePct = 50 + (clamped / 20) * 50;
+    const blackPct = 100 - whitePct;
+
+    whiteEl.style.height = whitePct + '%';
+    blackEl.style.height = blackPct + '%';
+
+    // Show score text (absolute value, white positive)
+    const displayScore = evalScore >= 0 ? '+' + evalScore.toFixed(1) : evalScore.toFixed(1);
+    scoreEl.textContent = displayScore;
+    scoreEl.style.color = evalScore > 0 ? '#18181b' : (evalScore < 0 ? '#e4e4e7' : '#a1a1aa');
 }
 
 function renderMoveHistory(moves) {
