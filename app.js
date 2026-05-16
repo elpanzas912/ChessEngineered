@@ -374,13 +374,15 @@ function moveInputHandler(event) {
 
     if (event.type === INPUT_EVENT_TYPE.moveInputFinished) {
         if (pendingIncorrectMove) {
-            // Incorrect move: show X, wait, then reset or snapback
+            // Incorrect move: show X, wait, then enable input again
             showIncorrectCross(pendingIncorrectMove.to);
             // showFeedback('Try again!', 'error');
             setTimeout(() => {
                 clearIncorrectCross();
                 if (trainer && trainer.mode === 'puzzle' && trainer.currentPuzzle) {
-                    trainer.resetCurrentPuzzle();
+                    // Stay on current puzzle position, just re-enable input
+                    trainer.enableCurrentMoveInput();
+                    trainer.updateHistoryButtons();
                 } else {
                     board.setPosition(game.fen(), true); // animated snapback
                     setTimeout(() => {
@@ -686,11 +688,16 @@ class Trainer {
         
         // Find puzzle matching user's ELO
         const userELO = getPuzzleELO();
-        const candidates = findPuzzleInELORange(this.puzzles, userELO);
+        let candidates = findPuzzleInELORange(this.puzzles, userELO);
         
         if (!candidates.length) {
             this.loadNextPuzzle(skipCount + 1);
             return;
+        }
+        
+        // Avoid repeating the same puzzle consecutively when possible
+        if (this.currentPuzzle && candidates.length > 1) {
+            candidates = candidates.filter(p => p.id !== this.currentPuzzle.id);
         }
         
         // Pick random from candidates
