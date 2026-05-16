@@ -946,17 +946,53 @@ class Trainer {
             this.hintShown = false;
             document.getElementById('btnHint').textContent = 'Hint';
 
-            // In puzzle mode, using hint counts as a fail for ELO
+            // In puzzle mode, using hint counts as a fail for ELO, but still show the solution
             if (this.mode === 'puzzle') {
                 this.puzzleStreak = 0;
                 const puzzleRating = this.currentPuzzle?.Rating || 1500;
                 const result = updatePuzzleELO(puzzleRating, 0);
                 showFeedback(`${result.change} ELO`, 'error');
                 if (typeof updatePuzzleUI === 'function') updatePuzzleUI();
-                // Load next puzzle after showing the move
-                setTimeout(() => {
-                    this.loadNextPuzzle();
-                }, 800);
+                
+                // Execute the correct move for visual feedback
+                const moveResult = game.move(exp.san);
+                if (moveResult) {
+                    this.moveIndex++;
+                    if (this.mode === 'puzzle') {
+                        this.playedSans.push(moveResult.san);
+                    }
+                    board.setPosition(game.fen(), true);
+                    highlightLastMove(exp.from, exp.to);
+                    playMoveSound(moveResult);
+                    if (this.mode === 'puzzle') {
+                        this.recordPosition(exp);
+                        renderMoveHistory(this.playedSans);
+                    }
+                    updateProgress(this.getProgress());
+                    
+                    // Play opponent response if any
+                    if (this.moveIndex < this.moves.length) {
+                        setTimeout(() => {
+                            const opp = this.moves[this.moveIndex];
+                            if (opp) {
+                                const oppResult = game.move(opp.san);
+                                if (oppResult) {
+                                    this.moveIndex++;
+                                    board.setPosition(game.fen(), true);
+                                    highlightLastMove(opp.from, opp.to);
+                                    playMoveSound(oppResult);
+                                    renderMoveHistory(this.playedSans);
+                                    updateProgress(this.getProgress());
+                                }
+                            }
+                            // Load next puzzle after showing full sequence
+                            setTimeout(() => this.loadNextPuzzle(), 600);
+                        }, 600);
+                        return;
+                    }
+                }
+                // Load next puzzle if no more moves
+                setTimeout(() => this.loadNextPuzzle(), 800);
                 return;
             }
 
