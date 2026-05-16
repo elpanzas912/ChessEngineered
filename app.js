@@ -1001,7 +1001,7 @@ class Trainer {
             this.hintShown = false;
             document.getElementById('btnHint').textContent = 'Hint';
 
-            // In puzzle mode, using hint counts as a fail for ELO, but still show the solution
+            // In puzzle mode, using hint counts as a fail for ELO, but only plays the next move
             if (this.mode === 'puzzle') {
                 this.puzzleStreak = 0;
                 const puzzleRating = this.currentPuzzle?.Rating || 1500;
@@ -1013,16 +1013,12 @@ class Trainer {
                 const moveResult = game.move(exp.san);
                 if (moveResult) {
                     this.moveIndex++;
-                    if (this.mode === 'puzzle') {
-                        this.playedSans.push(moveResult.san);
-                    }
+                    this.playedSans.push(moveResult.san);
                     board.setPosition(game.fen(), true);
                     highlightLastMove(exp.from, exp.to);
                     playMoveSound(moveResult);
-                    if (this.mode === 'puzzle') {
-                        this.recordPosition(exp);
-                        renderMoveHistory(this.playedSans);
-                    }
+                    this.recordPosition(exp);
+                    renderMoveHistory(this.playedSans);
                     updateProgress(this.getProgress());
                     
                     // Play opponent response if any
@@ -1036,17 +1032,21 @@ class Trainer {
                                     board.setPosition(game.fen(), true);
                                     highlightLastMove(opp.from, opp.to);
                                     playMoveSound(oppResult);
+                                    this.playedSans.push(oppResult.san);
                                     renderMoveHistory(this.playedSans);
                                     updateProgress(this.getProgress());
+                                    this.recordPosition(opp);
                                 }
                             }
-                            // Load next puzzle after showing full sequence
-                            setTimeout(() => this.loadNextPuzzle(), 600);
+                            // Re-enable input so user can continue the puzzle
+                            this.enableCurrentMoveInput();
+                            this.updateHistoryButtons();
                         }, 600);
                         return;
                     }
                 }
-                // Load next puzzle if no more moves
+                // If no more moves after hint, puzzle is technically over but user already lost ELO
+                // Just load next puzzle without awarding victory
                 setTimeout(() => this.loadNextPuzzle(), 800);
                 return;
             }
