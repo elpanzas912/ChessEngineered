@@ -57,10 +57,16 @@ const stats = {
 let userProgress = {};
 let currentUser = null;
 
+// Expose for non-module scripts
+window.userProgress = userProgress;
+
 function loadLocalProgress() {
     try {
         const stored = localStorage.getItem('chesspeps_progress');
-        if (stored) userProgress = JSON.parse(stored);
+        if (stored) {
+            userProgress = JSON.parse(stored);
+            window.userProgress = userProgress;
+        }
     } catch (e) { /* ignore corrupt storage */ }
 }
 
@@ -208,6 +214,7 @@ function initApp() {
     const slug = params.get('slug');
     if (slug && db[slug]) {
         trainer = new Trainer();
+        window.trainer = trainer;
         trainer.loadOpening(slug);
         const nameEl = document.getElementById('openingName');
         if (nameEl) nameEl.textContent = db[slug].displayName;
@@ -766,6 +773,7 @@ function onOpeningChange(e) {
     const slug = e.target.value;
     if (!slug) return;
     if (!trainer) trainer = new Trainer();
+    window.trainer = trainer;
     trainer.loadOpening(slug);
     updateStats();
 }
