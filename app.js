@@ -25,6 +25,27 @@ function playMoveSound(move) {
     snd.play().catch(e => {/* ignore autoplay restrictions */});
 }
 
+// Soft celebration chime using Web Audio API
+function playCompletionSound() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 (major arpeggio)
+        const now = audioCtx.currentTime;
+        notes.forEach((freq, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.08, now + i * 0.12);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.6);
+            osc.start(now + i * 0.12);
+            osc.stop(now + i * 0.12 + 0.6);
+        });
+    } catch (e) { /* ignore audio errors */ }
+}
+
 const stats = {
     linesDone: 0,
     movesMade: 0,
@@ -593,10 +614,19 @@ class Trainer {
         const bubbleText = document.querySelector('.instruction-text');
         if (bubbleText) bubbleText.textContent = 'Line complete! Great job!';
         
-        // Trigger confetti celebration
+        // Trigger confetti celebration centered on board
+        playCompletionSound();
         if (typeof confetti !== 'undefined') {
+            const boardEl = document.getElementById('board');
+            let originX = 0.5;
+            let originY = 0.5;
+            if (boardEl) {
+                const rect = boardEl.getBoundingClientRect();
+                originX = (rect.left + rect.width / 2) / window.innerWidth;
+                originY = (rect.top + rect.height / 2) / window.innerHeight;
+            }
             const count = 200;
-            const defaults = { origin: { y: 0.7 } };
+            const defaults = { origin: { x: originX, y: originY } };
             
             function fire(particleRatio, opts) {
                 confetti({
