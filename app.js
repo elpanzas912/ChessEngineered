@@ -24,6 +24,62 @@ function playMoveSound(move) {
     const snd = isCapture ? sounds.capture : sounds.move;
     snd.currentTime = 0;
     snd.play().catch(e => {/* ignore autoplay restrictions */});
+    
+    // Check for check or checkmate after a short delay (after move sound)
+    setTimeout(() => {
+        detectCheckSounds();
+    }, 150);
+}
+
+function detectCheckSounds() {
+    if (!game) return;
+    if (game.in_checkmate()) {
+        playCheckmateSound();
+    } else if (game.in_check()) {
+        playCheckSound();
+    }
+}
+
+// Sharp double beep for check (like Lichess check sound)
+function playCheckSound() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = audioCtx.currentTime;
+        // Two quick high-pitched beeps
+        [0, 0.08].forEach((delay, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.value = 1200 + i * 200; // 1200Hz then 1400Hz
+            gain.gain.setValueAtTime(0.12, now + delay);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.15);
+            osc.start(now + delay);
+            osc.stop(now + delay + 0.15);
+        });
+    } catch (e) { /* ignore audio errors */ }
+}
+
+// Triumphant fanfare for checkmate
+function playCheckmateSound() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = audioCtx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C5, E5, G5, C6, E6
+        notes.forEach((freq, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.1, now + i * 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.5);
+            osc.start(now + i * 0.15);
+            osc.stop(now + i * 0.15 + 0.5);
+        });
+    } catch (e) { /* ignore audio errors */ }
 }
 
 // Soft celebration chime using Web Audio API

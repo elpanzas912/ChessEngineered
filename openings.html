@@ -3,229 +3,548 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChessPeps - Opening Trainer</title>
+    <title>Chesspeps — Repertoire</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;800&family=Outfit:wght@400;700;800&family=Clash+Display:wght@400;700&family=Syne:wght@400;700;800&family=Inter:wght@400;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:wght@400;700;800&family=Josefin+Sans:wght@300;400;700&family=Raleway:wght@300;400;800&family=Nunito:wght@300;400;700&family=Quicksand:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --purple: #8b5cf6;
-            --purple-hover: #7c3aed;
+            --bg:       #07070a;
+            --surface:  #0f0f14;
+            --border:   #1e1e28;
+            --border-h: #d4a843;
+            --gold:     #d4a843;
+            --gold-dim: #d4a84344;
+            --gold-faint:#d4a84318;
+            --cream:    #f2e8d5;
+            --muted:    #54546a;
+            --muted2:   #38384a;
+            --white-badge: #e8e8e8;
+            --black-badge: #ffd06a;
+            --purple:   #8b6fc4;
         }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
 
         body {
-            overflow-y: auto;
             background: var(--bg);
+            color: var(--cream);
+            font-family: 'Space Mono', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
 
-        /* Header over banner */
-        .site-header {
+        /* ─── SCROLLBAR ─── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+        /* ─── NAV ─── */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            height: 56px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px 32px;
-            background: transparent;
-            position: relative;
-            z-index: 10;
+            padding: 0 40px;
+            background: rgba(7,7,10,.85);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
         }
 
-        .site-header .brand {
+        .nav-logo {
             display: flex;
             align-items: center;
-            gap: 10px;
-            text-decoration: none;
-        }
-
-        .site-header .brand-icon {
-            width: 32px;
-            height: 32px;
-            background: var(--purple);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-        }
-
-        .site-header .brand-text {
-            font-size: 1.25rem;
+            gap: 9px;
+            font-size: 13px;
             font-weight: 700;
-            color: var(--text);
-            letter-spacing: -0.02em;
-        }
-
-        .site-header nav {
-            display: flex;
-            gap: 28px;
-        }
-
-        .site-header nav a {
-            color: var(--text-muted);
+            letter-spacing: .08em;
+            color: var(--cream);
             text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: color 0.15s;
         }
 
-        .site-header nav a:hover,
-        .site-header nav a.active {
-            color: var(--text);
-        }
-
-        /* Hero Banner Container */
-        .hero-banner {
-            position: relative;
-            min-height: 420px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .hero-banner-bg {
-            position: absolute;
-            inset: 0;
-            background: url('img/banner.png') center -195px / cover no-repeat;
-            z-index: 0;
-        }
-
-        .hero-banner-fade {
-            position: absolute;
-            bottom: -20px;
-            left: 0;
-            right: 0;
-            height: 300px;
-            background: linear-gradient(to bottom, rgba(9,9,11,0) 0%, rgba(9,9,11,0.7) 60%, var(--bg) 100%);
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        /* Hero */
-        .hero {
-            text-align: center;
-            padding: 40px 20px 100px;
-            position: relative;
-            z-index: 2;
-            margin-top: auto;
-        }
-
-        .hero h1 {
-            font-size: 3.2rem;
-            font-weight: 800;
-            margin-bottom: 12px;
-            letter-spacing: -0.03em;
-            color: #fff;
-            text-shadow: 0 2px 16px rgba(0,0,0,0.5);
-        }
-
-        .hero h1 span {
-            background: linear-gradient(135deg, #ddd6fe 0%, #a78bfa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-family: inherit;
-        }
-
-        .hero p {
-            color: rgba(255,255,255,0.8);
-            font-size: 1.15rem;
-            max-width: 500px;
-            margin: 0 auto;
-            text-shadow: 0 1px 8px rgba(0,0,0,0.4);
-        }
-
-        /* Font Selector */
-        .font-selector {
+        .nav-logo-icon {
+            width: 28px; height: 28px;
+            background: var(--gold);
+            border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            margin-top: 16px;
-            z-index: 2;
-            position: relative;
+            font-size: 16px;
+            line-height: 1;
         }
 
-        .font-selector label {
-            color: rgba(255,255,255,0.6);
-            font-size: 0.8rem;
-            font-weight: 500;
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
         }
 
-        .font-selector select {
-            padding: 6px 12px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 6px;
-            color: #fff;
-            font-size: 0.85rem;
-            cursor: pointer;
-            outline: none;
+        .nav-links a {
+            font-size: 11px;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color .2s;
         }
+        .nav-links a:hover, .nav-links a.active { color: var(--cream); }
 
-        .font-selector select option {
-            background: var(--surface);
-            color: var(--text);
-        }
-
-        /* Simple Toolbar */
-        .toolbar {
+        .nav-right {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 0 32px 28px;
-            max-width: 1200px;
+        }
+
+        .nav-user {
+            font-size: 11px;
+            letter-spacing: .06em;
+            color: var(--muted);
+        }
+
+        .nav-avatar {
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            background: var(--purple);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .btn-logout, .btn-login {
+            font-family: inherit;
+            font-size: 10px;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 5px 12px;
+            cursor: pointer;
+            transition: border-color .2s, color .2s;
+        }
+        .btn-logout:hover, .btn-login:hover { border-color: var(--muted); color: var(--cream); }
+
+        /* ─── HERO ─── */
+        .hero {
+            position: relative;
+            padding-top: 56px;
+            height: 360px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Gradient bg */
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 70% 80% at 50% 100%, #1a0e3a 0%, transparent 65%),
+                radial-gradient(ellipse 40% 40% at 20% 80%, #0e1a2e 0%, transparent 60%),
+                var(--bg);
+        }
+
+        /* Noise grain */
+        .hero-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            background-size: 200px;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        /* Piece silhouettes */
+        .hero-pieces {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .hero-piece {
+            position: absolute;
+            bottom: -10px;
+            font-size: 180px;
+            line-height: 1;
+            opacity: 0.055;
+            filter: blur(0.5px);
+            transition: opacity 1s;
+        }
+        .hp-1 { left: 2%;  font-size: 140px; opacity: 0.04; }
+        .hp-2 { left: 10%; font-size: 200px; }
+        .hp-3 { right: 12%; font-size: 190px; }
+        .hp-4 { right: 2%;  font-size: 130px; opacity: 0.04; }
+
+        /* Horizontal rule accent */
+        .hero-rule {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--border) 20%, var(--border) 80%, transparent);
+        }
+
+        .hero-content {
+            position: relative;
+            text-align: center;
+            z-index: 1;
+        }
+
+        .hero-eyebrow {
+            font-size: 9px;
+            letter-spacing: .28em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 16px;
+            opacity: 0.8;
+        }
+
+        .hero-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(3rem, 6vw, 5.5rem);
+            font-weight: 700;
+            line-height: 1;
+            color: var(--cream);
+            margin-bottom: 18px;
+        }
+
+        .hero-title em {
+            font-style: italic;
+            color: var(--gold);
+        }
+
+        .hero-sub {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: .04em;
+            line-height: 1.8;
+            max-width: 420px;
             margin: 0 auto;
         }
 
-        .color-filters {
-            display: flex;
-            gap: 8px;
-            margin-right: 12px;
+        /* ─── MAIN ─── */
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 40px 80px;
         }
 
-        .color-filter {
+        /* ─── TOOLBAR ─── */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            border-radius: 3px;
+            padding: 7px 16px;
+            cursor: pointer;
+            transition: all .2s;
             display: flex;
             align-items: center;
             gap: 6px;
-            padding: 8px 14px;
+        }
+
+        .filter-btn:hover { border-color: var(--muted); color: var(--cream); }
+        .filter-btn.active {
+            background: var(--gold-faint);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .filter-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .search-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-left: 8px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            font-size: 12px;
+            color: var(--muted2);
+            pointer-events: none;
+        }
+
+        .search-input {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            font-weight: 600;
+            color: var(--cream);
+            border-radius: 3px;
+            padding: 8px 16px 8px 34px;
+            width: 240px;
+            outline: none;
+            letter-spacing: .04em;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .search-input::placeholder { color: var(--muted2); }
+        .search-input:focus {
+            border-color: var(--gold-dim);
+            box-shadow: 0 0 0 3px var(--gold-faint);
+        }
+
+        .toolbar-right {
+            font-size: 10px;
+            color: var(--muted2);
+            letter-spacing: .08em;
+        }
+        .toolbar-right strong { color: var(--muted); }
+
+        /* ─── SECTION LABEL ─── */
+        .section-label {
+            font-size: 9px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: var(--muted2);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ─── GRID ─── */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ─── CARD ─── */
+        .card {
+            position: relative;
+            display: flex;
+            height: 152px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: border-color .3s, transform .3s cubic-bezier(.22,.68,0,1.2), box-shadow .3s;
+        }
+
+        .card:hover {
+            border-color: var(--border-h);
+            transform: translateY(-3px) scale(1.006);
+            box-shadow: 0 16px 40px rgba(0,0,0,.6), 0 0 0 1px #d4a84322;
+        }
+
+        /* Board thumb */
+        .card-thumb {
+            flex-shrink: 0;
+            width: 150px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* CSS chessboard */
+        .cb-grid {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            opacity: 0.28;
+            transition: opacity .3s;
+        }
+        .card:hover .cb-grid { opacity: 0.38; }
+
+        .cb-cell { width: 100%; height: 100%; }
+        .cb-cell.light { background: #d4b896; }
+        .cb-cell.dark  { background: #8b6a4a; }
+
+        /* Fade right */
+        .card-thumb-fade {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to right, transparent 50%, var(--surface) 100%);
+        }
+
+        /* Piece on board */
+        .card-thumb-piece {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            opacity: 0.5;
+            filter: drop-shadow(0 2px 12px rgba(0,0,0,.5));
+            transition: opacity .3s, transform .3s;
             user-select: none;
         }
+        .card:hover .card-thumb-piece { opacity: 0.65; transform: scale(1.06); }
 
-        .color-filter:hover {
-            border-color: var(--border-light);
+        /* Content */
+        .card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 16px 18px 14px;
+            position: relative;
+            overflow: hidden;
+            min-width: 0;
         }
 
-        .color-filter.active {
-            border-color: var(--purple);
-            background: rgba(139, 92, 246, 0.1);
-            color: var(--text);
+        .card-shimmer {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(110deg, transparent 30%, rgba(212,168,67,.03) 50%, transparent 70%);
+            background-size: 200% 100%;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s;
+        }
+        .card:hover .card-shimmer { opacity: 1; animation: shimmer 2.2s infinite; }
+        @keyframes shimmer { from{background-position:200% 0} to{background-position:-200% 0} }
+
+        .card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
         }
 
-        .color-filter .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
+        .card-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--cream);
+            line-height: 1.15;
+            flex: 1;
+            min-width: 0;
         }
 
-        .color-filter .dot.white-side {
-            background: #fff;
-            border: 1px solid #52525b;
+        .badge {
+            flex-shrink: 0;
+            font-size: 8px;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 2px;
+            margin-top: 2px;
+        }
+        .badge-white {
+            background: #f2f2f215;
+            border: 1px solid #f2f2f230;
+            color: #d8d8d8;
+        }
+        .badge-black {
+            background: var(--gold-faint);
+            border: 1px solid var(--gold-dim);
+            color: var(--gold);
         }
 
-        .color-filter .dot.black-side {
-            background: #27272a;
-            border: 1px solid #52525b;
+        .card-desc {
+            font-size: 10.5px;
+            line-height: 1.65;
+            color: var(--muted);
+            letter-spacing: .01em;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            transition: color .2s;
+        }
+        .card:hover .card-desc { color: #78788e; }
+
+        .card-foot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        /* Auth Modal */
+        .card-lines {
+            font-size: 10px;
+            color: var(--muted2);
+            letter-spacing: .06em;
+        }
+        .card-lines strong { color: var(--muted); }
+
+        .card-cta {
+            font-size: 9px;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            opacity: 0;
+            transform: translateX(-6px);
+            transition: opacity .25s, transform .25s;
+        }
+        .card:hover .card-cta { opacity: 1; transform: translateX(0); }
+
+        .cta-arrow { display: inline-block; transition: transform .25s; }
+        .card:hover .cta-arrow { transform: translateX(3px); }
+
+        /* Corner accent */
+        .card-corner-tl {
+            position: absolute;
+            top: 0; left: 0;
+            width: 40px; height: 40px;
+            border-top: 1px solid var(--gold);
+            border-left: 1px solid var(--gold);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .35s;
+        }
+        .card:hover .card-corner-tl { opacity: 0.5; }
+
+        /* ─── AUTH MODAL ─── */
         .auth-modal-overlay {
             display: none;
             position: fixed;
@@ -243,7 +562,7 @@
         .auth-modal {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 16px;
+            border-radius: 4px;
             padding: 32px;
             width: 100%;
             max-width: 380px;
@@ -251,10 +570,12 @@
         }
 
         .auth-modal h2 {
-            font-size: 1.4rem;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.6rem;
             font-weight: 700;
             margin-bottom: 24px;
             text-align: center;
+            color: var(--cream);
         }
 
         .auth-modal .form-group {
@@ -263,9 +584,11 @@
 
         .auth-modal label {
             display: block;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: var(--text-muted);
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--muted);
             margin-bottom: 6px;
         }
 
@@ -274,44 +597,49 @@
             padding: 10px 14px;
             background: var(--bg);
             border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text);
-            font-size: 0.95rem;
+            border-radius: 3px;
+            color: var(--cream);
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
             outline: none;
             transition: border-color 0.15s;
         }
 
         .auth-modal input:focus {
-            border-color: var(--purple);
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px var(--gold-faint);
         }
 
         .auth-modal .btn-auth {
             width: 100%;
             padding: 12px;
-            background: var(--purple);
+            background: var(--gold);
             border: none;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 0.95rem;
-            font-weight: 600;
+            border-radius: 3px;
+            color: #000;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            font-weight: 700;
             cursor: pointer;
             transition: background 0.15s;
             margin-top: 8px;
         }
 
         .auth-modal .btn-auth:hover {
-            background: var(--purple-hover);
+            background: #c49a3a;
         }
 
         .auth-modal .auth-toggle {
             text-align: center;
             margin-top: 16px;
-            font-size: 0.85rem;
-            color: var(--text-muted);
+            font-size: 11px;
+            color: var(--muted);
         }
 
         .auth-modal .auth-toggle a {
-            color: var(--purple);
+            color: var(--gold);
             cursor: pointer;
             text-decoration: underline;
         }
@@ -322,530 +650,98 @@
             right: 16px;
             background: none;
             border: none;
-            color: var(--text-muted);
+            color: var(--muted);
             font-size: 1.2rem;
             cursor: pointer;
+            transition: color 0.15s;
         }
+        .auth-modal .close-btn:hover { color: var(--cream); }
 
         .auth-modal .error-msg {
-            color: var(--danger);
-            font-size: 0.85rem;
+            color: #ef4444;
+            font-size: 11px;
             margin-top: 8px;
             text-align: center;
             display: none;
         }
 
-        /* User menu */
-        .user-menu {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .user-avatar {
-            width: 32px;
-            height: 32px;
-            background: var(--purple);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.85rem;
-            color: #fff;
-        }
-
-        .btn-login {
-            padding: 8px 18px;
-            background: var(--purple);
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-
-        .btn-login:hover {
-            background: var(--purple-hover);
-        }
-
-        .search-box {
-            flex: 1;
-            max-width: 400px;
-            position: relative;
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 10px 14px 10px 38px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text);
-            font-size: 0.9rem;
-            outline: none;
-            transition: border-color 0.15s;
-        }
-
-        .search-box input:focus {
-            border-color: var(--purple);
-        }
-
-        .search-box::before {
-            content: "🔍";
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 0.85rem;
-            opacity: 0.5;
-        }
-
-        .toolbar-spacer {
-            flex: 1;
-        }
-
-        .stats-pill {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        /* Course Grid */
-        .course-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            padding: 0 32px 48px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        @media (max-width: 900px) {
-            .course-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .course-card {
-            display: flex;
-            background: #111114;
-            border: 1px solid #2a2a30;
-            border-radius: 5px;
-            overflow: hidden;
-            transition: border-color 0.35s ease, transform 0.3s cubic-bezier(.22,.68,0,1.2), box-shadow 0.35s ease;
-            position: relative;
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .course-card:hover {
-            border-color: #c8a84b;
-            transform: translateY(-4px) scale(1.01);
-            box-shadow: 0 20px 48px rgba(0,0,0,.7), 0 0 0 1px #c8a84b33;
-        }
-
-        .course-card .card-board {
-            flex-shrink: 0;
-            width: 200px;
-            min-width: 200px;
-            height: 200px;
-            position: relative;
-            overflow: hidden;
-            background: #111114;
-        }
-
-        .course-card .card-board img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.85;
-            transition: opacity 0.35s;
-        }
-
-        .course-card:hover .card-board img {
-            opacity: 0.95;
-        }
-
-        .board-fade {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to right, transparent 40%, #111114 100%);
-            pointer-events: none;
-        }
-
-        .board-piece {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 80px;
-            opacity: 0.15;
-            filter: drop-shadow(0 0 18px rgba(200,168,75,0.4));
-            transition: opacity 0.35s, filter 0.35s;
-            user-select: none;
-            pointer-events: none;
-        }
-
-        .course-card:hover .board-piece {
-            opacity: 0.3;
-            filter: drop-shadow(0 0 28px rgba(200,168,75,0.6));
-        }
-
-        .course-card .card-body {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 18px 20px 16px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card-body-bg {
-            position: absolute;
-            inset: 0;
-            opacity: 0.02;
-            background: radial-gradient(circle at 80% 20%, rgba(139,92,246,0.15) 0%, transparent 50%);
-            transition: opacity 0.35s;
-            pointer-events: none;
-        }
-
-        .course-card:hover .card-body-bg {
-            opacity: 0.05;
-        }
-
-        .card-corner {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 50px;
-            height: 50px;
-            border-top: 1px solid #c8a84b;
-            border-left: 1px solid #c8a84b;
-            opacity: 0;
-            transition: opacity 0.35s;
-            pointer-events: none;
-        }
-
-        .course-card:hover .card-corner {
-            opacity: 0.6;
-        }
-
-        .card-shimmer {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(110deg, transparent 30%, rgba(200,168,75,.035) 50%, transparent 70%);
-            background-size: 200% 100%;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-
-        .course-card:hover .card-shimmer {
-            opacity: 1;
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            from { background-position: 200% 0; }
-            to   { background-position: -200% 0; }
-        }
-
-        .course-card .card-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 12px;
-            position: relative;
-        }
-
-        .course-card h3 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #f0e8d0;
-            margin: 0;
-            line-height: 1.2;
-        }
-
-        .badge-side {
-            flex-shrink: 0;
-            font-size: 9px;
-            letter-spacing: .12em;
-            color: #c8a84b;
-            background: #c8a84b18;
-            border: 1px solid #c8a84b44;
-            padding: 3px 8px;
-            border-radius: 2px;
-            text-transform: uppercase;
-            white-space: nowrap;
-            margin-top: 3px;
-        }
-
-        .course-card .card-desc {
-            font-size: 11px;
-            color: #6a6a7e;
-            line-height: 1.6;
-            letter-spacing: .02em;
-            position: relative;
-            transition: color 0.3s;
-            margin: 8px 0;
-        }
-
-        .course-card:hover .card-desc {
-            color: #8a8a9e;
-        }
-
-        .card-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: relative;
-        }
-
-        .card-progress-wrap {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            flex: 1;
-            margin-right: 20px;
-        }
-
-        .card-lines {
-            font-size: 9px;
-            color: #45455a;
-            letter-spacing: .1em;
-            text-align: right;
-        }
-
-        .progress-track {
-            height: 3px;
-            background: #222230;
-            border-radius: 99px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(to right, #7c5cbf, #c8a84b);
-            border-radius: 99px;
-            transition: width 0.6s cubic-bezier(.22,.68,0,1.2);
-        }
-
-        .try-link {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 10px;
-            font-weight: 500;
-            letter-spacing: .12em;
-            color: #c8a84b;
-            text-transform: uppercase;
-            white-space: nowrap;
-            transition: gap 0.25s;
-            text-decoration: none;
-        }
-
-        .course-card:hover .try-link {
-            gap: 10px;
-        }
-
-        .cta-arrow {
-            display: inline-block;
-            transition: transform 0.25s;
-        }
-
-        .course-card:hover .cta-arrow {
-            transform: translateX(3px);
+        @media (max-width: 768px) {
+            nav { padding: 0 20px; }
+            .nav-links { gap: 20px; }
+            .nav-links a { font-size: 10px; }
+            main { padding: 24px 20px 60px; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .toolbar-left { flex-wrap: wrap; }
+            .search-input { width: 100%; }
+            .search-wrap { margin-left: 0; margin-top: 8px; width: 100%; }
+            .hero-title { font-size: clamp(2.2rem, 8vw, 3.5rem); }
         }
     </style>
 </head>
 <body>
-    <div class="hero-banner">
-        <div class="hero-banner-bg"></div>
-        <div class="hero-banner-fade"></div>
 
-        <header class="site-header">
-            <a href="/" class="brand">
-                <div class="brand-icon">♟</div>
-                <span class="brand-text">chesspeps</span>
-            </a>
-            <nav>
-                <a href="/openings.html" class="active">Repertoire</a>
-                <a href="/index.html">Trainer</a>
-            </nav>
-            <div class="user-menu" id="userMenu">
-                <button class="btn-login" id="btnLogin" onclick="openAuthModal()">Log in</button>
-            </div>
-        </header>
+    <!-- ── NAV ── -->
+    <nav>
+        <a href="/openings.html" class="nav-logo">
+            <div class="nav-logo-icon">♟</div>
+            chesspeps
+        </a>
 
-        <section class="hero">
-            <h1 id="heroTitle" style="font-family: 'Josefin Sans', sans-serif; font-weight: 700;">Chess Opening <span>Trainer</span></h1>
-            <p>Practice your openings with interactive move-by-move training</p>
-            <div class="font-selector">
-                <label>Try a font:</label>
-                <select id="fontSelect" onchange="document.getElementById('heroTitle').style.fontFamily = this.value">
-                    <optgroup label="Bold & Modern">
-                        <option value="'Space Grotesk', sans-serif">Space Grotesk</option>
-                        <option value="'Outfit', sans-serif">Outfit</option>
-                        <option value="'Clash Display', sans-serif">Clash Display</option>
-                        <option value="'Syne', sans-serif">Syne</option>
-                        <option value="'Inter', sans-serif">Inter</option>
-                    </optgroup>
-                    <optgroup label="Elegant & Thin">
-                        <option value="'Cormorant Garamond', serif">Cormorant Garamond</option>
-                        <option value="'Playfair Display', serif">Playfair Display</option>
-                        <option value="'Josefin Sans', sans-serif" selected>Josefin Sans</option>
-                        <option value="'Raleway', sans-serif">Raleway</option>
-                        <option value="'Nunito', sans-serif">Nunito</option>
-                        <option value="'Quicksand', sans-serif">Quicksand</option>
-                    </optgroup>
-                </select>
-            </div>
-        </section>
+        <ul class="nav-links">
+            <li><a href="/openings.html" class="active">Repertoire</a></li>
+            <li><a href="/index.html">Trainer</a></li>
+        </ul>
+
+        <div class="nav-right" id="userMenu">
+            <button class="btn-login" id="btnLogin" onclick="openAuthModal()">Log in</button>
+        </div>
+    </nav>
+
+    <!-- ── HERO ── -->
+    <div class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-pieces">
+            <span class="hero-piece hp-1">♜</span>
+            <span class="hero-piece hp-2">♚</span>
+            <span class="hero-piece hp-3">♞</span>
+            <span class="hero-piece hp-4">♟</span>
+        </div>
+        <div class="hero-rule"></div>
+
+        <div class="hero-content">
+            <p class="hero-eyebrow">Chess Opening Repertoire</p>
+            <h1 class="hero-title">Master the<br><em>Opening</em></h1>
+            <p class="hero-sub">Practice your openings with interactive<br>move-by-move training.</p>
+        </div>
     </div>
 
-    <div class="toolbar">
-        <div class="color-filters">
-            <button class="color-filter active" data-color="all" onclick="toggleColorFilter(this)">
-                <span>All</span>
-            </button>
-            <button class="color-filter" data-color="white" onclick="toggleColorFilter(this)">
-                <span class="dot white-side"></span>
-                <span>White</span>
-            </button>
-            <button class="color-filter" data-color="black" onclick="toggleColorFilter(this)">
-                <span class="dot black-side"></span>
-                <span>Black</span>
-            </button>
+    <!-- ── MAIN ── -->
+    <main>
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <button class="filter-btn active" data-color="all" onclick="toggleColorFilter(this)">All</button>
+                <button class="filter-btn" data-color="white" onclick="toggleColorFilter(this)">
+                    <span class="filter-dot" style="background:#e8e8e8"></span> White
+                </button>
+                <button class="filter-btn" data-color="black" onclick="toggleColorFilter(this)">
+                    <span class="filter-dot" style="background:#d4a843"></span> Black
+                </button>
+                <div class="search-wrap">
+                    <span class="search-icon">⌕</span>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search openings…">
+                </div>
+            </div>
+            <div class="toolbar-right">
+                <strong id="countOpenings">28</strong> openings · <strong id="countLines">0</strong> lines
+            </div>
         </div>
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Search openings...">
-        </div>
-        <div class="toolbar-spacer"></div>
-        <span class="stats-pill" id="statsPill">28 openings</span>
-    </div>
 
-    <main class="course-grid" id="courseGrid"></main>
+        <div class="section-label" id="sectionLabel">All openings</div>
 
-    <script>
-        let allOpenings = {};
-        let currentColorFilter = 'all';
+        <div class="grid" id="courseGrid"></div>
+    </main>
 
-        fetch('data/openings.json')
-            .then(r => r.json())
-            .then(data => {
-                allOpenings = data.openings || {};
-                renderCourses(allOpenings);
-            })
-            .catch(err => { /* ignore */ });
-
-        function renderCourses(openings) {
-            const grid = document.getElementById('courseGrid');
-            grid.innerHTML = '';
-            
-            let entries = Object.entries(openings).sort((a, b) => a[1].displayName.localeCompare(b[1].displayName));
-            
-            // Apply color filter
-            if (currentColorFilter !== 'all') {
-                entries = entries.filter(([, o]) => o.playerSide === currentColorFilter[0]);
-            }
-            
-            const totalLines = entries.reduce((sum, [, o]) => sum + (o.lines?.length || 0), 0);
-            document.getElementById('statsPill').textContent = `${entries.length} openings · ${totalLines} lines`;
-
-            entries.forEach(([slug, o]) => {
-                const card = document.createElement('article');
-                card.className = 'course-card';
-                card.dataset.side = o.playerSide === 'w' ? 'white' : 'black';
-
-                const side = o.playerSide === 'w' ? 'white' : 'black';
-                const sideLabel = o.playerSide === 'w' ? 'White' : 'Black';
-                const lineCount = o.lines?.length || 0;
-                const desc = o.descriptions ? Object.values(o.descriptions)[0] : '';
-                const shortDesc = desc ? desc.substring(0, 140) + (desc.length > 140 ? '...' : '') : '';
-                
-                // Calculate progress
-                let learnedCount = 0;
-                try {
-                    const progress = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
-                    learnedCount = progress[slug]?.learnedLines?.length || 0;
-                } catch (e) { /* ignore */ }
-                const pct = lineCount > 0 ? Math.round((learnedCount / lineCount) * 100) : 0;
-                
-                // Get piece emoji based on opening side
-                const pieceEmoji = o.playerSide === 'w' ? '♙' : '♟';
-                
-                card.innerHTML = `
-                    <div class="card-board">
-                        <img src="boards/${slug}.png" alt="${o.displayName} board">
-                        <div class="board-fade"></div>
-                        <div class="board-piece">${pieceEmoji}</div>
-                    </div>
-                    <div class="card-body">
-                        <div class="card-body-bg"></div>
-                        <div class="card-corner"></div>
-                        <div class="card-shimmer"></div>
-                        
-                        <div class="card-header">
-                            <h3>${o.displayName}</h3>
-                            <span class="badge-side">${sideLabel}</span>
-                        </div>
-                        
-                        <p class="card-desc">${shortDesc || 'Practice this opening with interactive training.'}</p>
-                        
-                        <div class="card-footer">
-                            <div class="card-progress-wrap">
-                                <span class="card-lines">${learnedCount}/${lineCount} lines</span>
-                                <div class="progress-track">
-                                    <div class="progress-fill" style="width: ${pct}%"></div>
-                                </div>
-                            </div>
-                            <a href="opening.html?slug=${slug}" class="try-link">
-                                Start learning <span class="cta-arrow">→</span>
-                            </a>
-                        </div>
-                    </div>
-                `;
-                
-                // Make entire card clickable
-                card.addEventListener('click', (e) => {
-                    // Don't navigate if clicking the "Start learning" link directly
-                    if (e.target.closest('.try-link')) return;
-                    window.location.href = `opening.html?slug=${slug}`;
-                });
-                
-                grid.appendChild(card);
-            });
-        }
-
-        function toggleColorFilter(btn) {
-            // Update active state
-            document.querySelectorAll('.color-filter').forEach(f => f.classList.remove('active'));
-            btn.classList.add('active');
-            
-            currentColorFilter = btn.dataset.color;
-            renderCourses(allOpenings);
-        }
-
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            document.querySelectorAll('.course-card').forEach(card => {
-                const name = card.querySelector('h3').textContent.toLowerCase();
-                const desc = card.querySelector('.card-desc').textContent.toLowerCase();
-                const matchesSearch = name.includes(term) || desc.includes(term);
-                const matchesColor = currentColorFilter === 'all' || card.dataset.side === currentColorFilter;
-                card.style.display = (matchesSearch && matchesColor) ? '' : 'none';
-            });
-        });
-    </script>
-
-    <!-- Auth Modal -->
+    <!-- ── AUTH MODAL ── -->
     <div class="auth-modal-overlay" id="authModal">
         <div class="auth-modal">
             <button class="close-btn" onclick="closeAuthModal()">×</button>
@@ -859,7 +755,7 @@
                 <input type="password" id="authPassword" placeholder="••••••••">
             </div>
             <button class="btn-auth" id="authBtn" onclick="handleAuth()">Log in</button>
-            <div style="text-align:center;margin:16px 0;color:var(--text-dim);font-size:0.85rem;">or</div>
+            <div style="text-align:center;margin:16px 0;color:var(--muted);font-size:0.85rem;">or</div>
             <button class="btn-auth" style="background:#4285F4;border:none;" onclick="handleGoogleAuth()">
                 <span style="margin-right:8px;">🔍</span> Continue with Google
             </button>
@@ -871,10 +767,142 @@
         </div>
     </div>
 
-    <!-- Auth Modal Controls (non-module, always works) -->
+    <!-- Supabase Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script>
+        let allOpenings = {};
+        let currentColorFilter = 'all';
         let authMode = 'login';
+        let supabaseClient = null;
+        let auth = null;
 
+        // Initialize Supabase
+        try {
+            if (typeof supabase !== 'undefined' && supabase.createClient) {
+                supabaseClient = supabase.createClient(
+                    'https://mvvnqkixgxjblgyrnvte.supabase.co',
+                    'sb_publishable_oTugIxx-nIZDcJgCuMnnqw_1ppfExp9'
+                );
+                auth = supabaseClient.auth;
+            } else {
+                throw new Error('Supabase library not loaded');
+            }
+        } catch (err) {
+            document.getElementById('authError').textContent = 'Connection error. Please refresh.';
+        }
+
+        // Build CSS chessboard
+        function buildBoard() {
+            let html = '';
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const cls = (r + c) % 2 === 0 ? 'light' : 'dark';
+                    html += `<div class="cb-cell ${cls}"></div>`;
+                }
+            }
+            return html;
+        }
+
+        // Fetch openings
+        fetch('data/openings.json')
+            .then(r => r.json())
+            .then(data => {
+                allOpenings = data.openings || {};
+                renderCourses(allOpenings);
+            })
+            .catch(err => { /* ignore */ });
+
+        function renderCourses(openings) {
+            const grid = document.getElementById('courseGrid');
+            grid.innerHTML = '';
+
+            let entries = Object.entries(openings).sort((a, b) => a[1].displayName.localeCompare(b[1].displayName));
+
+            // Apply color filter
+            if (currentColorFilter !== 'all') {
+                entries = entries.filter(([, o]) => o.playerSide === currentColorFilter[0]);
+            }
+
+            // Apply search filter
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (searchTerm) {
+                entries = entries.filter(([, o]) => {
+                    const name = o.displayName.toLowerCase();
+                    const desc = o.descriptions ? Object.values(o.descriptions)[0].toLowerCase() : '';
+                    return name.includes(searchTerm) || desc.includes(searchTerm);
+                });
+            }
+
+            const totalLines = entries.reduce((sum, [, o]) => sum + (o.lines?.length || 0), 0);
+            document.getElementById('countOpenings').textContent = entries.length;
+            document.getElementById('countLines').textContent = totalLines;
+
+            // Update section label
+            const labels = { all: 'All openings', white: 'White openings', black: 'Black openings' };
+            let labelText = labels[currentColorFilter];
+            if (searchTerm) labelText += ` · "${searchTerm}"`;
+            document.getElementById('sectionLabel').textContent = labelText;
+
+            entries.forEach(([slug, o]) => {
+                const card = document.createElement('a');
+                card.className = 'card';
+                card.href = `opening.html?slug=${slug}`;
+                card.setAttribute('aria-label', o.displayName);
+                card.dataset.side = o.playerSide === 'w' ? 'white' : 'black';
+
+                const side = o.playerSide === 'w' ? 'white' : 'black';
+                const sideLabel = o.playerSide === 'w' ? 'White' : 'Black';
+                const lineCount = o.lines?.length || 0;
+                const desc = o.descriptions ? Object.values(o.descriptions)[0] : '';
+                const shortDesc = desc ? desc.substring(0, 120) + (desc.length > 120 ? '...' : '') : 'Practice this opening with interactive training.';
+
+                // Calculate progress
+                let learnedCount = 0;
+                try {
+                    const progress = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+                    learnedCount = progress[slug]?.learnedLines?.length || 0;
+                } catch (e) { /* ignore */ }
+
+                // Get piece emoji based on opening side
+                const pieceEmoji = o.playerSide === 'w' ? '♙' : '♟';
+
+                card.innerHTML = `
+                    <div class="card-thumb">
+                        <div class="cb-grid">${buildBoard()}</div>
+                        <div class="card-thumb-fade"></div>
+                        <div class="card-thumb-piece">${pieceEmoji}</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-shimmer"></div>
+                        <div class="card-corner-tl"></div>
+                        <div class="card-top">
+                            <h2 class="card-title">${o.displayName}</h2>
+                            <span class="badge badge-${side}">${sideLabel}</span>
+                        </div>
+                        <p class="card-desc">${shortDesc}</p>
+                        <div class="card-foot">
+                            <span class="card-lines"><strong>${learnedCount}/${lineCount}</strong> lines</span>
+                            <span class="card-cta">Start training <span class="cta-arrow">→</span></span>
+                        </div>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        function toggleColorFilter(btn) {
+            document.querySelectorAll('.filter-btn').forEach(f => f.classList.remove('active'));
+            btn.classList.add('active');
+            currentColorFilter = btn.dataset.color;
+            renderCourses(allOpenings);
+        }
+
+        document.getElementById('searchInput').addEventListener('input', () => {
+            renderCourses(allOpenings);
+        });
+
+        // Auth Modal Controls
         function openAuthModal() {
             document.getElementById('authModal').classList.add('open');
         }
@@ -901,28 +929,8 @@
         document.getElementById('authModal').addEventListener('click', (e) => {
             if (e.target === document.getElementById('authModal')) closeAuthModal();
         });
-    </script>
 
-    <!-- Supabase Auth (global bundle - more reliable than dynamic import) -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    <script>
-        let supabaseClient = null;
-        let auth = null;
-
-        try {
-            if (typeof supabase !== 'undefined' && supabase.createClient) {
-                supabaseClient = supabase.createClient(
-                    'https://mvvnqkixgxjblgyrnvte.supabase.co',
-                    'sb_publishable_oTugIxx-nIZDcJgCuMnnqw_1ppfExp9'
-                );
-                auth = supabaseClient.auth;
-            } else {
-                throw new Error('Supabase library not loaded');
-            }
-        } catch (err) {
-            document.getElementById('authError').textContent = 'Connection error. Please refresh.';
-        }
-
+        // Auth handlers
         async function handleAuth() {
             if (!supabaseClient) {
                 document.getElementById('authError').textContent = 'Not connected. Refresh the page.';
@@ -933,7 +941,7 @@
             const email = document.getElementById('authEmail').value;
             const password = document.getElementById('authPassword').value;
             const errorEl = document.getElementById('authError');
-            
+
             if (!email || !password) {
                 errorEl.textContent = 'Please enter email and password';
                 errorEl.style.display = 'block';
@@ -999,11 +1007,9 @@
                 const name = user.email.split('@')[0];
                 const initial = name.charAt(0).toUpperCase();
                 menu.innerHTML = `
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <span style="color:var(--text-muted);font-size:0.85rem;">${name}</span>
-                        <div class="user-avatar">${initial}</div>
-                        <button class="btn-login" style="background:var(--surface);color:var(--text);border:1px solid var(--border);" onclick="logout()">Log out</button>
-                    </div>
+                    <span class="nav-user">${name}</span>
+                    <div class="nav-avatar">${initial}</div>
+                    <button class="btn-logout" onclick="logout()">Log out</button>
                 `;
                 loadCloudProgress(user.id);
             } else {
@@ -1021,6 +1027,7 @@
                     .single();
                 if (data && data.user_progress) {
                     localStorage.setItem('chesspeps_progress', JSON.stringify(data.user_progress));
+                    renderCourses(allOpenings);
                 }
             } catch (e) { /* silently ignore */ }
         }
@@ -1029,6 +1036,9 @@
         window.handleAuth = handleAuth;
         window.handleGoogleAuth = handleGoogleAuth;
         window.logout = logout;
+        window.openAuthModal = openAuthModal;
+        window.closeAuthModal = closeAuthModal;
+        window.toggleAuthMode = toggleAuthMode;
 
         // Check existing session
         if (auth) {
@@ -1040,5 +1050,6 @@
             });
         }
     </script>
+
 </body>
 </html>
