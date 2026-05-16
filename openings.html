@@ -696,6 +696,14 @@
                 const desc = o.descriptions ? Object.values(o.descriptions)[0] : '';
                 const shortDesc = desc ? desc.substring(0, 140) + (desc.length > 140 ? '...' : '') : '';
                 
+                // Calculate progress
+                let learnedCount = 0;
+                try {
+                    const progress = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+                    learnedCount = progress[slug]?.learnedLines?.length || 0;
+                } catch (e) { /* ignore */ }
+                const pct = lineCount > 0 ? Math.round((learnedCount / lineCount) * 100) : 0;
+                
                 card.innerHTML = `
                     <a href="opening.html?slug=${slug}" aria-label="${o.displayName}" class="card-link"></a>
                     <div class="card-board">
@@ -709,9 +717,9 @@
                         <p class="card-desc">${shortDesc || 'Practice this opening with interactive training.'}</p>
                         <div class="progress-wrap">
                             <div class="progress-bar">
-                                <div class="progress-bar-fill" style="width: 0%"></div>
+                                <div class="progress-bar-fill" style="width: ${pct}%"></div>
                             </div>
-                            <span class="lines-count">${lineCount} lines</span>
+                            <span class="lines-count">${learnedCount}/${lineCount} lines</span>
                         </div>
                         <div class="card-footer">
                             <a href="opening.html?slug=${slug}" class="try-link">Start training →</a>
