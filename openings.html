@@ -832,11 +832,49 @@
             })
             .catch(err => { /* ignore */ });
 
+        function getUsageData() {
+            try {
+                return JSON.parse(localStorage.getItem('chesspeps_usage') || '{}');
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function trackOpeningUsage(slug) {
+            const usage = getUsageData();
+            if (!usage[slug]) {
+                usage[slug] = { count: 0, lastUsed: 0 };
+            }
+            usage[slug].count += 1;
+            usage[slug].lastUsed = Date.now();
+            localStorage.setItem('chesspeps_usage', JSON.stringify(usage));
+        }
+
         function renderCourses(openings) {
             const grid = document.getElementById('courseGrid');
             grid.innerHTML = '';
 
-            let entries = Object.entries(openings).sort((a, b) => a[1].displayName.localeCompare(b[1].displayName));
+            let entries = Object.entries(openings);
+            const usage = getUsageData();
+
+            // Sort by: last used first, then by usage count (most used first)
+            entries.sort((a, b) => {
+                const slugA = a[0];
+                const slugB = b[0];
+                const usageA = usage[slugA] || { count: 0, lastUsed: 0 };
+                const usageB = usage[slugB] || { count: 0, lastUsed: 0 };
+                
+                // Last used comes first
+                if (usageB.lastUsed !== usageA.lastUsed) {
+                    return usageB.lastUsed - usageA.lastUsed;
+                }
+                // Then by count (most used first)
+                if (usageB.count !== usageA.count) {
+                    return usageB.count - usageA.count;
+                }
+                // Fallback: alphabetical
+                return a[1].displayName.localeCompare(b[1].displayName);
+            });
 
             // Apply color filter
             if (currentColorFilter !== 'all') {
@@ -912,6 +950,11 @@
                         </div>
                     </div>
                 `;
+
+                // Track usage before navigating
+                card.addEventListener('click', (e) => {
+                    trackOpeningUsage(slug);
+                });
 
                 grid.appendChild(card);
             });
