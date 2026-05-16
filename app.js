@@ -115,6 +115,36 @@ function updateModeStats() {
             practiceBtn.disabled = true;
         }
     }
+    
+    // Unlock drill at 3 lines learned
+    const drillBtn = document.getElementById('modeDrill');
+    if (drillBtn) {
+        if (learned.length >= 3) {
+            const wasLocked = drillBtn.disabled;
+            drillBtn.classList.remove('locked');
+            drillBtn.disabled = false;
+            // Show unlock animation the first time
+            if (wasLocked && !window.drillUnlockShown) {
+                window.drillUnlockShown = true;
+                const overlay = document.getElementById('unlockOverlay');
+                if (overlay) {
+                    setTimeout(() => overlay.classList.add('open'), 600);
+                    // Fire confetti
+                    if (typeof confetti !== 'undefined') {
+                        confetti({
+                            particleCount: 150,
+                            spread: 100,
+                            origin: { y: 0.6 },
+                            colors: ['#fbbf24', '#ef4444', '#f97316']
+                        });
+                    }
+                }
+            }
+        } else {
+            drillBtn.classList.add('locked');
+            drillBtn.disabled = true;
+        }
+    }
 }
 
 function updateLineProgress(slug, linePgn, update) {
@@ -425,6 +455,7 @@ class Trainer {
         this.wrongAttempts = 0;
         this.learnIndex = 0; // sequential index for learn mode
         this._playing = false; // guard against concurrent playOpponentMoves
+        this.drillScore = 0; // current streak in drill mode
     }
 
     loadOpening(slug) {
@@ -450,7 +481,7 @@ class Trainer {
                 this.learnIndex = 0; // loop back to start
             }
             this.loadLine(lines[this.learnIndex]);
-        } else if (this.mode === 'practice') {
+        } else if (this.mode === 'practice' || this.mode === 'drill') {
             // Random from learned lines only
             const learned = getLearnedLines(this.slug);
             const available = lines.filter(l => learned.includes(l));
@@ -569,10 +600,31 @@ class Trainer {
         if (expected.from !== from || expected.to !== to) {
             stats.attempts++;
             this.wrongAttempts++;
+            if (this.mode === 'drill') {
+                this.endDrillGame();
+            }
             return false;
         }
 
         return true;
+    }
+
+    endDrillGame() {
+        this.completed = true;
+        const high = window.userProgress[this.slug]?.drillHighScore || 0;
+        if (this.drillScore > high) {
+            if (!window.userProgress[this.slug]) window.userProgress[this.slug] = {};
+            window.userProgress[this.slug].drillHighScore = this.drillScore;
+            saveLocalProgress();
+            syncToCloud();
+        }
+        // Show game over overlay
+        const overlay = document.getElementById('gameoverOverlay');
+        const scoreEl = document.getElementById('gameoverScore');
+        const highEl = document.getElementById('gameoverHigh');
+        if (overlay) overlay.classList.add('open');
+        if (scoreEl) scoreEl.textContent = `Score: ${this.drillScore}`;
+        if (highEl) highEl.textContent = `High Score: ${Math.max(high, this.drillScore)}`;
     }
 
     applyMove(from, to) {
@@ -641,7 +693,9 @@ class Trainer {
         const isUserTurn = side === this.opening.playerSide;
         let text;
 
-        if (isUserTurn) {
+        if (this.mode === 'drill') {
+            text = `Streak: ${this.drillScore} — Get as many openings correct in a row as you can!`;
+        } else if (isUserTurn) {
             if (desc) text = desc;
             else if (short) text = short;
             else text = "Your turn! Make the best move.";
@@ -686,6 +740,18 @@ class Trainer {
     onComplete() {
         if (this.completed) return; // guard against double execution
         this.completed = true;
+        
+        // Drill mode: increment streak and immediately load next line
+        if (this.mode === 'drill') {
+            this.drillScore++;
+            if (typeof updateDrillUI === 'function') updateDrillUI();
+            // Brief flash then next line
+            setTimeout(() => {
+                this.nextLine();
+            }, 400);
+            return;
+        }
+        
         stats.linesDone++;
         updateStats();
         
