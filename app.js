@@ -614,20 +614,26 @@ class Trainer {
         const bubbleText = document.querySelector('.instruction-text');
         if (bubbleText) bubbleText.textContent = 'Line complete! Great job!';
         
-        // Trigger confetti celebration centered on board
+        // Trigger confetti celebration from below the board
         playCompletionSound();
         if (typeof confetti !== 'undefined') {
             const boardEl = document.getElementById('board');
             let originX = 0.5;
-            let originY = 0.5;
+            let originY = 1.1;
             if (boardEl) {
                 const rect = boardEl.getBoundingClientRect();
                 originX = (rect.left + rect.width / 2) / window.innerWidth;
-                originY = (rect.top + rect.height / 2) / window.innerHeight;
+                originY = (rect.bottom + 20) / window.innerHeight;
             }
-            const count = 200;
-            const defaults = { origin: { x: originX, y: originY } };
-            
+            const count = 300;
+            const defaults = {
+                origin: { x: originX, y: originY },
+                scalar: 1.8,
+                gravity: 0.8,
+                ticks: 250,
+                colors: ['#a78bfa', '#8b5cf6', '#22c55e', '#fbbf24', '#f472b6', '#60a5fa']
+            };
+
             function fire(particleRatio, opts) {
                 confetti({
                     ...defaults,
@@ -635,12 +641,11 @@ class Trainer {
                     particleCount: Math.floor(count * particleRatio)
                 });
             }
-            
-            fire(0.25, { spread: 26, startVelocity: 55 });
-            fire(0.2, { spread: 60 });
-            fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
-            fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
-            fire(0.1, { spread: 120, startVelocity: 45 });
+
+            fire(0.3, { spread: 40, startVelocity: 65, angle: 90 });
+            fire(0.25, { spread: 80, startVelocity: 55, angle: 90 });
+            fire(0.3, { spread: 120, startVelocity: 45, angle: 90, decay: 0.92 });
+            fire(0.15, { spread: 160, startVelocity: 30, angle: 90, decay: 0.94, scalar: 2.2 });
         }
         
         // Show completion overlay after a short delay
