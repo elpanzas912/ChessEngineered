@@ -1291,6 +1291,7 @@
             }
             
             trainer.mode = mode;
+            if (typeof trainer.saveSessionState === 'function') trainer.saveSessionState();
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
             const btn = document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1));
             if (btn && !btn.disabled) btn.classList.add('active');

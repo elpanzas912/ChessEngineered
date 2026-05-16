@@ -542,9 +542,26 @@ class Trainer {
         const orientation = this.opening.playerSide === 'b' ? COLOR.black : COLOR.white;
         board.setOrientation(orientation);
 
+        // Restore saved learn index and mode
+        const saved = window.userProgress[slug]?.sessionState;
+        if (saved) {
+            this.learnIndex = saved.learnIndex || 0;
+            if (saved.mode) this.mode = saved.mode;
+        }
+
         renderLinesList();
         updateModeStats();
         this.nextLine();
+    }
+
+    saveSessionState() {
+        if (!window.userProgress[this.slug]) window.userProgress[this.slug] = {};
+        window.userProgress[this.slug].sessionState = {
+            learnIndex: this.learnIndex,
+            mode: this.mode,
+            lastVisited: Date.now()
+        };
+        saveLocalProgress();
     }
 
     nextLine() {
@@ -556,6 +573,7 @@ class Trainer {
             if (this.learnIndex >= lines.length) {
                 this.learnIndex = 0; // loop back to start
             }
+            this.saveSessionState();
             this.loadLine(lines[this.learnIndex]);
         } else if (this.mode === 'practice' || this.mode === 'drill' || this.mode === 'time') {
             // Random from learned lines only
@@ -1077,6 +1095,7 @@ class Trainer {
         if (this.mode === 'learn') {
             markLineAsLearned(this.slug, this.linePgn);
             this.learnIndex++;
+            this.saveSessionState();
         }
         
         // Update mode stats
