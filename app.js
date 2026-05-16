@@ -760,10 +760,12 @@ function showFeedback(msg, type) {
 
 function toggleMode() {
     if (!trainer) return;
-    trainer.mode = trainer.mode === 'learn' ? 'drill' : 'learn';
-    const btnMode = document.getElementById('btnMode');
-    if (btnMode) btnMode.textContent = `Mode: ${cap(trainer.mode)}`;
-    showFeedback(`Switched to ${trainer.mode} mode`, 'hint');
+    const modes = ['learn', 'practice', 'drill'];
+    const currentIdx = modes.indexOf(trainer.mode);
+    const nextIdx = (currentIdx + 1) % modes.length;
+    trainer.mode = modes[nextIdx];
+    if (typeof setMode === 'function') setMode(trainer.mode);
+    showFeedback(`Switched to ${cap(trainer.mode)} mode`, 'hint');
 }
 
 // ── Line Dropdown ──

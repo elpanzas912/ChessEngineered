@@ -11,13 +11,23 @@
         :root {
             --purple: #8b5cf6;
             --purple-light: #a78bfa;
+            --purple-hover: #7c3aed;
             --board-green-light: #769656;
             --board-green-dark: #eeeed2;
+            --surface: #18181b;
+            --surface-hover: #27272a;
+            --border: #27272a;
+            --border-light: #3f3f46;
+            --text: #fafafa;
+            --text-muted: #a1a1aa;
+            --text-dim: #71717a;
+            --danger: #ef4444;
+            --bg: #0a0a0f;
         }
 
         body {
             overflow: hidden;
-            background: #0a0a0f;
+            background: var(--bg);
         }
 
         /* Minimal Header */
@@ -26,8 +36,9 @@
             align-items: center;
             justify-content: space-between;
             padding: 12px 24px;
-            background: #0a0a0f;
+            background: var(--bg);
             border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
         }
 
         .trainer-header .brand {
@@ -67,6 +78,7 @@
             font-size: 0.85rem;
             outline: none;
             text-align: center;
+            cursor: pointer;
         }
 
         /* Main Trainer Layout */
@@ -93,20 +105,79 @@
         }
 
         #board {
-            width: min(960px, calc(100vh - 140px), calc(100vw - 460px));
-            height: min(960px, calc(100vh - 140px), calc(100vw - 460px));
+            width: min(960px, calc(100vh - 140px), calc(100vw - 480px));
+            height: min(960px, calc(100vh - 140px), calc(100vw - 480px));
             max-width: 100%;
+        }
+
+        /* Progress Bar */
+        .line-progress-wrap {
+            width: 100%;
+            max-width: min(960px, calc(100vh - 140px), calc(100vw - 480px));
+        }
+
+        .line-progress-track {
+            position: relative;
+            width: 100%;
+            height: 10px;
+            background: #27272a;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .line-progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #a78bfa 0%, #8b5cf6 100%);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .line-progress-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+            padding: 0 4px;
+        }
+
+        .line-progress-label .move-num {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            font-weight: 600;
+        }
+
+        .line-progress-label .move-name {
+            font-size: 0.75rem;
+            color: var(--text-muted);
         }
 
         /* Right Panel */
         .trainer-panel {
-            width: 380px;
-            min-width: 380px;
-            max-width: 380px;
+            width: 400px;
+            min-width: 400px;
+            max-width: 400px;
+            height: 100%;
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
             gap: 16px;
-            padding: 20px 20px 20px 0;
+            padding: 20px;
+            background: rgba(24, 24, 27, 0.5);
+            border: 1px solid rgba(39, 39, 42, 0.5);
+            border-radius: 12px;
+        }
+
+        .panel-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            min-height: 0;
         }
 
         /* Mode Header */
@@ -114,10 +185,19 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 16px;
+            padding: 10px 14px;
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 10px;
+            cursor: pointer;
+            position: relative;
+            transition: border-color 0.15s, background 0.15s;
+            flex-shrink: 0;
+        }
+
+        .mode-header:hover {
+            border-color: var(--border-light);
+            background: rgba(255,255,255,0.02);
         }
 
         .mode-header .mode-info {
@@ -127,7 +207,8 @@
         }
 
         .mode-header .mode-icon {
-            font-size: 1rem;
+            width: 22px;
+            height: 22px;
         }
 
         .mode-header .mode-name {
@@ -145,11 +226,6 @@
             color: var(--text-dim);
             font-size: 0.8rem;
             font-weight: 600;
-        }
-
-        .mode-header:hover {
-            border-color: var(--border-light);
-            background: rgba(255,255,255,0.02);
         }
 
         /* Line Dropdown */
@@ -208,169 +284,210 @@
             min-width: 28px;
         }
 
-        .dropdown-item .line-icon {
-            font-size: 0.9rem;
-        }
-
         .dropdown-item .line-label {
             font-size: 0.88rem;
             font-weight: 500;
         }
 
-        .dropdown-separator {
-            height: 1px;
-            background: var(--border);
-            margin: 6px 12px;
+        /* Instruction Dialog */
+        .instruction-dialog {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            flex-shrink: 0;
         }
 
-        .dropdown-item.locked {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .coach-avatar {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            margin-top: 4px;
         }
 
-        /* Instruction Bubble */
-        .instruction-bubble {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 16px;
+        .coach-avatar svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .speech-bubble {
+            flex: 1;
             position: relative;
+            background: #fff;
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #000;
+            font-size: 0.92rem;
+            line-height: 1.5;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
-        .instruction-bubble::before {
+        .speech-bubble::before {
             content: '';
             position: absolute;
-            top: -6px;
-            left: 20px;
+            top: 14px;
+            left: -6px;
             width: 12px;
             height: 12px;
-            background: var(--surface);
-            border-left: 1px solid var(--border);
-            border-top: 1px solid var(--border);
+            background: #fff;
             transform: rotate(45deg);
+            border-radius: 2px;
         }
 
-        .instruction-bubble .speaker {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .instruction-bubble .speaker-icon {
-            width: 24px;
-            height: 24px;
-            background: linear-gradient(135deg, var(--purple-light), var(--purple));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-        }
-
-        .instruction-bubble .instruction-text {
-            color: var(--text);
-            font-size: 0.95rem;
+        .speech-bubble .instruction-text {
+            color: #000;
+            font-size: 0.92rem;
             line-height: 1.5;
         }
 
-        /* Mode Cards */
-        .mode-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
+        /* Mode Selector */
+        .mode-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .mode-btn {
+            width: 100%;
+            background: rgba(39, 39, 42, 0.4);
+            border: 1px solid rgba(63, 63, 70, 0.5);
             border-radius: 10px;
-            padding: 14px 16px;
+            padding: 10px 16px;
             cursor: pointer;
-            transition: border-color 0.15s, background 0.15s;
+            transition: all 0.15s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: var(--text);
+            text-align: center;
         }
 
-        .mode-card:hover {
-            border-color: var(--border-light);
+        .mode-btn:hover {
+            transform: scale(1.02);
+            background: rgba(63, 63, 70, 0.5);
         }
 
-        .mode-card.active {
+        .mode-btn:active {
+            transform: scale(0.98);
+        }
+
+        .mode-btn.active {
             border-color: var(--purple);
             background: rgba(139, 92, 246, 0.08);
         }
 
-        .mode-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 4px;
-        }
-
-        .mode-card-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            color: var(--text);
-        }
-
-        .mode-card-sub {
-            font-size: 0.78rem;
-            color: var(--text-dim);
-        }
-
-        .mode-card.locked {
+        .mode-btn.locked {
             opacity: 0.5;
             cursor: not-allowed;
         }
 
-        .mode-card-grid {
+        .mode-btn.locked:hover {
+            transform: none;
+            background: rgba(39, 39, 42, 0.4);
+        }
+
+        .mode-btn-main {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mode-btn .mode-icon {
+            width: 22px;
+            height: 22px;
+        }
+
+        .mode-btn .mode-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .mode-btn .mode-sub {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .mode-btn.small {
+            height: 64px;
+            padding: 8px;
+            gap: 2px;
+        }
+
+        .mode-btn.small .mode-icon {
+            width: 18px;
+            height: 18px;
+        }
+
+        .mode-btn.small .mode-title {
+            font-size: 0.95rem;
+        }
+
+        .mode-btn.small .mode-sub {
+            font-size: 0.7rem;
+        }
+
+        .mode-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px;
         }
 
-        /* Progress Bar */
-        .line-progress-wrap {
-            width: 100%;
-            margin-bottom: 8px;
-        }
-
-        .line-progress-track {
-            position: relative;
-            width: 100%;
-            height: 10px;
-            background: #27272a;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        .line-progress-fill {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background: linear-gradient(90deg, #a78bfa 0%, #8b5cf6 100%);
-            border-radius: 5px;
-            transition: width 0.3s ease;
-            width: 0%;
-        }
-
-        .line-progress-label {
+        /* Bottom Toolbar */
+        .trainer-toolbar {
+            flex-shrink: 0;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-top: 6px;
-            padding: 0 4px;
+            justify-content: space-between;
+            gap: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
         }
 
-        .line-progress-label .move-num {
-            font-size: 0.75rem;
-            color: var(--text-dim);
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toolbar-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.85rem;
             font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
         }
 
-        .line-progress-label .move-name {
-            font-size: 0.75rem;
-            color: var(--text-muted);
+        .toolbar-btn:hover {
+            background: var(--surface-hover);
+            border-color: var(--border-light);
+        }
+
+        .toolbar-btn.icon-only {
+            padding: 8px;
+            width: 36px;
+            height: 36px;
+        }
+
+        .toolbar-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .nav-group .toolbar-btn {
+            width: 36px;
+            height: 36px;
+            padding: 0;
         }
 
         /* Completion Overlay */
@@ -420,41 +537,6 @@
             background: var(--purple-hover);
         }
 
-        /* Bottom Controls */
-        .trainer-controls {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-top: auto;
-            padding-top: 8px;
-        }
-
-        .ctrl-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 10px 20px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text);
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .ctrl-btn:hover {
-            border-color: var(--border-light);
-            background: var(--surface-hover);
-        }
-
-        .ctrl-btn.nav-arrow {
-            padding: 10px 16px;
-            font-size: 1.2rem;
-        }
-
         /* Auth */
         .auth-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
         .auth-modal-overlay.open { display: flex; }
@@ -490,7 +572,7 @@
     <div class="trainer-layout">
         <!-- Board -->
         <div class="board-area">
-            <div class="line-progress-wrap" style="width:100%;max-width:min(960px, calc(100vh - 140px), calc(100vw - 460px));">
+            <div class="line-progress-wrap">
                 <div class="line-progress-track">
                     <div class="line-progress-fill" id="lineProgressBar"></div>
                 </div>
@@ -504,83 +586,154 @@
 
         <!-- Right Panel -->
         <div class="trainer-panel">
-            <!-- Mode Header -->
-            <div class="mode-header" id="modeHeader" style="cursor:pointer;position:relative;" onclick="toggleLineDropdown()">
-                <div class="mode-info">
-                    <span class="mode-icon">📖</span>
-                    <div>
-                        <div class="mode-name">Learn</div>
-                        <div class="opening-name" id="openingName">Loading...</div>
+            <div class="panel-content">
+                <!-- Mode Header -->
+                <div class="mode-header" id="modeHeader" onclick="toggleLineDropdown()">
+                    <div class="mode-info">
+                        <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted)">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                        </svg>
+                        <div>
+                            <div class="mode-name">Learn</div>
+                            <div class="opening-name" id="openingName">Loading...</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="line-counter" id="lineCounter">#1</span>
+                        <span id="dropdownChevron" style="font-size:0.7rem;color:var(--text-dim);transition:transform 0.2s;">▼</span>
+                    </div>
+
+                    <!-- Line Dropdown -->
+                    <div class="line-dropdown" id="lineDropdown">
+                        <div class="dropdown-list" id="dropdownList"></div>
                     </div>
                 </div>
-                <div style="display:flex;align-items:center;gap:8px;">
-                    <span class="line-counter" id="lineCounter">#1</span>
-                    <span id="dropdownChevron" style="font-size:0.7rem;color:var(--text-dim);transition:transform 0.2s;">▼</span>
+
+                <!-- Instruction Dialog -->
+                <div class="instruction-dialog">
+                    <div class="coach-avatar">
+                        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="50" cy="50" r="48" fill="#fbbf24"/>
+                            <text x="50" y="70" text-anchor="middle" font-size="55" fill="#fff">♔</text>
+                        </svg>
+                    </div>
+                    <div class="speech-bubble">
+                        <div class="instruction-text" id="instruction">
+                            Welcome! Select an opening to start training.
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Line Dropdown -->
-                <div class="line-dropdown" id="lineDropdown">
-                    <div class="dropdown-list" id="dropdownList"></div>
+                <!-- Mode Selector -->
+                <div class="mode-selector">
+                    <button class="mode-btn active" id="modeLearn" onclick="setMode('learn')">
+                        <div class="mode-btn-main">
+                            <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text)">
+                                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                            </svg>
+                            <span class="mode-title">Learn</span>
+                        </div>
+                        <span class="mode-sub" id="learnStats">0 lines discovered</span>
+                    </button>
+
+                    <button class="mode-btn" id="modePractice" onclick="setMode('practice')">
+                        <div class="mode-btn-main">
+                            <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text)">
+                                <circle cx="12" cy="12" r="10"/>
+                                <circle cx="12" cy="12" r="6"/>
+                                <circle cx="12" cy="12" r="2"/>
+                            </svg>
+                            <span class="mode-title">Practice</span>
+                        </div>
+                        <span class="mode-sub" id="practiceStats">0 lines perfected</span>
+                    </button>
+
+                    <div class="mode-grid">
+                        <button class="mode-btn small locked" id="modeDrill" disabled>
+                            <div class="mode-btn-main">
+                                <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text);opacity:0.5">
+                                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                                </svg>
+                                <span class="mode-title">Drill</span>
+                            </div>
+                            <span class="mode-sub">Learn 3 lines</span>
+                        </button>
+
+                        <button class="mode-btn small locked" id="modeTime" disabled>
+                            <div class="mode-btn-main">
+                                <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text);opacity:0.5">
+                                    <path d="M5 22h14"/>
+                                    <path d="M5 2h14"/>
+                                    <path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/>
+                                    <path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>
+                                </svg>
+                                <span class="mode-title">Time</span>
+                            </div>
+                            <span class="mode-sub">Learn 3 lines</span>
+                        </button>
+
+                        <button class="mode-btn small locked" id="modePuzzles" disabled>
+                            <div class="mode-btn-main">
+                                <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text);opacity:0.5">
+                                    <path d="M19.439 7.85c-.049.322.059.648.289.878l1.378 1.378a1 1 0 0 1 .289.878c0 .486-.166.893-.457 1.181l-1.99 1.99a1 1 0 0 1-.878.289 1 1 0 0 1-.878-.289l-1.378-1.378a1.05 1.05 0 0 0-.878-.289c-.322 0-.649.059-.878.289l-1.378 1.378a1 1 0 0 1-.878.289 1 1 0 0 1-.878-.289l-1.99-1.99a1 1 0 0 1-.289-.878c0-.486.166-.893.457-1.181l1.378-1.378a1.05 1.05 0 0 0 .289-.878c0-.322-.059-.649-.289-.878l-1.378-1.378a1 1 0 0 1-.289-.878c0-.486.166-.893.457-1.181l1.99-1.99a1 1 0 0 1 .878-.289c.322 0 .649.059.878.289l1.378 1.378a1.05 1.05 0 0 0 .878.289c.322 0 .649-.059.878-.289l1.378-1.378a1 1 0 0 1 .878-.289 1 1 0 0 1 .878.289l1.99 1.99a1 1 0 0 1 .289.878c0 .486-.166.893-.457 1.181l-1.378 1.378a1.05 1.05 0 0 0-.289.878z"/>
+                                    <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                                </svg>
+                                <span class="mode-title">Puzzles</span>
+                            </div>
+                            <span class="mode-sub">Learn 2 lines</span>
+                        </button>
+
+                        <button class="mode-btn small locked" id="modeArena" disabled>
+                            <div class="mode-btn-main">
+                                <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text);opacity:0.5">
+                                    <path d="M14.5 17.5 3 6V3h3l11.5 11.5"/>
+                                    <path d="M13 19l6-6"/>
+                                    <path d="M16 16l4 4"/>
+                                    <path d="M19 21l2-2"/>
+                                </svg>
+                                <span class="mode-title">Arena</span>
+                            </div>
+                            <span class="mode-sub">Learn 2 lines</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Instruction Bubble -->
-            <div class="instruction-bubble">
-                <div class="speaker">
-                    <div class="speaker-icon">♟</div>
-                    <span>Coach</span>
+            <!-- Bottom Toolbar -->
+            <div class="trainer-toolbar">
+                <div class="toolbar-group">
+                    <button class="toolbar-btn icon-only" id="btnSettings" aria-label="Settings" onclick="alert('Settings coming soon!')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                    <button class="toolbar-btn" id="btnHint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/>
+                            <path d="M9 18h6"/>
+                            <path d="M10 22h4"/>
+                        </svg>
+                        <span>Hint</span>
+                    </button>
                 </div>
-                <div class="instruction-text" id="instruction">
-                    Welcome! Select an opening to start training.
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" id="btnMode">Mode</button>
                 </div>
-            </div>
-
-            <!-- Mode: Learn -->
-            <div class="mode-card active" id="modeLearn">
-                <div class="mode-card-header">
-                    <div class="mode-card-title">📖 Learn</div>
+                <div class="toolbar-group nav-group">
+                    <button class="toolbar-btn icon-only" id="btnPrev" aria-label="Previous move">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m15 18-6-6 6-6"/>
+                        </svg>
+                    </button>
+                    <button class="toolbar-btn icon-only" id="btnNext" aria-label="Next move">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m9 18 6-6-6-6"/>
+                        </svg>
+                    </button>
                 </div>
-                <div class="mode-card-sub" id="learnStats">0 lines discovered</div>
-            </div>
-
-            <!-- Mode: Practice -->
-            <div class="mode-card" id="modePractice">
-                <div class="mode-card-header">
-                    <div class="mode-card-title">🎯 Practice</div>
-                </div>
-                <div class="mode-card-sub" id="practiceStats">0 lines perfected</div>
-            </div>
-
-            <!-- Grid: Drill / Time -->
-            <div class="mode-card-grid">
-                <div class="mode-card locked" id="modeDrill">
-                    <div class="mode-card-title">🔥 Drill</div>
-                    <div class="mode-card-sub">Learn 3 lines</div>
-                </div>
-                <div class="mode-card locked" id="modeTime">
-                    <div class="mode-card-title">⏱ Time</div>
-                    <div class="mode-card-sub">Learn 3 lines</div>
-                </div>
-            </div>
-
-            <!-- Grid: Puzzles / Arena -->
-            <div class="mode-card-grid">
-                <div class="mode-card locked" id="modePuzzles">
-                    <div class="mode-card-title">🧩 Puzzles</div>
-                    <div class="mode-card-sub">Learn 2 lines</div>
-                </div>
-                <div class="mode-card locked" id="modeArena">
-                    <div class="mode-card-title">⚔ Arena</div>
-                    <div class="mode-card-sub">Learn 2 lines</div>
-                </div>
-            </div>
-
-            <!-- Controls -->
-            <div class="trainer-controls">
-                <button class="ctrl-btn" id="btnHint">💡 Hint</button>
-                <button class="ctrl-btn" id="btnMode">Mode</button>
-                <button class="ctrl-btn nav-arrow" id="btnPrev">←</button>
-                <button class="ctrl-btn nav-arrow" id="btnNext">→</button>
             </div>
         </div>
     </div>
@@ -613,7 +766,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-    <script type="module" src="app.js?v=11"></script>
+    <script type="module" src="app.js?v=12"></script>
 
     <!-- Auth Modal Controls (non-module, always works) -->
     <script>
@@ -661,6 +814,13 @@
                 dropdown.classList.remove('open');
             }
         });
+
+        // Mode selector helper
+        window.setMode = function(mode) {
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            const btn = document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1));
+            if (btn && !btn.disabled) btn.classList.add('active');
+        };
     </script>
 
     <!-- Supabase Auth (global bundle - more reliable) -->
