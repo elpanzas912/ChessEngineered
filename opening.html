@@ -479,15 +479,36 @@
             gap: 8px;
         }
 
+        /* Mode Panels Container */
+        .mode-panels-container {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
         /* Drill Panel */
         .drill-panel {
-            display: none;
+            display: flex;
             flex-direction: column;
             gap: 12px;
             flex: 1;
             justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: opacity 0.35s ease, transform 0.35s ease, visibility 0.35s;
+            pointer-events: none;
+            position: absolute;
+            inset: 0;
         }
-        .drill-panel.active { display: flex; }
+        .drill-panel.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            pointer-events: auto;
+            position: relative;
+        }
 
         .drill-scoreboard {
             display: flex;
@@ -571,24 +592,50 @@
 
         /* Time Panel */
         .time-panel {
-            display: none;
+            display: flex;
             flex-direction: column;
             gap: 12px;
             flex: 1;
             justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: opacity 0.35s ease, transform 0.35s ease, visibility 0.35s;
+            pointer-events: none;
+            position: absolute;
+            inset: 0;
         }
-        .time-panel.active { display: flex; }
+        .time-panel.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            pointer-events: auto;
+            position: relative;
+        }
 
         /* Puzzle Panel */
         .puzzle-panel {
-            display: none;
+            display: flex;
             flex-direction: column;
             gap: 12px;
             flex: 1;
             justify-content: center;
             align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: opacity 0.35s ease, transform 0.35s ease, visibility 0.35s;
+            pointer-events: none;
+            position: absolute;
+            inset: 0;
         }
-        .puzzle-panel.active { display: flex; }
+        .puzzle-panel.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            pointer-events: auto;
+            position: relative;
+        }
 
         .puzzle-rating-display {
             display: flex;
@@ -1058,6 +1105,7 @@
                     </div>
                 </div>
 
+                <div class="mode-panels-container">
                 <!-- Drill Panel (shown only in drill mode) -->
                 <div class="drill-panel" id="drillPanel">
                     <div class="drill-scoreboard">
