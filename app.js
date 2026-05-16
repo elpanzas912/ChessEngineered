@@ -424,6 +424,7 @@ class Trainer {
         this.hintShown = false;
         this.wrongAttempts = 0;
         this.learnIndex = 0; // sequential index for learn mode
+        this._playing = false; // guard against concurrent playOpponentMoves
     }
 
     loadOpening(slug) {
@@ -472,6 +473,7 @@ class Trainer {
         const overlay = document.getElementById('completionOverlay');
         if (overlay) overlay.classList.remove('open');
         
+        this._playing = false;
         clearHintSquare();
         clearLastMove();
         clearCorrectCheckmark();
@@ -503,15 +505,20 @@ class Trainer {
     }
 
     playOpponentMoves() {
-        if (this.completed) return;
+        if (this.completed || this._playing) return;
+        this._playing = true;
         clearCorrectCheckmark();
         clearIncorrectCross();
 
+        const finish = () => { this._playing = false; };
         const playNext = () => {
             if (this.moveIndex >= this.moves.length || this.completed) {
                 updateProgress(this.getProgress());
                 if (this.moveIndex >= this.moves.length) {
+                    finish();
                     this.onComplete();
+                } else {
+                    finish();
                 }
                 return;
             }
@@ -532,6 +539,7 @@ class Trainer {
                 // Continue with delay for animation visibility
                 setTimeout(() => playNext(), this.mode === 'drill' ? 200 : 600);
             } else {
+                finish();
                 this.updateInstruction();
                 const playerColor = this.opening.playerSide === 'w' ? COLOR.white : COLOR.black;
                 try { board.disableMoveInput(); } catch(e) {}
