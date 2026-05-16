@@ -1,0 +1,817 @@
+/**
+ * ChessPeps MVP - Opening Trainer (Local)
+ * cm-chessboard + chess.js, ES modules
+ */
+
+import {Chessboard, COLOR, INPUT_EVENT_TYPE, BORDER_TYPE, FEN} from "./lib/cm-chessboard-src/Chessboard.js";
+import {Markers, MARKER_TYPE} from "./lib/cm-chessboard-src/extensions/markers/Markers.js";
+
+// ── Globals ──
+let db = {};
+let board = null;
+let game = null;
+let trainer = null;
+let pendingIncorrectMove = null;
+
+const sounds = {
+    move: new Audio('sounds/move.mp3'),
+    capture: new Audio('sounds/capture.mp3')
+};
+
+function playMoveSound(move) {
+    const isCapture = move && (move.captured || (move.san && move.san.includes('x')));
+    const snd = isCapture ? sounds.capture : sounds.move;
+    snd.currentTime = 0;
+    snd.play().catch(e => {/* ignore autoplay restrictions */});
+}
+
+const stats = {
+    linesDone: 0,
+    movesMade: 0,
+    attempts: 0,
+    correct: 0
+};
+
+// ── Progress Persistence ──
+let userProgress = {};
+let currentUser = null;
+
+function loadLocalProgress() {
+    try {
+        const stored = localStorage.getItem('chesspeps_progress');
+        if (stored) userProgress = JSON.parse(stored);
+    } catch (e) { /* ignore corrupt storage */ }
+}
+
+function saveLocalProgress() {
+    localStorage.setItem('chesspeps_progress', JSON.stringify(userProgress));
+}
+
+function getLineProgress(slug, linePgn) {
+    return userProgress[slug]?.lines?.[linePgn] || {};
+}
+
+function updateLineProgress(slug, linePgn, update) {
+    if (!userProgress[slug]) userProgress[slug] = { lines: {} };
+    if (!userProgress[slug].lines[linePgn]) userProgress[slug].lines[linePgn] = {};
+    Object.assign(userProgress[slug].lines[linePgn], update);
+    saveLocalProgress();
+    syncToCloud();
+}
+
+async function syncToCloud() {
+    if (!currentUser) return;
+    try {
+        const { supabase, updateProgress } = await import('./supabaseClient.js');
+        await updateProgress(currentUser.id, userProgress);
+    } catch (e) { /* silently fail */ }
+}
+
+// ── Load Database ──
+fetch('data/openings.json')
+    .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+    })
+    .then(data => {
+        db = data.openings || {};
+        populateSelector();
+        initApp();
+    })
+    .catch(err => {
+        const fb = document.getElementById('feedback');
+        if (fb) {
+            fb.textContent = 'Error loading database: ' + err.message;
+            fb.className = 'feedback error';
+        }
+    });
+
+function populateSelector() {
+    const sel = document.getElementById('openingSelect');
+    if (!sel) return;
+    const slugs = Object.keys(db).sort();
+    for (const slug of slugs) {
+        const opt = document.createElement('option');
+        opt.value = slug;
+        opt.textContent = db[slug].displayName || slug;
+        sel.appendChild(opt);
+    }
+}
+
+// ── Init ──
+function initApp() {
+    loadLocalProgress();
+    game = new Chess();
+    board = new Chessboard(document.getElementById('board'), {
+        assetsUrl: "./lib/cm-chessboard-assets/",
+        position: FEN.start,
+        style: {
+            pieces: { file: "pieces/staunty.svg", tileSize: 40 },
+            cssClass: "default",
+            borderType: BORDER_TYPE.none,
+            animationDuration: 250
+        },
+        orientation: COLOR.white,
+        extensions: [{class: Markers}]
+    });
+
+    const selectEl = document.getElementById('openingSelect');
+    if (selectEl) {
+        selectEl.addEventListener('change', onOpeningChange);
+    }
+    document.getElementById('btnNext').addEventListener('click', () => trainer && trainer.nextLine());
+    const prevBtn = document.getElementById('btnPrev');
+    if (prevBtn) prevBtn.addEventListener('click', () => trainer && trainer.resetLine());
+    const resetBtn = document.getElementById('btnReset');
+    if (resetBtn) resetBtn.addEventListener('click', () => trainer && trainer.resetLine());
+    document.getElementById('btnHint').addEventListener('click', () => trainer && trainer.showHint());
+    const modeBtn = document.getElementById('btnMode');
+    if (modeBtn) modeBtn.addEventListener('click', toggleMode);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+            e.preventDefault();
+            trainer && trainer.nextLine();
+        }
+        if (e.code === 'KeyH') {
+            trainer && trainer.showHint();
+        }
+    });
+
+    window.addEventListener('resize', () => board && board.resize());
+
+    // Auto-load from URL if slug present
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get('slug');
+    if (slug && db[slug]) {
+        trainer = new Trainer();
+        trainer.loadOpening(slug);
+        const nameEl = document.getElementById('openingName');
+        if (nameEl) nameEl.textContent = db[slug].displayName;
+    }
+}
+
+// ── Move Input Handler (cm-chessboard) ──
+function moveInputHandler(event) {
+    if (!trainer || trainer.completed) {
+        return;
+    }
+
+    if (event.type === INPUT_EVENT_TYPE.moveInputStarted) {
+        clearIncorrectCross();
+        const piece = game.get(event.squareFrom);
+        const playerColor = trainer.opening.playerSide;
+        if (!piece || piece.color !== playerColor) {
+            return false;
+        }
+        const moves = game.moves({ square: event.squareFrom, verbose: true });
+        if (moves.length > 0) {
+            event.chessboard.addLegalMovesMarkers(moves);
+        }
+        return moves.length > 0;
+    }
+
+    if (event.type === INPUT_EVENT_TYPE.movingOverSquare) {
+        return;
+    }
+
+    if (event.type === INPUT_EVENT_TYPE.validateMoveInput) {
+        event.chessboard.removeLegalMovesMarkers();
+        const legalMoves = game.moves({ square: event.squareFrom, verbose: true });
+        const isLegal = legalMoves.some(m => m.from === event.squareFrom && m.to === event.squareTo);
+        if (!isLegal) {
+            pendingIncorrectMove = null;
+            return false;
+        }
+        const valid = trainer.validateMove(event.squareFrom, event.squareTo);
+        if (!valid) {
+            pendingIncorrectMove = { from: event.squareFrom, to: event.squareTo };
+            return true;
+        }
+        pendingIncorrectMove = null;
+        return true;
+    }
+
+    if (event.type === INPUT_EVENT_TYPE.moveInputFinished) {
+        if (pendingIncorrectMove) {
+            // Incorrect move: show X, wait, then animated snapback
+            showIncorrectCross(pendingIncorrectMove.to);
+            // showFeedback('Try again!', 'error');
+            setTimeout(() => {
+                clearIncorrectCross();
+                board.setPosition(game.fen(), true); // animated snapback
+                setTimeout(() => {
+                    if (trainer && !trainer.completed) {
+                        const playerColor = trainer.opening.playerSide === 'w' ? COLOR.white : COLOR.black;
+                        board.enableMoveInput(moveInputHandler, playerColor);
+                    }
+                    pendingIncorrectMove = null;
+                }, 300);
+            }, 700);
+            return;
+        }
+        if (event.legalMove) {
+            trainer.applyMove(event.squareFrom, event.squareTo);
+            event.chessboard.disableMoveInput();
+            setTimeout(() => {
+                trainer && trainer.playOpponentMoves();
+            }, trainer.mode === 'drill' ? 250 : 500);
+        }
+    }
+
+    if (event.type === INPUT_EVENT_TYPE.moveInputCanceled) {
+        event.chessboard.removeLegalMovesMarkers();
+        clearIncorrectCross();
+    }
+}
+
+// ── Last Move Highlight ──
+function highlightLastMove(from, to) {
+    document.querySelectorAll('.cm-chessboard .square.last-move-from, .cm-chessboard .square.last-move-to').forEach(el => {
+        el.classList.remove('last-move-from', 'last-move-to');
+    });
+    const fromEl = document.querySelector(`.cm-chessboard .square[data-square="${from}"]`);
+    const toEl = document.querySelector(`.cm-chessboard .square[data-square="${to}"]`);
+    if (fromEl) fromEl.classList.add('last-move-from');
+    if (toEl) toEl.classList.add('last-move-to');
+}
+
+function clearLastMove() {
+    document.querySelectorAll('.cm-chessboard .square.last-move-from, .cm-chessboard .square.last-move-to').forEach(el => {
+        el.classList.remove('last-move-from', 'last-move-to');
+    });
+}
+
+// ── Correct Move Checkmark ──
+function showCorrectCheckmark(square) {
+    clearCorrectCheckmark();
+    if (!board || !board.view) return;
+    const svg = board.view.svg;
+    const point = board.view.squareToPoint(square);
+    const size = board.view.squareWidth * 0.38;
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute("class", "correct-checkmark");
+    g.setAttribute("transform", `translate(${point.x}, ${point.y})`);
+
+    // Green circle background
+    const bg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    bg.setAttribute("cx", size / 2);
+    bg.setAttribute("cy", size / 2);
+    bg.setAttribute("r", size / 2);
+    bg.setAttribute("fill", "#22c55e");
+    g.appendChild(bg);
+
+    // White checkmark
+    const check = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    check.setAttribute("d", `M ${size*0.22},${size*0.52} L ${size*0.42},${size*0.72} L ${size*0.78},${size*0.30}`);
+    check.setAttribute("stroke", "#fff");
+    check.setAttribute("stroke-width", size * 0.13);
+    check.setAttribute("fill", "none");
+    check.setAttribute("stroke-linecap", "round");
+    check.setAttribute("stroke-linejoin", "round");
+    g.appendChild(check);
+
+    svg.appendChild(g);
+}
+
+function clearCorrectCheckmark() {
+    if (!board || !board.view || !board.view.svg) return;
+    board.view.svg.querySelectorAll(".correct-checkmark").forEach(el => el.remove());
+}
+
+// ── Incorrect Move Cross ──
+function showIncorrectCross(square) {
+    clearIncorrectCross();
+    if (!board || !board.view) return;
+    const svg = board.view.svg;
+    const point = board.view.squareToPoint(square);
+    const size = board.view.squareWidth * 0.38;
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute("class", "incorrect-cross");
+    g.setAttribute("transform", `translate(${point.x}, ${point.y})`);
+
+    // Red circle background
+    const bg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    bg.setAttribute("cx", size / 2);
+    bg.setAttribute("cy", size / 2);
+    bg.setAttribute("r", size / 2);
+    bg.setAttribute("fill", "#ca3331");
+    g.appendChild(bg);
+
+    // White X
+    const xPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    xPath.setAttribute("d", `M ${size*0.28},${size*0.28} L ${size*0.72},${size*0.72} M ${size*0.72},${size*0.28} L ${size*0.28},${size*0.72}`);
+    xPath.setAttribute("stroke", "#fff");
+    xPath.setAttribute("stroke-width", size * 0.14);
+    xPath.setAttribute("fill", "none");
+    xPath.setAttribute("stroke-linecap", "round");
+    g.appendChild(xPath);
+
+    svg.appendChild(g);
+}
+
+function clearIncorrectCross() {
+    if (!board || !board.view || !board.view.svg) return;
+    board.view.svg.querySelectorAll(".incorrect-cross").forEach(el => el.remove());
+}
+
+// ── Hint Square Highlight ──
+function highlightHintSquare(square) {
+    clearHintSquare();
+    const squareEl = document.querySelector(`.cm-chessboard .square[data-square="${square}"]`);
+    if (squareEl) {
+        squareEl.classList.add('hint-square');
+    }
+}
+
+function clearHintSquare() {
+    document.querySelectorAll('.cm-chessboard .square.hint-square').forEach(el => el.classList.remove('hint-square'));
+}
+
+// ── Trainer ──
+class Trainer {
+    constructor() {
+        this.opening = null;
+        this.slug = '';
+        this.linePgn = null;
+        this.lineName = '';
+        this.moves = [];
+        this.moveIndex = 0;
+        this.mode = 'learn';
+        this.completed = false;
+        this.hintShown = false;
+        this.wrongAttempts = 0;
+    }
+
+    loadOpening(slug) {
+        this.slug = slug;
+        this.opening = db[slug];
+        if (!this.opening) return;
+
+        const orientation = this.opening.playerSide === 'b' ? COLOR.black : COLOR.white;
+        board.setOrientation(orientation);
+
+        renderLinesList();
+        this.nextLine();
+    }
+
+    nextLine() {
+        const lines = this.opening.lines || [];
+        if (!lines.length) return;
+        const idx = Math.floor(Math.random() * lines.length);
+        this.loadLine(lines[idx]);
+    }
+
+    loadLine(pgn) {
+        // Hide completion overlay
+        const overlay = document.getElementById('completionOverlay');
+        if (overlay) overlay.classList.remove('open');
+        
+        clearHintSquare();
+        clearLastMove();
+        clearCorrectCheckmark();
+        clearIncorrectCross();
+        this.hintShown = false;
+        document.getElementById('btnHint').textContent = 'Hint';
+        this.linePgn = pgn;
+        this.lineName = (this.opening.lineNames || {})[pgn] || 'Unknown Line';
+        this.moves = parsePgnToMoves(pgn);
+        this.moveIndex = 0;
+        this.completed = false;
+        this.wrongAttempts = 0;
+
+        game.reset();
+        board.setPosition(game.fen(), true);
+
+        updateLineHeader(this.lineName, this.opening.displayName);
+        renderMoveHistory([]);
+        updateProgress(0);
+        renderLineDropdown();
+
+        this.playOpponentMoves();
+        renderLinesList();
+    }
+
+    resetLine() {
+        if (!this.linePgn) return;
+        this.loadLine(this.linePgn);
+    }
+
+    playOpponentMoves() {
+        if (this.completed) return;
+        clearCorrectCheckmark();
+        clearIncorrectCross();
+
+        const playNext = () => {
+            if (this.moveIndex >= this.moves.length || this.completed) {
+                updateProgress(this.getProgress());
+                if (this.moveIndex >= this.moves.length) {
+                    this.onComplete();
+                }
+                return;
+            }
+
+            const next = this.moves[this.moveIndex];
+            const side = game.turn();
+
+            if (side !== this.opening.playerSide) {
+                const moveResult = game.move(next.san);
+                this.moveIndex++;
+                board.setPosition(game.fen(), true);
+                highlightLastMove(next.from, next.to);
+                playMoveSound(moveResult);
+                this.updateInstruction();
+                renderMoveHistory(game.history({ verbose: false }));
+                updateProgress(this.getProgress());
+                
+                // Continue with delay for animation visibility
+                setTimeout(() => playNext(), this.mode === 'drill' ? 200 : 600);
+            } else {
+                this.updateInstruction();
+                const playerColor = this.opening.playerSide === 'w' ? COLOR.white : COLOR.black;
+                board.enableMoveInput(moveInputHandler, playerColor);
+                updateProgress(this.getProgress());
+            }
+        };
+
+        playNext();
+    }
+
+    validateMove(from, to) {
+        const expected = this.moves[this.moveIndex];
+        if (!expected) return false;
+
+        if (from === to) {
+            return false; // same square, no feedback
+        }
+
+        // Check if this is even a legal chess move
+        const legalMoves = game.moves({ square: from, verbose: true });
+        const isLegal = legalMoves.some(m => m.from === from && m.to === to);
+        if (!isLegal) {
+            return false; // not a legal move, no feedback (e.g. clicked another piece)
+        }
+
+        if (expected.from !== from || expected.to !== to) {
+            stats.attempts++;
+            this.wrongAttempts++;
+            return false;
+        }
+
+        return true;
+    }
+
+    applyMove(from, to) {
+        clearHintSquare();
+        this.hintShown = false;
+        document.getElementById('btnHint').textContent = 'Hint';
+        const expected = this.moves[this.moveIndex];
+        if (!expected) return;
+
+        stats.attempts++;
+        stats.correct++;
+        stats.movesMade++;
+
+        const moveResult = game.move(expected.san);
+        this.moveIndex++;
+        highlightLastMove(expected.from, expected.to);
+        showCorrectCheckmark(expected.to);
+        playMoveSound(moveResult);
+
+        renderMoveHistory(game.history({ verbose: false }));
+        updateProgress(this.getProgress());
+
+        const desc = this.findDescription();
+        // const msg = desc ? 'Correct! ' + desc.substring(0, 50) + '...' : 'Correct!';
+        // showFeedback(msg, 'success');
+    }
+
+    showHint() {
+        if (this.completed) return;
+        const exp = this.moves[this.moveIndex];
+        if (!exp) return;
+
+        if (this.hintShown) {
+            // Second click: execute the move automatically
+            clearHintSquare();
+            this.hintShown = false;
+            document.getElementById('btnHint').textContent = 'Hint';
+
+            const moveResult = game.move(exp.san);
+            this.moveIndex++;
+            board.setPosition(game.fen(), true);
+            highlightLastMove(exp.from, exp.to);
+            playMoveSound(moveResult);
+
+            renderMoveHistory(game.history({ verbose: false }));
+            updateProgress(this.getProgress());
+
+            setTimeout(() => {
+                this.playOpponentMoves();
+            }, this.mode === 'drill' ? 250 : 500);
+        } else {
+            // First click: show hint square
+            highlightHintSquare(exp.from);
+            this.hintShown = true;
+            document.getElementById('btnHint').textContent = 'Solve';
+        }
+    }
+
+    updateInstruction() {
+        const el = document.getElementById('instruction');
+        const bubbleText = document.querySelector('.instruction-text');
+        const desc = this.findDescription();
+        const short = this.findShortDescription();
+
+        const side = game.turn();
+        const isUserTurn = side === this.opening.playerSide;
+        let text;
+
+        if (isUserTurn) {
+            if (desc) text = desc;
+            else if (short) text = short;
+            else text = "Your turn! Make the best move.";
+        } else {
+            if (desc) text = desc;
+            else text = this.completed ? 'Line complete!' : "Think about the position...";
+        }
+
+        if (el) el.textContent = text;
+        if (bubbleText) bubbleText.textContent = text;
+    }
+
+    findDescription() {
+        const fen = game.fen();
+        const descs = this.opening.descriptions || {};
+        if (descs[fen]) return descs[fen];
+        const prefix = fen.split(' ').slice(0, 4).join(' ');
+        for (const [key, val] of Object.entries(descs)) {
+            const kp = key.split(' ').slice(0, 4).join(' ');
+            if (kp === prefix) return val;
+        }
+        return null;
+    }
+
+    findShortDescription() {
+        const fen = game.fen();
+        const shorts = this.opening.shortDescriptions || {};
+        if (shorts[fen]) return shorts[fen];
+        const prefix = fen.split(' ').slice(0, 4).join(' ');
+        for (const [key, val] of Object.entries(shorts)) {
+            const kp = key.split(' ').slice(0, 4).join(' ');
+            if (kp === prefix) return val;
+        }
+        return null;
+    }
+
+    getProgress() {
+        if (!this.moves.length) return 0;
+        return (this.moveIndex / this.moves.length) * 100;
+    }
+
+    onComplete() {
+        this.completed = true;
+        stats.linesDone++;
+        updateStats();
+        
+        // Save progress
+        const existing = getLineProgress(this.slug, this.linePgn);
+        const isPerfect = this.wrongAttempts === 0;
+        updateLineProgress(this.slug, this.linePgn, {
+            completions: (existing.completions || 0) + 1,
+            perfectAttempts: (existing.perfectAttempts || 0) + (isPerfect ? 1 : 0),
+            lastAttemptTimestamp: Date.now(),
+            confidence: Math.min(10, (existing.confidence || 0) + (isPerfect ? 2 : 1))
+        });
+        
+        // Update progress bar to 100%
+        updateProgress(100);
+        
+        // Update instruction
+        const instEl = document.getElementById('instruction');
+        if (instEl) instEl.textContent = 'Line complete!';
+        const bubbleText = document.querySelector('.instruction-text');
+        if (bubbleText) bubbleText.textContent = 'Line complete! Great job!';
+        
+        // Trigger confetti celebration
+        if (typeof confetti !== 'undefined') {
+            const count = 200;
+            const defaults = { origin: { y: 0.7 } };
+            
+            function fire(particleRatio, opts) {
+                confetti({
+                    ...defaults,
+                    ...opts,
+                    particleCount: Math.floor(count * particleRatio)
+                });
+            }
+            
+            fire(0.25, { spread: 26, startVelocity: 55 });
+            fire(0.2, { spread: 60 });
+            fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+            fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+            fire(0.1, { spread: 120, startVelocity: 45 });
+        }
+        
+        // Show completion overlay after a short delay
+        setTimeout(() => {
+            const overlay = document.getElementById('completionOverlay');
+            const sub = document.getElementById('completionSub');
+            if (overlay && sub) {
+                const lineName = this.lineName || 'Unknown Line';
+                sub.textContent = `You completed "${lineName}"! ${isPerfect ? 'Perfect run!' : ''}`;
+                overlay.classList.add('open');
+            }
+        }, 1200);
+    }
+}
+
+// ── Helpers ──
+function parsePgnToMoves(pgn) {
+    const temp = new Chess();
+    const clean = pgn.replace(/\d+\./g, ' ').trim();
+    const tokens = clean.split(/\s+/).filter(t => t && !t.match(/^\d+$/));
+    const moves = [];
+    for (const token of tokens) {
+        if (token.match(/^(1-0|0-1|1\/2|\*|\*\*)$/)) continue;
+        const move = temp.move(token, { sloppy: true });
+        if (move) {
+            moves.push({
+                san: move.san,
+                from: move.from,
+                to: move.to,
+                color: move.color,
+                fen: temp.fen()
+            });
+        }
+    }
+    return moves;
+}
+
+// ── UI ──
+function onOpeningChange(e) {
+    const slug = e.target.value;
+    if (!slug) return;
+    if (!trainer) trainer = new Trainer();
+    trainer.loadOpening(slug);
+    updateStats();
+}
+
+function renderLinesList() {
+    const container = document.getElementById('linesList');
+    if (!container) return;
+    if (!trainer || !trainer.opening) {
+        container.innerHTML = '<div class="empty">Select an opening</div>';
+        return;
+    }
+    const lines = trainer.opening.lines || [];
+    const names = trainer.opening.lineNames || {};
+    let html = '';
+    lines.forEach((pgn, idx) => {
+        const name = names[pgn] || `Line ${idx + 1}`;
+        const isActive = trainer.linePgn === pgn;
+        const safePgn = pgn.replace(/"/g, '&quot;');
+        html += `<button class="line-btn ${isActive ? 'active' : ''}" data-pgn="${safePgn}">`;
+        html += `<span class="name">${esc(name)}</span>`;
+        html += `<span class="pgn">${esc(pgn.substring(0, 55))}${pgn.length > 55 ? '...' : ''}</span>`;
+        html += `</button>`;
+    });
+    container.innerHTML = html;
+    container.querySelectorAll('.line-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const pgn = e.currentTarget.dataset.pgn;
+            if (pgn && trainer) {
+                trainer.loadLine(pgn);
+            }
+        });
+    });
+}
+
+function updateLineHeader(name, openingName) {
+    const openingNameEl = document.getElementById('openingName');
+    const lineCounter = document.getElementById('lineCounter');
+    const progressLineName = document.getElementById('progressLineName');
+
+    if (openingNameEl) openingNameEl.textContent = openingName || '';
+    if (lineCounter) lineCounter.textContent = '#' + (stats.linesDone + 1);
+    if (progressLineName) progressLineName.textContent = name || '';
+}
+
+function updateProgress(pct) {
+    const bar = document.getElementById('lineProgressBar');
+    const moveNum = document.getElementById('progressMoveNum');
+    if (bar && trainer && trainer.moves.length > 0) {
+        bar.style.width = pct + '%';
+        if (moveNum) {
+            const current = trainer.moveIndex;
+            const total = trainer.moves.length;
+            moveNum.textContent = `Move ${current}/${total}`;
+        }
+    }
+}
+
+function renderMoveHistory(moves) {
+    const container = document.getElementById('moveHistory');
+    if (!container) return;
+    if (!moves.length) {
+        container.innerHTML = '<span style="color:var(--text-dim)">No moves yet</span>';
+        return;
+    }
+    let html = '';
+    let num = 1;
+    for (let i = 0; i < moves.length; i += 2) {
+        html += `<span class="move-entry">${num}. ${moves[i]}</span>`;
+        if (moves[i + 1]) {
+            html += `<span class="move-entry user">${moves[i + 1]}</span>`;
+        }
+        num++;
+    }
+    container.innerHTML = html;
+    container.scrollTop = container.scrollHeight;
+}
+
+function updateStats() {
+    const statLines = document.getElementById('statLines');
+    const statMoves = document.getElementById('statMoves');
+    const statAcc = document.getElementById('statAcc');
+    const learnStats = document.getElementById('learnStats');
+    const practiceStats = document.getElementById('practiceStats');
+
+    if (statLines) statLines.textContent = stats.linesDone;
+    if (statMoves) statMoves.textContent = stats.movesMade;
+    const acc = stats.attempts > 0 ? Math.round((stats.correct / stats.attempts) * 100) + '%' : '-';
+    if (statAcc) statAcc.textContent = acc;
+    if (learnStats) learnStats.textContent = `${stats.linesDone} lines discovered`;
+    if (practiceStats) practiceStats.textContent = `${stats.correct} lines perfected`;
+}
+
+function showFeedback(msg, type) {
+    const el = document.getElementById('feedback');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'feedback ' + type;
+    setTimeout(() => {
+        el.classList.add('hidden');
+    }, 2000);
+    setTimeout(() => {
+        el.className = 'feedback hidden';
+    }, 2400);
+}
+
+function toggleMode() {
+    if (!trainer) return;
+    trainer.mode = trainer.mode === 'learn' ? 'drill' : 'learn';
+    const btnMode = document.getElementById('btnMode');
+    if (btnMode) btnMode.textContent = `Mode: ${cap(trainer.mode)}`;
+    showFeedback(`Switched to ${trainer.mode} mode`, 'hint');
+}
+
+// ── Line Dropdown ──
+function renderLineDropdown() {
+    const list = document.getElementById('dropdownList');
+    if (!list || !trainer || !trainer.opening) return;
+    
+    const lines = trainer.opening.lines || [];
+    const names = trainer.opening.lineNames || {};
+    list.innerHTML = '';
+    
+    lines.forEach((pgn, idx) => {
+        const name = names[pgn] || `Line ${idx + 1}`;
+        const isActive = trainer.linePgn === pgn;
+        const num = idx + 1;
+        
+        const item = document.createElement('div');
+        item.className = `dropdown-item ${isActive ? 'active' : ''}`;
+        item.innerHTML = `
+            <span class="line-num">#${num}</span>
+            <span class="line-icon">🎯</span>
+            <span class="line-label">${esc(name)}</span>
+            ${isActive ? '<span style="margin-left:auto;color:#22c55e;font-size:0.85rem;font-weight:700;">✓</span>' : ''}
+        `;
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (trainer) {
+                trainer.loadLine(pgn);
+                closeLineDropdown();
+            }
+        });
+        list.appendChild(item);
+    });
+}
+
+// ── Completion Handler ──
+window.nextLineAfterComplete = function() {
+    const overlay = document.getElementById('completionOverlay');
+    if (overlay) overlay.classList.remove('open');
+    if (trainer) trainer.nextLine();
+};
+
+// ── Utils ──
+function esc(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+function cap(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+}

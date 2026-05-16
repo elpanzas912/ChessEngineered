@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChessPeps - Opening Trainer</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;800&family=Outfit:wght@400;700;800&family=Clash+Display:wght@400;700&family=Syne:wght@400;700;800&family=Inter:wght@400;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:wght@400;700;800&family=Josefin+Sans:wght@300;400;700&family=Raleway:wght@300;400;800&family=Nunito:wght@300;400;700&family=Quicksand:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --purple: #8b5cf6;
+            --purple-hover: #7c3aed;
+        }
+
+        body {
+            overflow-y: auto;
+            background: var(--bg);
+        }
+
+        /* Header over banner */
+        .site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 32px;
+            background: transparent;
+            position: relative;
+            z-index: 10;
+        }
+
+        .site-header .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .site-header .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--purple);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .site-header .brand-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.02em;
+        }
+
+        .site-header nav {
+            display: flex;
+            gap: 28px;
+        }
+
+        .site-header nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.15s;
+        }
+
+        .site-header nav a:hover,
+        .site-header nav a.active {
+            color: var(--text);
+        }
+
+        /* Hero Banner Container */
+        .hero-banner {
+            position: relative;
+            min-height: 420px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .hero-banner-bg {
+            position: absolute;
+            inset: 0;
+            background: url('img/banner.png') center -195px / cover no-repeat;
+            z-index: 0;
+        }
+
+        .hero-banner-fade {
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 300px;
+            background: linear-gradient(to bottom, rgba(9,9,11,0) 0%, rgba(9,9,11,0.7) 60%, var(--bg) 100%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 40px 20px 100px;
+            position: relative;
+            z-index: 2;
+            margin-top: auto;
+        }
+
+        .hero h1 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+            color: #fff;
+            text-shadow: 0 2px 16px rgba(0,0,0,0.5);
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, #ddd6fe 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-family: inherit;
+        }
+
+        .hero p {
+            color: rgba(255,255,255,0.8);
+            font-size: 1.15rem;
+            max-width: 500px;
+            margin: 0 auto;
+            text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+        }
+
+        /* Font Selector */
+        .font-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            z-index: 2;
+            position: relative;
+        }
+
+        .font-selector label {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .font-selector select {
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.85rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .font-selector select option {
+            background: var(--surface);
+            color: var(--text);
+        }
+
+        /* Simple Toolbar */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 32px 28px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .color-filters {
+            display: flex;
+            gap: 8px;
+            margin-right: 12px;
+        }
+
+        .color-filter {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            user-select: none;
+        }
+
+        .color-filter:hover {
+            border-color: var(--border-light);
+        }
+
+        .color-filter.active {
+            border-color: var(--purple);
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--text);
+        }
+
+        .color-filter .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .color-filter .dot.white-side {
+            background: #fff;
+            border: 1px solid #52525b;
+        }
+
+        .color-filter .dot.black-side {
+            background: #27272a;
+            border: 1px solid #52525b;
+        }
+
+        /* Auth Modal */
+        .auth-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-modal-overlay.open {
+            display: flex;
+        }
+
+        .auth-modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            max-width: 380px;
+            position: relative;
+        }
+
+        .auth-modal h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .auth-modal .form-group {
+            margin-bottom: 16px;
+        }
+
+        .auth-modal label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .auth-modal input {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .auth-modal input:focus {
+            border-color: var(--purple);
+        }
+
+        .auth-modal .btn-auth {
+            width: 100%;
+            padding: 12px;
+            background: var(--purple);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+            margin-top: 8px;
+        }
+
+        .auth-modal .btn-auth:hover {
+            background: var(--purple-hover);
+        }
+
+        .auth-modal .auth-toggle {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .auth-modal .auth-toggle a {
+            color: var(--purple);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .auth-modal .close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .auth-modal .error-msg {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 8px;
+            text-align: center;
+            display: none;
+        }
+
+        /* User menu */
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: var(--purple);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #fff;
+        }
+
+        .btn-login {
+            padding: 8px 18px;
+            background: var(--purple);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .btn-login:hover {
+            background: var(--purple-hover);
+        }
+
+        .search-box {
+            flex: 1;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 14px 10px 38px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--purple);
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.85rem;
+            opacity: 0.5;
+        }
+
+        .toolbar-spacer {
+            flex: 1;
+        }
+
+        .stats-pill {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Course Grid */
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 0 32px 48px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 900px) {
+            .course-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .course-card {
+            display: flex;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .course-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-light);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .course-card .card-link {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+        }
+
+        .course-card .card-board {
+            width: 200px;
+            min-width: 200px;
+            height: 200px;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .course-card .card-board img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.9;
+        }
+
+        .course-card .card-board-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #27272a 0%, #18181b 100%);
+            color: var(--text-dim);
+            font-size: 3rem;
+        }
+
+        .course-card .card-body {
+            flex: 1;
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .course-card .card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .course-card h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+
+        .badge-side {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 4px 10px;
+            border-radius: 20px;
+            pointer-events: auto;
+        }
+
+        .badge-side.white {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .badge-side.black {
+            background: rgba(0, 0, 0, 0.3);
+            color: #a1a1aa;
+            border: 1px solid var(--border-light);
+        }
+
+        .course-card .card-desc {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            line-height: 1.5;
+            margin-bottom: 16px;
+            flex: 1;
+        }
+
+        .progress-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: var(--bg);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #a78bfa 0%, #8b5cf6 100%);
+            border-radius: 3px;
+            width: 0%;
+        }
+
+        .lines-count {
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 8px;
+        }
+
+        .try-link {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.15s;
+            pointer-events: auto;
+        }
+
+        .try-link:hover {
+            color: var(--text);
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-banner">
+        <div class="hero-banner-bg"></div>
+        <div class="hero-banner-fade"></div>
+
+        <header class="site-header">
+            <a href="/" class="brand">
+                <div class="brand-icon">♟</div>
+                <span class="brand-text">chesspeps</span>
+            </a>
+            <nav>
+                <a href="/openings.html" class="active">Repertoire</a>
+                <a href="/index.html">Trainer</a>
+            </nav>
+            <div class="user-menu" id="userMenu">
+                <button class="btn-login" id="btnLogin" onclick="openAuthModal()">Log in</button>
+            </div>
+        </header>
+
+        <section class="hero">
+            <h1 id="heroTitle" style="font-family: 'Josefin Sans', sans-serif; font-weight: 700;">Chess Opening <span>Trainer</span></h1>
+            <p>Practice your openings with interactive move-by-move training</p>
+            <div class="font-selector">
+                <label>Try a font:</label>
+                <select id="fontSelect" onchange="document.getElementById('heroTitle').style.fontFamily = this.value">
+                    <optgroup label="Bold & Modern">
+                        <option value="'Space Grotesk', sans-serif">Space Grotesk</option>
+                        <option value="'Outfit', sans-serif">Outfit</option>
+                        <option value="'Clash Display', sans-serif">Clash Display</option>
+                        <option value="'Syne', sans-serif">Syne</option>
+                        <option value="'Inter', sans-serif">Inter</option>
+                    </optgroup>
+                    <optgroup label="Elegant & Thin">
+                        <option value="'Cormorant Garamond', serif">Cormorant Garamond</option>
+                        <option value="'Playfair Display', serif">Playfair Display</option>
+                        <option value="'Josefin Sans', sans-serif" selected>Josefin Sans</option>
+                        <option value="'Raleway', sans-serif">Raleway</option>
+                        <option value="'Nunito', sans-serif">Nunito</option>
+                        <option value="'Quicksand', sans-serif">Quicksand</option>
+                    </optgroup>
+                </select>
+            </div>
+        </section>
+    </div>
+
+    <div class="toolbar">
+        <div class="color-filters">
+            <button class="color-filter active" data-color="all" onclick="toggleColorFilter(this)">
+                <span>All</span>
+            </button>
+            <button class="color-filter" data-color="white" onclick="toggleColorFilter(this)">
+                <span class="dot white-side"></span>
+                <span>White</span>
+            </button>
+            <button class="color-filter" data-color="black" onclick="toggleColorFilter(this)">
+                <span class="dot black-side"></span>
+                <span>Black</span>
+            </button>
+        </div>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search openings...">
+        </div>
+        <div class="toolbar-spacer"></div>
+        <span class="stats-pill" id="statsPill">28 openings</span>
+    </div>
+
+    <main class="course-grid" id="courseGrid"></main>
+
+    <script>
+        let allOpenings = {};
+        let currentColorFilter = 'all';
+
+        fetch('data/openings.json')
+            .then(r => r.json())
+            .then(data => {
+                allOpenings = data.openings || {};
+                renderCourses(allOpenings);
+            })
+            .catch(err => { /* ignore */ });
+
+        function renderCourses(openings) {
+            const grid = document.getElementById('courseGrid');
+            grid.innerHTML = '';
+            
+            let entries = Object.entries(openings).sort((a, b) => a[1].displayName.localeCompare(b[1].displayName));
+            
+            // Apply color filter
+            if (currentColorFilter !== 'all') {
+                entries = entries.filter(([, o]) => o.playerSide === currentColorFilter[0]);
+            }
+            
+            const totalLines = entries.reduce((sum, [, o]) => sum + (o.lines?.length || 0), 0);
+            document.getElementById('statsPill').textContent = `${entries.length} openings · ${totalLines} lines`;
+
+            entries.forEach(([slug, o]) => {
+                const card = document.createElement('article');
+                card.className = 'course-card';
+                card.dataset.side = o.playerSide === 'w' ? 'white' : 'black';
+
+                const side = o.playerSide === 'w' ? 'white' : 'black';
+                const sideLabel = o.playerSide === 'w' ? 'White' : 'Black';
+                const lineCount = o.lines?.length || 0;
+                const desc = o.descriptions ? Object.values(o.descriptions)[0] : '';
+                const shortDesc = desc ? desc.substring(0, 140) + (desc.length > 140 ? '...' : '') : '';
+                
+                card.innerHTML = `
+                    <a href="opening.html?slug=${slug}" aria-label="${o.displayName}" class="card-link"></a>
+                    <div class="card-board">
+                        <img src="boards/${slug}.png" alt="${o.displayName} board" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
+                    </div>
+                    <div class="card-body">
+                        <div class="card-header">
+                            <h3>${o.displayName}</h3>
+                            <span class="badge-side ${side}">${sideLabel}</span>
+                        </div>
+                        <p class="card-desc">${shortDesc || 'Practice this opening with interactive training.'}</p>
+                        <div class="progress-wrap">
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill" style="width: 0%"></div>
+                            </div>
+                            <span class="lines-count">${lineCount} lines</span>
+                        </div>
+                        <div class="card-footer">
+                            <a href="opening.html?slug=${slug}" class="try-link">Start training →</a>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function toggleColorFilter(btn) {
+            // Update active state
+            document.querySelectorAll('.color-filter').forEach(f => f.classList.remove('active'));
+            btn.classList.add('active');
+            
+            currentColorFilter = btn.dataset.color;
+            renderCourses(allOpenings);
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.course-card').forEach(card => {
+                const name = card.querySelector('h3').textContent.toLowerCase();
+                const desc = card.querySelector('.card-desc').textContent.toLowerCase();
+                const matchesSearch = name.includes(term) || desc.includes(term);
+                const matchesColor = currentColorFilter === 'all' || card.dataset.side === currentColorFilter;
+                card.style.display = (matchesSearch && matchesColor) ? '' : 'none';
+            });
+        });
+    </script>
+
+    <!-- Auth Modal -->
+    <div class="auth-modal-overlay" id="authModal">
+        <div class="auth-modal">
+            <button class="close-btn" onclick="closeAuthModal()">×</button>
+            <h2 id="authTitle">Log in</h2>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="authEmail" placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="authPassword" placeholder="••••••••">
+            </div>
+            <button class="btn-auth" id="authBtn" onclick="handleAuth()">Log in</button>
+            <div style="text-align:center;margin:16px 0;color:var(--text-dim);font-size:0.85rem;">or</div>
+            <button class="btn-auth" style="background:#4285F4;border:none;" onclick="handleGoogleAuth()">
+                <span style="margin-right:8px;">🔍</span> Continue with Google
+            </button>
+            <div class="error-msg" id="authError"></div>
+            <div class="auth-toggle">
+                <span id="authToggleText">Don't have an account?</span>
+                <a onclick="toggleAuthMode()" id="authToggleLink">Sign up</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal Controls (non-module, always works) -->
+    <script>
+        let authMode = 'login';
+
+        function openAuthModal() {
+            document.getElementById('authModal').classList.add('open');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('open');
+            document.getElementById('authError').style.display = 'none';
+        }
+
+        function toggleAuthMode() {
+            authMode = authMode === 'login' ? 'signup' : 'login';
+            document.getElementById('authTitle').textContent = authMode === 'login' ? 'Log in' : 'Sign up';
+            document.getElementById('authBtn').textContent = authMode === 'login' ? 'Log in' : 'Sign up';
+            document.getElementById('authToggleText').textContent = authMode === 'login' ? "Don't have an account?" : 'Already have an account?';
+            document.getElementById('authToggleLink').textContent = authMode === 'login' ? 'Sign up' : 'Log in';
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAuthModal();
+        });
+
+        // Close modal on overlay click
+        document.getElementById('authModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('authModal')) closeAuthModal();
+        });
+    </script>
+
+    <!-- Supabase Auth (global bundle - more reliable than dynamic import) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script>
+        let supabaseClient = null;
+        let auth = null;
+
+        try {
+            if (typeof supabase !== 'undefined' && supabase.createClient) {
+                supabaseClient = supabase.createClient(
+                    'https://mvvnqkixgxjblgyrnvte.supabase.co',
+                    'sb_publishable_oTugIxx-nIZDcJgCuMnnqw_1ppfExp9'
+                );
+                auth = supabaseClient.auth;
+            } else {
+                throw new Error('Supabase library not loaded');
+            }
+        } catch (err) {
+            document.getElementById('authError').textContent = 'Connection error. Please refresh.';
+        }
+
+        async function handleAuth() {
+            if (!supabaseClient) {
+                document.getElementById('authError').textContent = 'Not connected. Refresh the page.';
+                document.getElementById('authError').style.display = 'block';
+                return;
+            }
+
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            const errorEl = document.getElementById('authError');
+            
+            if (!email || !password) {
+                errorEl.textContent = 'Please enter email and password';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            let result;
+            try {
+                if (authMode === 'login') {
+                    result = await auth.signInWithPassword({ email, password });
+                } else {
+                    result = await auth.signUp({ email, password });
+                }
+            } catch (err) {
+                errorEl.textContent = 'Error: ' + err.message;
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            if (result.error) {
+                errorEl.textContent = result.error.message;
+                errorEl.style.display = 'block';
+            } else {
+                errorEl.style.display = 'none';
+                closeAuthModal();
+                updateUserUI(result.data.user);
+            }
+        }
+
+        async function handleGoogleAuth() {
+            if (!supabaseClient) {
+                document.getElementById('authError').textContent = 'Not connected. Refresh the page.';
+                document.getElementById('authError').style.display = 'block';
+                return;
+            }
+
+            try {
+                const { error } = await auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin + '/openings.html'
+                    }
+                });
+                if (error) {
+                    document.getElementById('authError').textContent = error.message;
+                    document.getElementById('authError').style.display = 'block';
+                }
+            } catch (err) {
+                document.getElementById('authError').textContent = 'Google Sign-In failed. Please try again.';
+                document.getElementById('authError').style.display = 'block';
+            }
+        }
+
+        async function logout() {
+            if (!supabaseClient) return;
+            await auth.signOut();
+            updateUserUI(null);
+        }
+
+        function updateUserUI(user) {
+            const menu = document.getElementById('userMenu');
+            if (user) {
+                const name = user.email.split('@')[0];
+                const initial = name.charAt(0).toUpperCase();
+                menu.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <span style="color:var(--text-muted);font-size:0.85rem;">${name}</span>
+                        <div class="user-avatar">${initial}</div>
+                        <button class="btn-login" style="background:var(--surface);color:var(--text);border:1px solid var(--border);" onclick="logout()">Log out</button>
+                    </div>
+                `;
+                loadCloudProgress(user.id);
+            } else {
+                menu.innerHTML = `<button class="btn-login" id="btnLogin" onclick="openAuthModal()">Log in</button>`;
+            }
+        }
+
+        async function loadCloudProgress(userId) {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('user_progress')
+                    .eq('id', userId)
+                    .single();
+                if (data && data.user_progress) {
+                    localStorage.setItem('chesspeps_progress', JSON.stringify(data.user_progress));
+                }
+            } catch (e) { /* silently ignore */ }
+        }
+
+        // Make functions global for inline handlers
+        window.handleAuth = handleAuth;
+        window.handleGoogleAuth = handleGoogleAuth;
+        window.logout = logout;
+
+        // Check existing session
+        if (auth) {
+            auth.getUser().then(({ data }) => {
+                if (data.user) updateUserUI(data.user);
+            });
+            auth.onAuthStateChange((event, session) => {
+                updateUserUI(session?.user || null);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChessPeps - Practice</title>
+    <link rel="stylesheet" href="lib/cm-chessboard-assets/chessboard.css">
+    <link rel="stylesheet" href="lib/cm-chessboard-assets/extensions/markers/markers.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --purple: #8b5cf6;
+            --purple-light: #a78bfa;
+            --board-green-light: #769656;
+            --board-green-dark: #eeeed2;
+        }
+
+        body {
+            overflow: hidden;
+            background: #0a0a0f;
+        }
+
+        /* Minimal Header */
+        .trainer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            background: #0a0a0f;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .trainer-header .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .trainer-header .brand-icon {
+            width: 26px;
+            height: 26px;
+            background: var(--purple);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+        }
+
+        .search-bar-mini {
+            flex: 1;
+            max-width: 400px;
+            margin: 0 24px;
+        }
+
+        .search-bar-mini input {
+            width: 100%;
+            padding: 8px 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            outline: none;
+            text-align: center;
+        }
+
+        /* Main Trainer Layout */
+        .trainer-layout {
+            display: flex;
+            height: calc(100vh - 53px);
+            padding: 24px 32px 32px;
+            gap: 32px;
+            max-width: 1600px;
+            margin: 0 auto;
+            align-items: center;
+        }
+
+        /* Board Area */
+        .board-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+            padding: 20px;
+            gap: 24px;
+        }
+
+        #board {
+            width: min(960px, calc(100vh - 140px), calc(100vw - 460px));
+            height: min(960px, calc(100vh - 140px), calc(100vw - 460px));
+            max-width: 100%;
+        }
+
+        /* Right Panel */
+        .trainer-panel {
+            width: 380px;
+            min-width: 380px;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 20px 20px 20px 0;
+        }
+
+        /* Mode Header */
+        .mode-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .mode-header .mode-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mode-header .mode-icon {
+            font-size: 1rem;
+        }
+
+        .mode-header .mode-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text);
+        }
+
+        .mode-header .opening-name {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .mode-header .line-counter {
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .mode-header:hover {
+            border-color: var(--border-light);
+            background: rgba(255,255,255,0.02);
+        }
+
+        /* Line Dropdown */
+        .line-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            z-index: 50;
+            max-height: 420px;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .line-dropdown.open {
+            display: block;
+            animation: dropdownIn 0.15s ease;
+        }
+
+        @keyframes dropdownIn {
+            from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: background 0.1s;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(139, 92, 246, 0.08);
+        }
+
+        .dropdown-item.active {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--purple-light);
+        }
+
+        .dropdown-item .line-num {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-dim);
+            min-width: 28px;
+        }
+
+        .dropdown-item .line-icon {
+            font-size: 0.9rem;
+        }
+
+        .dropdown-item .line-label {
+            font-size: 0.88rem;
+            font-weight: 500;
+        }
+
+        .dropdown-separator {
+            height: 1px;
+            background: var(--border);
+            margin: 6px 12px;
+        }
+
+        .dropdown-item.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Instruction Bubble */
+        .instruction-bubble {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+        }
+
+        .instruction-bubble::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 20px;
+            width: 12px;
+            height: 12px;
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            border-top: 1px solid var(--border);
+            transform: rotate(45deg);
+        }
+
+        .instruction-bubble .speaker {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .instruction-bubble .speaker-icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--purple-light), var(--purple));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        .instruction-bubble .instruction-text {
+            color: var(--text);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Mode Cards */
+        .mode-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+        }
+
+        .mode-card:hover {
+            border-color: var(--border-light);
+        }
+
+        .mode-card.active {
+            border-color: var(--purple);
+            background: rgba(139, 92, 246, 0.08);
+        }
+
+        .mode-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .mode-card-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+
+        .mode-card-sub {
+            font-size: 0.78rem;
+            color: var(--text-dim);
+        }
+
+        .mode-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .mode-card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        /* Progress Bar */
+        .line-progress-wrap {
+            width: 100%;
+            margin-bottom: 8px;
+        }
+
+        .line-progress-track {
+            position: relative;
+            width: 100%;
+            height: 10px;
+            background: #27272a;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .line-progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #a78bfa 0%, #8b5cf6 100%);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .line-progress-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+            padding: 0 4px;
+        }
+
+        .line-progress-label .move-num {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            font-weight: 600;
+        }
+
+        .line-progress-label .move-name {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Completion Overlay */
+        .completion-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(9,9,11,0.85);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .completion-overlay.open {
+            display: flex;
+        }
+
+        .completion-overlay h2 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #fff;
+            text-align: center;
+        }
+
+        .completion-overlay .completion-sub {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .completion-overlay .btn-next-line {
+            padding: 14px 32px;
+            background: var(--purple);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .completion-overlay .btn-next-line:hover {
+            background: var(--purple-hover);
+        }
+
+        /* Bottom Controls */
+        .trainer-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: auto;
+            padding-top: 8px;
+        }
+
+        .ctrl-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .ctrl-btn:hover {
+            border-color: var(--border-light);
+            background: var(--surface-hover);
+        }
+
+        .ctrl-btn.nav-arrow {
+            padding: 10px 16px;
+            font-size: 1.2rem;
+        }
+
+        /* Auth */
+        .auth-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+        .auth-modal-overlay.open { display: flex; }
+        .auth-modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; width: 100%; max-width: 380px; position: relative; }
+        .auth-modal h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 24px; text-align: center; }
+        .auth-modal .form-group { margin-bottom: 16px; }
+        .auth-modal label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
+        .auth-modal input { width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.95rem; outline: none; }
+        .auth-modal input:focus { border-color: var(--purple); }
+        .auth-modal .btn-auth { width: 100%; padding: 12px; background: var(--purple); border: none; border-radius: 8px; color: #fff; font-size: 0.95rem; font-weight: 600; cursor: pointer; margin-top: 8px; }
+        .auth-modal .auth-toggle { text-align: center; margin-top: 16px; font-size: 0.85rem; color: var(--text-muted); }
+        .auth-modal .auth-toggle a { color: var(--purple); cursor: pointer; text-decoration: underline; }
+        .auth-modal .close-btn { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
+        .auth-modal .error-msg { color: #ef4444; font-size: 0.85rem; margin-top: 8px; text-align: center; display: none; }
+        .btn-login { padding: 8px 18px; background: var(--purple); border: none; border-radius: 8px; color: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+        .user-avatar { width: 32px; height: 32px; background: var(--purple); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: #fff; }
+    </style>
+</head>
+<body>
+    <header class="trainer-header">
+        <a href="/openings.html" class="brand">
+            <div class="brand-icon">♟</div>
+            <span>chesspeps.com</span>
+        </a>
+        <div class="search-bar-mini">
+            <input type="text" placeholder="Search openings..." readonly onclick="location.href='openings.html'">
+        </div>
+        <div class="user-menu" id="userMenu" style="margin-left:auto;">
+            <button class="btn-login" onclick="openAuthModal()">Log in</button>
+        </div>
+    </header>
+
+    <div class="trainer-layout">
+        <!-- Board -->
+        <div class="board-area">
+            <div class="line-progress-wrap" style="width:100%;max-width:min(960px, calc(100vh - 140px), calc(100vw - 460px));">
+                <div class="line-progress-track">
+                    <div class="line-progress-fill" id="lineProgressBar"></div>
+                </div>
+                <div class="line-progress-label">
+                    <span class="move-num" id="progressMoveNum">Move 0/0</span>
+                    <span class="move-name" id="progressLineName"></span>
+                </div>
+            </div>
+            <div id="board"></div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="trainer-panel">
+            <!-- Mode Header -->
+            <div class="mode-header" id="modeHeader" style="cursor:pointer;position:relative;" onclick="toggleLineDropdown()">
+                <div class="mode-info">
+                    <span class="mode-icon">📖</span>
+                    <div>
+                        <div class="mode-name">Learn</div>
+                        <div class="opening-name" id="openingName">Loading...</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="line-counter" id="lineCounter">#1</span>
+                    <span id="dropdownChevron" style="font-size:0.7rem;color:var(--text-dim);transition:transform 0.2s;">▼</span>
+                </div>
+
+                <!-- Line Dropdown -->
+                <div class="line-dropdown" id="lineDropdown">
+                    <div class="dropdown-list" id="dropdownList"></div>
+                </div>
+            </div>
+
+            <!-- Instruction Bubble -->
+            <div class="instruction-bubble">
+                <div class="speaker">
+                    <div class="speaker-icon">♟</div>
+                    <span>Coach</span>
+                </div>
+                <div class="instruction-text" id="instruction">
+                    Welcome! Select an opening to start training.
+                </div>
+            </div>
+
+            <!-- Mode: Learn -->
+            <div class="mode-card active" id="modeLearn">
+                <div class="mode-card-header">
+                    <div class="mode-card-title">📖 Learn</div>
+                </div>
+                <div class="mode-card-sub" id="learnStats">0 lines discovered</div>
+            </div>
+
+            <!-- Mode: Practice -->
+            <div class="mode-card" id="modePractice">
+                <div class="mode-card-header">
+                    <div class="mode-card-title">🎯 Practice</div>
+                </div>
+                <div class="mode-card-sub" id="practiceStats">0 lines perfected</div>
+            </div>
+
+            <!-- Grid: Drill / Time -->
+            <div class="mode-card-grid">
+                <div class="mode-card locked" id="modeDrill">
+                    <div class="mode-card-title">🔥 Drill</div>
+                    <div class="mode-card-sub">Learn 3 lines</div>
+                </div>
+                <div class="mode-card locked" id="modeTime">
+                    <div class="mode-card-title">⏱ Time</div>
+                    <div class="mode-card-sub">Learn 3 lines</div>
+                </div>
+            </div>
+
+            <!-- Grid: Puzzles / Arena -->
+            <div class="mode-card-grid">
+                <div class="mode-card locked" id="modePuzzles">
+                    <div class="mode-card-title">🧩 Puzzles</div>
+                    <div class="mode-card-sub">Learn 2 lines</div>
+                </div>
+                <div class="mode-card locked" id="modeArena">
+                    <div class="mode-card-title">⚔ Arena</div>
+                    <div class="mode-card-sub">Learn 2 lines</div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="trainer-controls">
+                <button class="ctrl-btn" id="btnHint">💡 Hint</button>
+                <button class="ctrl-btn" id="btnMode">Mode</button>
+                <button class="ctrl-btn nav-arrow" id="btnPrev">←</button>
+                <button class="ctrl-btn nav-arrow" id="btnNext">→</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="feedback" class="feedback hidden"></div>
+
+    <!-- Completion Overlay -->
+    <div class="completion-overlay" id="completionOverlay">
+        <h2>Line Complete!</h2>
+        <div class="completion-sub" id="completionSub">Great job! You learned a new line.</div>
+        <button class="btn-next-line" onclick="nextLineAfterComplete()">Next Line →</button>
+    </div>
+
+    <!-- Auth Modal -->
+    <div class="auth-modal-overlay" id="authModal">
+        <div class="auth-modal">
+            <button class="close-btn" onclick="closeAuthModal()">×</button>
+            <h2 id="authTitle">Log in</h2>
+            <div class="form-group"><label>Email</label><input type="email" id="authEmail" placeholder="you@example.com"></div>
+            <div class="form-group"><label>Password</label><input type="password" id="authPassword" placeholder="••••••••"></div>
+            <button class="btn-auth" id="authBtn" onclick="handleAuth()">Log in</button>
+            <div style="text-align:center;margin:16px 0;color:var(--text-dim);font-size:0.85rem;">or</div>
+            <button class="btn-auth" style="background:#4285F4;border:none;" onclick="handleGoogleAuth()">
+                <span style="margin-right:8px;">🔍</span> Continue with Google
+            </button>
+            <div class="error-msg" id="authError"></div>
+            <div class="auth-toggle"><span id="authToggleText">Don't have an account?</span><a onclick="toggleAuthMode()" id="authToggleLink">Sign up</a></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script type="module" src="app.js?v=11"></script>
+
+    <!-- Auth Modal Controls (non-module, always works) -->
+    <script>
+        let authMode2 = 'login';
+
+        function openAuthModal() {
+            document.getElementById('authModal').classList.add('open');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('open');
+            document.getElementById('authError').style.display = 'none';
+        }
+
+        function toggleAuthMode() {
+            authMode2 = authMode2 === 'login' ? 'signup' : 'login';
+            document.getElementById('authTitle').textContent = authMode2 === 'login' ? 'Log in' : 'Sign up';
+            document.getElementById('authBtn').textContent = authMode2 === 'login' ? 'Log in' : 'Sign up';
+            document.getElementById('authToggleText').textContent = authMode2 === 'login' ? "Don't have an account?" : 'Already have an account?';
+            document.getElementById('authToggleLink').textContent = authMode2 === 'login' ? 'Sign up' : 'Log in';
+        }
+
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeAuthModal(); closeLineDropdown(); } });
+        document.getElementById('authModal').addEventListener('click', (e) => { if (e.target === document.getElementById('authModal')) closeAuthModal(); });
+
+        // Line Dropdown
+        window.toggleLineDropdown = function() {
+            const dd = document.getElementById('lineDropdown');
+            const chevron = document.getElementById('dropdownChevron');
+            if (dd) dd.classList.toggle('open');
+            if (chevron) chevron.style.transform = dd?.classList.contains('open') ? 'rotate(180deg)' : '';
+        };
+
+        window.closeLineDropdown = function() {
+            const dd = document.getElementById('lineDropdown');
+            const chevron = document.getElementById('dropdownChevron');
+            if (dd) dd.classList.remove('open');
+            if (chevron) chevron.style.transform = '';
+        };
+
+        document.addEventListener('click', (e) => {
+            const header = document.getElementById('modeHeader');
+            const dropdown = document.getElementById('lineDropdown');
+            if (header && dropdown && !header.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('open');
+            }
+        });
+    </script>
+
+    <!-- Supabase Auth (global bundle - more reliable) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script>
+        let supabaseClient = null;
+        let auth = null;
+
+        try {
+            if (typeof supabase !== 'undefined' && supabase.createClient) {
+                supabaseClient = supabase.createClient(
+                    'https://mvvnqkixgxjblgyrnvte.supabase.co',
+                    'sb_publishable_oTugIxx-nIZDcJgCuMnnqw_1ppfExp9'
+                );
+                auth = supabaseClient.auth;
+            } else {
+                throw new Error('Supabase library not loaded');
+            }
+        } catch (err) {
+            document.getElementById('authError').textContent = 'Connection error. Please refresh.';
+        }
+
+        async function handleAuth() {
+            if (!supabaseClient) {
+                document.getElementById('authError').textContent = 'Not connected. Refresh the page.';
+                document.getElementById('authError').style.display = 'block';
+                return;
+            }
+
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            const errorEl = document.getElementById('authError');
+            
+            if (!email || !password) {
+                errorEl.textContent = 'Please enter email and password';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            let result;
+            try {
+                if (authMode2 === 'login') {
+                    result = await auth.signInWithPassword({ email, password });
+                } else {
+                    result = await auth.signUp({ email, password });
+                }
+            } catch (err) {
+                errorEl.textContent = 'Error: ' + err.message;
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            if (result.error) {
+                errorEl.textContent = result.error.message;
+                errorEl.style.display = 'block';
+            } else {
+                errorEl.style.display = 'none';
+                closeAuthModal();
+                updateUserUI(result.data.user);
+            }
+        }
+
+        async function handleGoogleAuth() {
+            if (!supabaseClient) {
+                document.getElementById('authError').textContent = 'Not connected. Refresh the page.';
+                document.getElementById('authError').style.display = 'block';
+                return;
+            }
+
+            try {
+                const { error } = await auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin + '/opening.html'
+                    }
+                });
+                if (error) {
+                    document.getElementById('authError').textContent = error.message;
+                    document.getElementById('authError').style.display = 'block';
+                }
+            } catch (err) {
+                document.getElementById('authError').textContent = 'Google Sign-In failed. Please try again.';
+                document.getElementById('authError').style.display = 'block';
+            }
+        }
+
+        async function logout() {
+            if (!supabaseClient) return;
+            await auth.signOut();
+            updateUserUI(null);
+        }
+
+        function updateUserUI(user) {
+            const menu = document.getElementById('userMenu');
+            if (user) {
+                const name = user.email.split('@')[0];
+                const initial = name.charAt(0).toUpperCase();
+                menu.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <span style="color:var(--text-muted);font-size:0.85rem;">${name}</span>
+                        <div class="user-avatar">${initial}</div>
+                        <button class="btn-login" style="background:var(--surface);color:var(--text);border:1px solid var(--border);" onclick="logout()">Log out</button>
+                    </div>
+                `;
+                loadCloudProgress(user.id);
+            } else {
+                menu.innerHTML = `<button class="btn-login" onclick="openAuthModal()">Log in</button>`;
+            }
+        }
+
+        async function loadCloudProgress(userId) {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('user_progress')
+                    .eq('id', userId)
+                    .single();
+                if (data && data.user_progress) {
+                    localStorage.setItem('chesspeps_progress', JSON.stringify(data.user_progress));
+                }
+            } catch (e) { /* silently ignore */ }
+        }
+
+        window.handleAuth = handleAuth;
+        window.handleGoogleAuth = handleGoogleAuth;
+        window.logout = logout;
+
+        if (auth) {
+            auth.getUser().then(({ data }) => {
+                if (data.user) updateUserUI(data.user);
+            });
+            auth.onAuthStateChange((event, session) => {
+                updateUserUI(session?.user || null);
+            });
+        }
+    </script>
+</body>
+</html>
