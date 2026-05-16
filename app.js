@@ -542,12 +542,8 @@ class Trainer {
         const orientation = this.opening.playerSide === 'b' ? COLOR.black : COLOR.white;
         board.setOrientation(orientation);
 
-        // Restore saved learn index and mode
-        const saved = window.userProgress[slug]?.sessionState;
-        if (saved) {
-            this.learnIndex = saved.learnIndex || 0;
-            if (saved.mode) this.mode = saved.mode;
-        }
+        // Restore saved learn index and mode from dedicated localStorage key
+        this.loadSessionState();
 
         renderLinesList();
         updateModeStats();
@@ -555,13 +551,28 @@ class Trainer {
     }
 
     saveSessionState() {
-        if (!window.userProgress[this.slug]) window.userProgress[this.slug] = {};
-        window.userProgress[this.slug].sessionState = {
+        // Use dedicated localStorage key to avoid conflicts with Supabase auth
+        const key = `chesspeps_session_${this.slug}`;
+        localStorage.setItem(key, JSON.stringify({
             learnIndex: this.learnIndex,
             mode: this.mode,
+            linePgn: this.linePgn,
             lastVisited: Date.now()
-        };
-        saveLocalProgress();
+        }));
+    }
+
+    loadSessionState() {
+        const key = `chesspeps_session_${this.slug}`;
+        try {
+            const stored = localStorage.getItem(key);
+            if (stored) {
+                const saved = JSON.parse(stored);
+                this.learnIndex = saved.learnIndex || 0;
+                if (saved.mode) this.mode = saved.mode;
+                return saved;
+            }
+        } catch (e) { /* ignore corrupt storage */ }
+        return null;
     }
 
     nextLine() {
@@ -1291,6 +1302,7 @@ function renderLinesList() {
             const pgn = e.currentTarget.dataset.pgn;
             if (pgn && trainer) {
                 trainer.loadLine(pgn);
+                if (typeof trainer.saveSessionState === 'function') trainer.saveSessionState();
             }
         });
     });
@@ -1407,6 +1419,7 @@ function renderLineDropdown() {
             e.stopPropagation();
             if (trainer) {
                 trainer.loadLine(pgn);
+                if (typeof trainer.saveSessionState === 'function') trainer.saveSessionState();
                 closeLineDropdown();
             }
         });
