@@ -1178,6 +1178,7 @@
                     </button>
                 </div>
                 <div class="toolbar-group">
+                    <button class="toolbar-btn" id="btnSkip" style="display:none;color:var(--text-muted);">Skip</button>
                     <button class="toolbar-btn" id="btnMode">Mode</button>
                 </div>
                 <div class="toolbar-group nav-group">
@@ -1250,7 +1251,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-    <script type="module" src="app.js?v=23"></script>
+    <script type="module" src="app.js?v=24"></script>
 
     <!-- Auth Modal Controls (non-module, always works) -->
     <script>
@@ -1332,6 +1333,8 @@
             
             trainer.mode = mode;
             if (typeof trainer.saveSessionState === 'function') trainer.saveSessionState();
+            const skipBtn = document.getElementById('btnSkip');
+            if (skipBtn) skipBtn.style.display = mode === 'learn' ? '' : 'none';
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
             const btn = document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1));
             if (btn && !btn.disabled) btn.classList.add('active');

@@ -360,14 +360,36 @@ function initApp() {
     document.getElementById('btnHint').addEventListener('click', () => trainer && trainer.showHint());
     const modeBtn = document.getElementById('btnMode');
     if (modeBtn) modeBtn.addEventListener('click', toggleMode);
+    const skipBtn = document.getElementById('btnSkip');
+    if (skipBtn) skipBtn.addEventListener('click', () => trainer && trainer.skipLine());
 
     document.addEventListener('keydown', (e) => {
+        // Ignore if user is typing in an input
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
         if (e.code === 'Space') {
             e.preventDefault();
             trainer && trainer.nextLine();
         }
         if (e.code === 'KeyH') {
+            e.preventDefault();
             trainer && trainer.showHint();
+        }
+        if (e.code === 'KeyS') {
+            e.preventDefault();
+            trainer && trainer.skipLine();
+        }
+        if (e.code === 'ArrowLeft') {
+            e.preventDefault();
+            if (!trainer) return;
+            if (trainer.mode === 'puzzle') trainer.navigatePuzzleHistory(-1);
+            else trainer.resetLine();
+        }
+        if (e.code === 'ArrowRight') {
+            e.preventDefault();
+            if (!trainer) return;
+            if (trainer.mode === 'puzzle') trainer.navigatePuzzleHistory(1);
+            else trainer.nextLine();
         }
     });
 
@@ -611,6 +633,10 @@ class Trainer {
         // Restore saved learn index and mode from dedicated localStorage key
         this.loadSessionState();
 
+        // Sync skip button visibility (always defaults to learn)
+        const skipBtn = document.getElementById('btnSkip');
+        if (skipBtn) skipBtn.style.display = this.mode === 'learn' ? '' : 'none';
+
         renderLinesList();
         updateModeStats();
         this.nextLine();
@@ -640,6 +666,18 @@ class Trainer {
             }
         } catch (e) { /* ignore corrupt storage */ }
         return null;
+    }
+
+    skipLine() {
+        if (this.mode !== 'learn') return;
+        const lines = this.opening.lines || [];
+        if (!lines.length) return;
+        this.learnIndex++;
+        if (this.learnIndex >= lines.length) {
+            this.learnIndex = 0;
+        }
+        this.saveSessionState();
+        this.nextLine();
     }
 
     nextLine() {
