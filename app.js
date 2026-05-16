@@ -54,39 +54,36 @@ const stats = {
 };
 
 // ── Progress Persistence ──
-let userProgress = {};
+// Use window.userProgress so non-module scripts can share the same object
+window.userProgress = window.userProgress || {};
 let currentUser = null;
-
-// Expose for non-module scripts
-window.userProgress = userProgress;
 
 function loadLocalProgress() {
     try {
         const stored = localStorage.getItem('chesspeps_progress');
         if (stored) {
-            userProgress = JSON.parse(stored);
-            window.userProgress = userProgress;
+            window.userProgress = JSON.parse(stored);
         }
     } catch (e) { /* ignore corrupt storage */ }
 }
 
 function saveLocalProgress() {
-    localStorage.setItem('chesspeps_progress', JSON.stringify(userProgress));
+    localStorage.setItem('chesspeps_progress', JSON.stringify(window.userProgress));
 }
 
 function getLineProgress(slug, linePgn) {
-    return userProgress[slug]?.lines?.[linePgn] || {};
+    return window.userProgress[slug]?.lines?.[linePgn] || {};
 }
 
 function getLearnedLines(slug) {
-    return userProgress[slug]?.learnedLines || [];
+    return window.userProgress[slug]?.learnedLines || [];
 }
 
 function markLineAsLearned(slug, linePgn) {
-    if (!userProgress[slug]) userProgress[slug] = { lines: {}, learnedLines: [] };
-    if (!userProgress[slug].learnedLines) userProgress[slug].learnedLines = [];
-    if (!userProgress[slug].learnedLines.includes(linePgn)) {
-        userProgress[slug].learnedLines.push(linePgn);
+    if (!window.userProgress[slug]) window.userProgress[slug] = { lines: {}, learnedLines: [] };
+    if (!window.userProgress[slug].learnedLines) window.userProgress[slug].learnedLines = [];
+    if (!window.userProgress[slug].learnedLines.includes(linePgn)) {
+        window.userProgress[slug].learnedLines.push(linePgn);
         saveLocalProgress();
         syncToCloud();
     }
@@ -121,18 +118,19 @@ function updateModeStats() {
 }
 
 function updateLineProgress(slug, linePgn, update) {
-    if (!userProgress[slug]) userProgress[slug] = { lines: {} };
-    if (!userProgress[slug].lines[linePgn]) userProgress[slug].lines[linePgn] = {};
-    Object.assign(userProgress[slug].lines[linePgn], update);
+    if (!window.userProgress[slug]) window.userProgress[slug] = { lines: {} };
+    if (!window.userProgress[slug].lines[linePgn]) window.userProgress[slug].lines[linePgn] = {};
+    Object.assign(window.userProgress[slug].lines[linePgn], update);
     saveLocalProgress();
     syncToCloud();
 }
 
 async function syncToCloud() {
-    if (!currentUser) return;
+    const user = window.currentUser;
+    if (!user) return;
     try {
-        const { supabase, updateProgress } = await import('./supabaseClient.js');
-        await updateProgress(currentUser.id, userProgress);
+        const { updateProgress } = await import('./supabaseClient.js');
+        await updateProgress(user.id, window.userProgress);
     } catch (e) { /* silently fail */ }
 }
 

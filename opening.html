@@ -820,7 +820,7 @@
             
             // Don't allow practice if no lines learned
             if (mode === 'practice') {
-                const learned = trainer.opening ? (userProgress[trainer.slug]?.learnedLines || []) : [];
+                const learned = trainer.opening ? (window.userProgress[trainer.slug]?.learnedLines || []) : [];
                 if (!learned.length) {
                     alert('Learn some lines first!');
                     return;
@@ -928,6 +928,7 @@
         }
 
         function updateUserUI(user) {
+            window.currentUser = user || null;
             const menu = document.getElementById('userMenu');
             if (user) {
                 const name = user.email.split('@')[0];
@@ -955,6 +956,7 @@
                     .single();
                 if (data && data.user_progress) {
                     localStorage.setItem('chesspeps_progress', JSON.stringify(data.user_progress));
+                    window.userProgress = data.user_progress;
                 }
             } catch (e) { /* silently ignore */ }
         }
