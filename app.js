@@ -122,7 +122,7 @@ function updateModeStats() {
         }
     }
     
-    // Unlock drill at 3 lines learned
+    // Unlock drill/time at 3 lines learned
     const drillBtn = document.getElementById('modeDrill');
     if (drillBtn) {
         if (learned.length >= 3) {
@@ -151,6 +151,16 @@ function updateModeStats() {
         } else {
             drillBtn.classList.add('locked');
             drillBtn.disabled = true;
+        }
+    }
+    const timeBtn = document.getElementById('modeTime');
+    if (timeBtn) {
+        if (learned.length >= 3) {
+            timeBtn.classList.remove('locked');
+            timeBtn.disabled = false;
+        } else {
+            timeBtn.classList.add('locked');
+            timeBtn.disabled = true;
         }
     }
 }
@@ -464,6 +474,7 @@ class Trainer {
         this.learnIndex = 0; // sequential index for learn mode
         this._playing = false; // guard against concurrent playOpponentMoves
         this.drillScore = 0; // current streak in drill mode
+        this.timeScore = 0; // lines completed in time trial mode
     }
 
     loadOpening(slug) {
@@ -489,7 +500,7 @@ class Trainer {
                 this.learnIndex = 0; // loop back to start
             }
             this.loadLine(lines[this.learnIndex]);
-        } else if (this.mode === 'practice' || this.mode === 'drill') {
+        } else if (this.mode === 'practice' || this.mode === 'drill' || this.mode === 'time') {
             // Random from learned lines only
             const learned = getLearnedLines(this.slug);
             const available = lines.filter(l => learned.includes(l));
@@ -610,6 +621,9 @@ class Trainer {
             this.wrongAttempts++;
             if (this.mode === 'drill') {
                 this.endDrillGame();
+            } else if (this.mode === 'time') {
+                // Reset current line in time mode
+                this.resetLine();
             }
             return false;
         }
@@ -757,6 +771,16 @@ class Trainer {
             setTimeout(() => {
                 this.nextLine();
             }, 400);
+            return;
+        }
+        
+        // Time mode: increment score and immediately load next line
+        if (this.mode === 'time') {
+            this.timeScore = (this.timeScore || 0) + 1;
+            if (typeof updateTimeUI === 'function') updateTimeUI();
+            setTimeout(() => {
+                this.nextLine();
+            }, 300);
             return;
         }
         

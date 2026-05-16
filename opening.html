@@ -523,6 +523,65 @@
             padding: 12px 0;
         }
 
+        /* Time Panel */
+        .time-panel {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+            justify-content: center;
+        }
+        .time-panel.active { display: flex; }
+
+        .time-timer {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 8px;
+            font-family: 'Courier New', monospace;
+            padding: 16px;
+        }
+
+        .time-timer .timer-secs {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .time-timer .timer-cs {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .time-timer .timer-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .time-scoreboard {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: rgba(39, 39, 42, 0.4);
+            border: 1px solid rgba(63, 63, 70, 0.5);
+            border-radius: 12px;
+        }
+
+        .time-leaderboard {
+            border: 1px solid rgba(63, 63, 70, 0.5);
+            border-radius: 12px;
+            padding: 12px;
+            background: rgba(39, 39, 42, 0.4);
+        }
+
+        .time-controls {
+            display: flex;
+            gap: 8px;
+        }
+
         .btn-leave-drill {
             width: 100%;
             padding: 12px;
@@ -846,7 +905,7 @@
                             <span class="mode-sub">Learn 3 lines</span>
                         </button>
 
-                        <button class="mode-btn small locked" id="modeTime" disabled>
+                        <button class="mode-btn small locked" id="modeTime" onclick="setMode('time')" disabled>
                             <div class="mode-btn-main">
                                 <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text);opacity:0.5">
                                     <path d="M5 22h14"/>
@@ -911,6 +970,50 @@
 
                     <button class="btn-leave-drill" onclick="setMode('learn')">Leave Drill Mode</button>
                 </div>
+
+                <!-- Time Panel (shown only in time mode) -->
+                <div class="time-panel" id="timePanel">
+                    <div class="time-timer">
+                        <div style="display:flex;flex-direction:column;align-items:center;">
+                            <span class="timer-secs" id="timeSecs">60</span>
+                            <span class="timer-label">SEC</span>
+                        </div>
+                        <span style="font-size:2rem;color:var(--text-dim);">.</span>
+                        <div style="display:flex;flex-direction:column;align-items:center;">
+                            <span class="timer-cs" id="timeCs">00</span>
+                            <span class="timer-label">CS</span>
+                        </div>
+                    </div>
+
+                    <div class="time-scoreboard">
+                        <div class="drill-score-item">
+                            <span class="drill-score-label">Score</span>
+                            <span class="drill-score-value" id="timeScore">0</span>
+                        </div>
+                        <div class="drill-high-score locked" id="timeHighScoreWrap">
+                            <span class="drill-score-label">High Score</span>
+                            <div style="display:flex;align-items:center;gap:4px;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                <span class="drill-score-value" id="timeHighScore" style="font-size:1.4rem;">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="time-leaderboard">
+                        <div class="drill-leaderboard-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978"/><path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978"/><path d="M18 9h1.5a1 1 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M6 9H4.5a1 1 0 0 1 0-5H6"/></svg>
+                            <h3>Leaderboards</h3>
+                        </div>
+                        <div class="drill-leaderboard-msg">Learn all lines to join the leaderboard</div>
+                    </div>
+
+                    <div class="time-controls">
+                        <button class="btn-leave-drill" style="flex:1;" onclick="setMode('learn')">Leave Time Trials</button>
+                        <button class="btn-leave-drill" style="width:auto;padding:12px 16px;" onclick="restartTime()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Bottom Toolbar -->
@@ -974,6 +1077,15 @@
         <div class="gameover-high" id="gameoverHigh">High Score: --</div>
         <button class="btn-next-line" onclick="restartDrill()">Try Again</button>
         <button class="btn-next-line" style="background:var(--surface);color:var(--text);margin-top:8px;" onclick="setMode('learn')">Leave Drill</button>
+    </div>
+
+    <!-- Time Over Overlay -->
+    <div class="gameover-overlay" id="timeoverOverlay">
+        <h2 style="color:#fbbf24;">Time's Up!</h2>
+        <div class="gameover-score" id="timeoverScore">Score: 0</div>
+        <div class="gameover-high" id="timeoverHigh">High Score: --</div>
+        <button class="btn-next-line" onclick="restartTime()">Try Again</button>
+        <button class="btn-next-line" style="background:var(--surface);color:var(--text);margin-top:8px;" onclick="setMode('learn')">Leave Time Trials</button>
     </div>
 
     <!-- Auth Modal -->
@@ -1057,11 +1169,11 @@
                 }
             }
             
-            // Don't allow drill if fewer than 3 lines learned
-            if (mode === 'drill') {
+            // Don't allow drill/time if fewer than 3 lines learned
+            if (mode === 'drill' || mode === 'time') {
                 const learned = trainer.opening ? (window.userProgress[trainer.slug]?.learnedLines || []) : [];
                 if (learned.length < 3) {
-                    alert('Learn 3 lines to unlock Drill!');
+                    alert('Learn 3 lines to unlock ' + (mode === 'drill' ? 'Drill' : 'Time Trials') + '!');
                     return;
                 }
             }
@@ -1071,21 +1183,31 @@
             const btn = document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1));
             if (btn && !btn.disabled) btn.classList.add('active');
             
-            // Toggle drill panel vs mode selector
+            // Toggle drill/time panel vs mode selector
             const modeSelector = document.querySelector('.mode-selector');
             const drillPanel = document.getElementById('drillPanel');
+            const timePanel = document.getElementById('timePanel');
             if (mode === 'drill') {
                 if (modeSelector) modeSelector.style.display = 'none';
                 if (drillPanel) drillPanel.classList.add('active');
+                if (timePanel) timePanel.classList.remove('active');
                 trainer.drillScore = 0;
                 updateDrillUI();
+            } else if (mode === 'time') {
+                if (modeSelector) modeSelector.style.display = 'none';
+                if (drillPanel) drillPanel.classList.remove('active');
+                if (timePanel) timePanel.classList.add('active');
+                startTimeTrial();
             } else {
                 if (modeSelector) modeSelector.style.display = '';
                 if (drillPanel) drillPanel.classList.remove('active');
+                if (timePanel) timePanel.classList.remove('active');
+                stopTimeTrial();
             }
             
-            // Hide game over overlay
+            // Hide overlays
             document.getElementById('gameoverOverlay')?.classList.remove('open');
+            document.getElementById('timeoverOverlay')?.classList.remove('open');
             
             // Load appropriate line for new mode
             trainer.nextLine();
@@ -1111,6 +1233,74 @@
             if (scoreEl) scoreEl.textContent = trainer?.drillScore || 0;
             if (highEl && trainer && trainer.slug) {
                 const high = window.userProgress[trainer.slug]?.drillHighScore || 0;
+                highEl.textContent = high > 0 ? high : '--';
+                if (highWrap) {
+                    if (high > 0) highWrap.classList.remove('locked');
+                    else highWrap.classList.add('locked');
+                }
+            }
+        };
+        
+        // Time Trial Timer
+        let timeInterval = null;
+        let timeRemaining = 6000; // centiseconds (60 seconds)
+        
+        window.startTimeTrial = function() {
+            if (!trainer) return;
+            trainer.timeScore = 0;
+            timeRemaining = 6000; // 60 seconds in centiseconds
+            updateTimeUI();
+            clearInterval(timeInterval);
+            timeInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimeUI();
+                if (timeRemaining <= 0) {
+                    endTimeTrial();
+                }
+            }, 10);
+        };
+        
+        window.stopTimeTrial = function() {
+            clearInterval(timeInterval);
+            timeInterval = null;
+        };
+        
+        window.endTimeTrial = function() {
+            stopTimeTrial();
+            if (!trainer) return;
+            const high = window.userProgress[trainer.slug]?.timeHighScore || 0;
+            if (trainer.timeScore > high) {
+                if (!window.userProgress[trainer.slug]) window.userProgress[trainer.slug] = {};
+                window.userProgress[trainer.slug].timeHighScore = trainer.timeScore;
+                localStorage.setItem('chesspeps_progress', JSON.stringify(window.userProgress));
+            }
+            const overlay = document.getElementById('timeoverOverlay');
+            const scoreEl = document.getElementById('timeoverScore');
+            const highEl = document.getElementById('timeoverHigh');
+            if (overlay) overlay.classList.add('open');
+            if (scoreEl) scoreEl.textContent = `Score: ${trainer.timeScore}`;
+            if (highEl) highEl.textContent = `High Score: ${Math.max(high, trainer.timeScore)}`;
+        };
+        
+        window.restartTime = function() {
+            document.getElementById('timeoverOverlay')?.classList.remove('open');
+            startTimeTrial();
+            if (trainer) trainer.nextLine();
+        };
+        
+        window.updateTimeUI = function() {
+            const secs = Math.floor(timeRemaining / 100);
+            const cs = timeRemaining % 100;
+            const secsEl = document.getElementById('timeSecs');
+            const csEl = document.getElementById('timeCs');
+            const scoreEl = document.getElementById('timeScore');
+            const highEl = document.getElementById('timeHighScore');
+            const highWrap = document.getElementById('timeHighScoreWrap');
+            if (secsEl) secsEl.textContent = secs;
+            if (csEl) csEl.textContent = cs.toString().padStart(2, '0');
+            if (scoreEl) scoreEl.textContent = trainer?.timeScore || 0;
+            if (highEl && trainer && trainer.slug) {
+                const high = window.userProgress[trainer.slug]?.timeHighScore || 0;
                 highEl.textContent = high > 0 ? high : '--';
                 if (highWrap) {
                     if (high > 0) highWrap.classList.remove('locked');
