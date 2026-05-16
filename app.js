@@ -1467,107 +1467,120 @@ function updateProgress(pct) {
     }
 }
 
-// ── Evaluation Bar (powered by Stockfish.js) ──
-let stockfishEngine = null;
-let stockfishReady = false;
-let lastEvalRequest = null;
+// ── Evaluation Bar (embedded engine) ──
+const PIECE_VAL = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 0 };
 
-function initStockfish() {
-    if (stockfishEngine) return;
-    try {
-        // Use the global Stockfish constructor from the script tag
-        if (typeof Stockfish !== 'undefined') {
-            stockfishEngine = new Stockfish();
-            stockfishEngine.onmessage = function(event) {
-                const line = event.data || event;
-                if (typeof line !== 'string') return;
-                
-                // Parse evaluation from Stockfish output
-                if (line.startsWith('info') && line.includes('score')) {
-                    const cpMatch = line.match(/score cp (-?\d+)/);
-                    const mateMatch = line.match(/score mate (-?\d+)/);
-                    
-                    if (cpMatch) {
-                        const cp = parseInt(cpMatch[1]);
-                        updateEvalFromEngine(cp, null);
-                    } else if (mateMatch) {
-                        const mate = parseInt(mateMatch[1]);
-                        updateEvalFromEngine(null, mate);
-                    }
-                }
-                
-                if (line === 'uciok') {
-                    stockfishReady = true;
-                }
-            };
-            stockfishEngine.postMessage('uci');
-        }
-    } catch (e) {
-        // Stockfish not available, silently fail
-        stockfishEngine = null;
-    }
-}
+// Piece-square tables (from PeSTO engine, simplified)
+const PST = {
+    p: [0,0,0,0,0,0,0,0,  50,50,50,50,50,50,50,50,  10,10,20,30,30,20,10,10,  5,5,10,25,25,10,5,5,  0,0,0,20,20,0,0,0,  5,-5,-10,0,0,-10,-5,5,  5,10,10,-20,-20,10,10,5,  0,0,0,0,0,0,0,0],
+    n: [-50,-40,-30,-30,-30,-30,-40,-50,  -40,-20,0,0,0,0,-20,-40,  -30,0,10,15,15,10,0,-30,  -30,5,15,20,20,15,5,-30,  -30,0,15,20,20,15,0,-30,  -30,5,10,15,15,10,5,-30,  -40,-20,0,5,5,0,-20,-40,  -50,-40,-30,-30,-30,-30,-40,-50],
+    b: [-20,-10,-10,-10,-10,-10,-10,-20,  -10,0,0,0,0,0,0,-10,  -10,0,10,10,10,10,0,-10,  -10,5,5,10,10,5,5,-10,  -10,0,5,10,10,5,0,-10,  -10,10,10,10,10,10,10,-10,  -10,5,0,0,0,0,5,-10,  -20,-10,-10,-10,-10,-10,-10,-20],
+    r: [0,0,0,0,0,0,0,0,  5,10,10,10,10,10,10,5,  -5,0,0,0,0,0,0,-5,  -5,0,0,0,0,0,0,-5,  -5,0,0,0,0,0,0,-5,  -5,0,0,0,0,0,0,-5,  -5,0,0,0,0,0,0,-5,  0,0,0,5,5,0,0,0],
+    q: [-20,-10,-10,-5,-5,-10,-10,-20,  -10,0,0,0,0,0,0,-10,  -10,0,5,5,5,5,0,-10,  -5,0,5,5,5,5,0,-5,  0,0,5,5,5,5,0,-5,  -10,5,5,5,5,5,0,-10,  -10,0,5,0,0,0,0,-10,  -20,-10,-10,-5,-5,-10,-10,-20],
+    k: [-30,-40,-40,-50,-50,-40,-40,-30,  -30,-40,-40,-50,-50,-40,-40,-30,  -30,-40,-40,-50,-50,-40,-40,-30,  -30,-40,-40,-50,-50,-40,-40,-30,  -20,-30,-30,-40,-40,-30,-30,-20,  -10,-20,-20,-20,-20,-20,-20,-10,  20,20,0,0,0,0,20,20,  20,30,10,0,0,10,30,20]
+};
 
-function requestEval() {
-    if (!stockfishEngine || !stockfishReady || !game) return;
-    const fen = game.fen();
-    if (lastEvalRequest === fen) return; // Don't re-evaluate same position
-    lastEvalRequest = fen;
+function evaluatePosition() {
+    if (!game) return 0;
+    const board = game.board();
+    let score = 0;
+    let wPawns = [], bPawns = [];
     
-    // Stop any previous search
-    stockfishEngine.postMessage('stop');
-    // Set position and search for 100ms (very fast, just for eval)
-    stockfishEngine.postMessage('position fen ' + fen);
-    stockfishEngine.postMessage('go movetime 100');
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            const sq = board[r][c];
+            if (!sq) continue;
+            const type = sq.type;
+            const isW = sq.color === 'w';
+            const sign = isW ? 1 : -1;
+            
+            // Material
+            score += sign * PIECE_VAL[type];
+            
+            // Position (flip table for black)
+            const idx = (isW ? (7-r) : r) * 8 + c;
+            score += sign * PST[type][idx];
+            
+            // Track pawn columns for structure
+            if (type === 'p') {
+                if (isW) wPawns.push(c); else bPawns.push(c);
+            }
+        }
+    }
+    
+    // Pawn structure: penalty for doubled/isolated pawns
+    for (const cols of [wPawns, bPawns]) {
+        const sign = cols === wPawns ? 1 : -1;
+        for (let c = 0; c < 8; c++) {
+            const count = cols.filter(x => x === c).length;
+            if (count > 1) score -= sign * 20 * (count - 1); // doubled
+            if (count === 0 && cols.includes(c-1) && cols.includes(c+1)) {
+                // isolated? skip, complex
+            }
+        }
+    }
+    
+    // Mobility bonus
+    const moves = game.moves({ verbose: true });
+    let wMob = 0, bMob = 0;
+    for (const m of moves) {
+        if (m.color === 'w') wMob++; else bMob++;
+    }
+    score += (wMob - bMob) * 3;
+    
+    // King safety (pawns near king)
+    for (const color of ['w','b']) {
+        const sign = color === 'w' ? 1 : -1;
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                const sq = board[r][c];
+                if (sq && sq.type === 'k' && sq.color === color) {
+                    let shield = 0;
+                    const dir = color === 'w' ? -1 : 1;
+                    for (let dc = -1; dc <= 1; dc++) {
+                        const nr = r + dir, nc = c + dc;
+                        if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                            const n = board[nr][nc];
+                            if (n && n.type === 'p' && n.color === color) shield++;
+                        }
+                    }
+                    score += sign * shield * 10;
+                }
+            }
+        }
+    }
+    
+    return score;
 }
 
-function updateEvalFromEngine(cp, mate) {
+function updateEvalBar() {
     const whiteEl = document.getElementById('evalBarWhite');
     const blackEl = document.getElementById('evalBarBlack');
     const scoreEl = document.getElementById('evalBarScore');
-    if (!whiteEl || !blackEl || !scoreEl) return;
+    if (!whiteEl || !blackEl || !scoreEl || !game) return;
+
+    const evalScore = evaluatePosition();
+    const pawnScore = evalScore / 100;
     
-    let pawnScore = 0;
-    
-    if (mate !== null) {
-        // Mate in N
-        pawnScore = mate > 0 ? 10 : -10; // Clamp to max for visual
-        const mateText = mate > 0 ? `M${mate}` : `-M${Math.abs(mate)}`;
-        scoreEl.textContent = mateText;
-    } else if (cp !== null) {
-        // Centipawns
-        pawnScore = cp / 100;
-        const displayScore = pawnScore >= 0 ? '+' + pawnScore.toFixed(1) : pawnScore.toFixed(1);
-        scoreEl.textContent = displayScore;
-    } else {
-        return;
-    }
-    
-    // Clamp display between -5 and +5 pawns
-    const clamped = Math.max(-5, Math.min(5, pawnScore));
-    const whitePct = 50 + (clamped / 10) * 50;
+    // Smooth clamp: use sigmoid-like curve for display
+    const clamped = Math.max(-800, Math.min(800, evalScore));
+    const whitePct = 50 + (clamped / 1600) * 50;
     const whiteHeight = Math.min(100, Math.max(0, whitePct));
     const blackHeight = 100 - whiteHeight;
-    
+
     whiteEl.style.height = whiteHeight + '%';
     blackEl.style.height = blackHeight + '%';
+
+    const displayScore = pawnScore >= 0 ? '+' + pawnScore.toFixed(1) : pawnScore.toFixed(1);
+    scoreEl.textContent = displayScore;
     
-    // Color
-    if (pawnScore > 0.3) {
+    if (pawnScore > 0.5) {
         scoreEl.style.color = '#18181b';
-    } else if (pawnScore < -0.3) {
+    } else if (pawnScore < -0.5) {
         scoreEl.style.color = '#e4e4e7';
     } else {
         scoreEl.style.color = '#a1a1aa';
     }
-}
-
-function updateEvalBar() {
-    // Initialize engine on first call
-    if (!stockfishEngine) {
-        initStockfish();
-    }
-    requestEval();
 }
 
 function renderMoveHistory(moves) {

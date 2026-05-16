@@ -1,6 +1,5 @@
 .cm-chessboard .arrow-warning .arrow-head {
   fill: orange;
-  color: orange;
   fill-rule: nonzero;
 }
 .cm-chessboard .arrow-warning .arrow-line {
@@ -10,7 +9,6 @@
 }
 .cm-chessboard .arrow-danger .arrow-head {
   fill: red;
-  color: red;
   fill-rule: nonzero;
 }
 .cm-chessboard .arrow-danger .arrow-line {
@@ -20,7 +18,6 @@
 }
 .cm-chessboard .arrow-success .arrow-head {
   fill: green;
-  color: green;
   fill-rule: nonzero;
 }
 .cm-chessboard .arrow-success .arrow-line {
@@ -30,7 +27,6 @@
 }
 .cm-chessboard .arrow-info .arrow-head {
   fill: blue;
-  color: blue;
   fill-rule: nonzero;
 }
 .cm-chessboard .arrow-info .arrow-line {
@@ -40,7 +36,6 @@
 }
 .cm-chessboard .arrow-secondary .arrow-head {
   fill: #666;
-  color: #666;
   fill-rule: nonzero;
 }
 .cm-chessboard .arrow-secondary .arrow-line {
