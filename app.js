@@ -591,6 +591,7 @@ class Trainer {
     }
 
     onComplete() {
+        if (this.completed) return; // guard against double execution
         this.completed = true;
         stats.linesDone++;
         updateStats();
