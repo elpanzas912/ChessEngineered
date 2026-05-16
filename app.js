@@ -72,6 +72,48 @@ function getLineProgress(slug, linePgn) {
     return userProgress[slug]?.lines?.[linePgn] || {};
 }
 
+function getLearnedLines(slug) {
+    return userProgress[slug]?.learnedLines || [];
+}
+
+function markLineAsLearned(slug, linePgn) {
+    if (!userProgress[slug]) userProgress[slug] = { lines: {}, learnedLines: [] };
+    if (!userProgress[slug].learnedLines) userProgress[slug].learnedLines = [];
+    if (!userProgress[slug].learnedLines.includes(linePgn)) {
+        userProgress[slug].learnedLines.push(linePgn);
+        saveLocalProgress();
+        syncToCloud();
+    }
+}
+
+function updateModeStats() {
+    if (!trainer || !trainer.opening) return;
+    const lines = trainer.opening.lines || [];
+    const learned = getLearnedLines(trainer.slug);
+    
+    const learnStats = document.getElementById('learnStats');
+    const practiceStats = document.getElementById('practiceStats');
+    
+    if (learnStats) {
+        learnStats.textContent = `${learned.length}/${lines.length} lines discovered`;
+    }
+    if (practiceStats) {
+        practiceStats.textContent = `${learned.length} lines perfected`;
+    }
+    
+    // Unlock practice if we have learned lines
+    const practiceBtn = document.getElementById('modePractice');
+    if (practiceBtn) {
+        if (learned.length > 0) {
+            practiceBtn.classList.remove('locked');
+            practiceBtn.disabled = false;
+        } else {
+            practiceBtn.classList.add('locked');
+            practiceBtn.disabled = true;
+        }
+    }
+}
+
 function updateLineProgress(slug, linePgn, update) {
     if (!userProgress[slug]) userProgress[slug] = { lines: {} };
     if (!userProgress[slug].lines[linePgn]) userProgress[slug].lines[linePgn] = {};
@@ -362,6 +404,7 @@ class Trainer {
         this.completed = false;
         this.hintShown = false;
         this.wrongAttempts = 0;
+        this.learnIndex = 0; // sequential index for learn mode
     }
 
     loadOpening(slug) {
@@ -373,14 +416,36 @@ class Trainer {
         board.setOrientation(orientation);
 
         renderLinesList();
+        updateModeStats();
         this.nextLine();
     }
 
     nextLine() {
         const lines = this.opening.lines || [];
         if (!lines.length) return;
-        const idx = Math.floor(Math.random() * lines.length);
-        this.loadLine(lines[idx]);
+
+        if (this.mode === 'learn') {
+            // Sequential order for learning
+            if (this.learnIndex >= lines.length) {
+                this.learnIndex = 0; // loop back to start
+            }
+            this.loadLine(lines[this.learnIndex]);
+        } else if (this.mode === 'practice') {
+            // Random from learned lines only
+            const learned = getLearnedLines(this.slug);
+            const available = lines.filter(l => learned.includes(l));
+            if (!available.length) {
+                // No lines learned yet, show message
+                const instEl = document.getElementById('instruction');
+                const bubbleText = document.querySelector('.instruction-text');
+                const msg = 'Learn some lines first! Switch to Learn mode.';
+                if (instEl) instEl.textContent = msg;
+                if (bubbleText) bubbleText.textContent = msg;
+                return;
+            }
+            const idx = Math.floor(Math.random() * available.length);
+            this.loadLine(available[idx]);
+        }
     }
 
     loadLine(pgn) {
@@ -606,6 +671,15 @@ class Trainer {
             confidence: Math.min(10, (existing.confidence || 0) + (isPerfect ? 2 : 1))
         });
         
+        // Mark as learned (only in learn mode, and only if not already learned)
+        if (this.mode === 'learn') {
+            markLineAsLearned(this.slug, this.linePgn);
+            this.learnIndex++;
+        }
+        
+        // Update mode stats
+        updateModeStats();
+        
         // Update progress bar to 100%
         updateProgress(100);
         
@@ -655,7 +729,10 @@ class Trainer {
             const sub = document.getElementById('completionSub');
             if (overlay && sub) {
                 const lineName = this.lineName || 'Unknown Line';
-                sub.textContent = `You completed "${lineName}"! ${isPerfect ? 'Perfect run!' : ''}`;
+                const learnedCount = getLearnedLines(this.slug).length;
+                const totalLines = this.opening.lines?.length || 0;
+                const progressMsg = totalLines > 0 ? `(${learnedCount}/${totalLines} discovered)` : '';
+                sub.textContent = `You completed "${lineName}"! ${isPerfect ? 'Perfect run! ' : ''}${progressMsg}`;
                 overlay.classList.add('open');
             }
         }, 1200);
@@ -796,12 +873,16 @@ function showFeedback(msg, type) {
 
 function toggleMode() {
     if (!trainer) return;
-    const modes = ['learn', 'practice', 'drill'];
+    const learned = getLearnedLines(trainer.slug);
+    const modes = learned.length > 0 ? ['learn', 'practice'] : ['learn'];
     const currentIdx = modes.indexOf(trainer.mode);
     const nextIdx = (currentIdx + 1) % modes.length;
-    trainer.mode = modes[nextIdx];
-    if (typeof setMode === 'function') setMode(trainer.mode);
-    showFeedback(`Switched to ${cap(trainer.mode)} mode`, 'hint');
+    const newMode = modes[nextIdx];
+    if (typeof setMode === 'function') {
+        setMode(newMode);
+    } else {
+        trainer.mode = newMode;
+    }
 }
 
 // ── Line Dropdown ──

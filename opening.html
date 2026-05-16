@@ -816,9 +816,24 @@
 
         // Mode selector helper
         window.setMode = function(mode) {
+            if (!trainer) return;
+            
+            // Don't allow practice if no lines learned
+            if (mode === 'practice') {
+                const learned = trainer.opening ? (userProgress[trainer.slug]?.learnedLines || []) : [];
+                if (!learned.length) {
+                    alert('Learn some lines first!');
+                    return;
+                }
+            }
+            
+            trainer.mode = mode;
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
             const btn = document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1));
             if (btn && !btn.disabled) btn.classList.add('active');
+            
+            // Load appropriate line for new mode
+            trainer.nextLine();
         };
     </script>
 
