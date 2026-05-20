@@ -1,6 +1,6 @@
 import { COLOR } from '../lib/cm-chessboard-src/Chessboard.js';
 import { playMoveSound, playCompletionSound } from './audio.js';
-import { updateLineProgress, syncToCloud, markLineAsLearned, getLineProgress, getLearnedLines, getPuzzleELO, updatePuzzleELO, findPuzzleInELORange, saveLocalProgress } from './progress.js';
+import { updateLineProgress, syncToCloud, markLineAsLearned, getLineProgress, getLearnedLines, getPuzzleELO, updatePuzzleELO, findPuzzleInELORange, saveLocalProgress, savePuzzleStreak, getPuzzleStreak } from './progress.js';
 import { highlightHintSquare, clearHintSquare, highlightLastMove, clearLastMove, showCorrectCheckmark, clearCorrectCheckmark, showIncorrectCross, clearIncorrectCross, moveInputHandler } from './board.js';
 import { renderMoveHistory, updateLineHeader, updateProgress, showFeedback, updateModeStats, renderLinesList, renderLineDropdown, updateStats } from './ui.js';
 import { updateEvalBar } from './evaluator.js';
@@ -31,6 +31,8 @@ export class Trainer {
         this.positionHistory = [];
         this.historyIndex = 0;
         this.playedSans = [];
+        this.isTransitioning = false;
+        this.currentPuzzleStep = 0;
     }
 
     loadOpening(slug) {
@@ -182,8 +184,11 @@ export class Trainer {
     }
 
     async loadNextPuzzle(skipCount = 0) {
+        this.isTransitioning = true;
+        try { window.board.disableMoveInput(); } catch (e) {}
         await this.loadPuzzles();
         if (!this.puzzles.length) {
+            this.isTransitioning = false;
             const instEl = document.getElementById('instruction');
             const bubbleText = document.querySelector('.instruction-text');
             const msg = 'No puzzles available for this opening.';
@@ -193,6 +198,7 @@ export class Trainer {
         }
 
         if (skipCount >= this.puzzles.length) {
+            this.isTransitioning = false;
             const instEl = document.getElementById('instruction');
             const bubbleText = document.querySelector('.instruction-text');
             const msg = 'No playable puzzles available for this opening.';
@@ -221,11 +227,13 @@ export class Trainer {
             this.loadNextPuzzle(skipCount + 1);
             return;
         }
+        attachPuzzleMetadata(puzzle, this.moves);
         this.moveIndex = 0;
         this.completed = false;
         this.wrongAttempts = 0;
         this.hintShown = false;
         this.puzzleELOPenalized = false;
+        this.puzzleStreak = getPuzzleStreak();
         this.positionHistory = [];
         this.historyIndex = 0;
         this.playedSans = [];
@@ -252,12 +260,15 @@ export class Trainer {
         updateProgress(0);
         renderMoveHistory([]);
         this.updateHistoryButtons();
+        this.isTransitioning = false;
     }
 
     resetCurrentPuzzle() {
         if (!this.currentPuzzle) return;
 
+        this.isTransitioning = true;
         this._playing = false;
+        try { window.board.disableMoveInput(); } catch (e) {}
         clearHintSquare();
         clearLastMove();
         clearCorrectCheckmark();
@@ -292,6 +303,7 @@ export class Trainer {
         updateProgress(0);
         renderMoveHistory([]);
         this.updateHistoryButtons();
+        this.isTransitioning = false;
     }
 
     recordPosition(lastMove) {
@@ -353,6 +365,11 @@ export class Trainer {
     }
 
     playOpponentMoves() {
+        if (this.mode === 'puzzle') {
+            this.playOpponentPuzzleMove();
+            return;
+        }
+
         if (this.completed || this._playing) return;
         this._playing = true;
         clearCorrectCheckmark();
@@ -418,40 +435,123 @@ export class Trainer {
     }
 
     validateMove(from, to) {
-        const expected = this.moves[this.moveIndex];
-        if (!expected) return false;
-
-        if (from === to) {
-            return false;
+        if (this.mode === 'puzzle') {
+            const valid = this.evaluatePuzzleMove(from, to);
+            if (!valid) {
+                stats.attempts++;
+                this.handlePuzzleFailure();
+                return false;
+            }
+            return true;
         }
 
-        const legalMoves = window.game.moves({ square: from, verbose: true });
-        const isLegal = legalMoves.some(m => m.from === from && m.to === to);
-        if (!isLegal) {
-            return false;
-        }
-
-        if (expected.from !== from || expected.to !== to) {
+        const valid = this.evaluateOpeningMove(from, to);
+        if (!valid) {
             stats.attempts++;
             this.wrongAttempts++;
             if (this.mode === 'drill') {
                 this.endDrillGame();
             } else if (this.mode === 'time') {
                 this.resetLine();
-            } else if (this.mode === 'puzzle') {
-                this.puzzleStreak = 0;
-                if (!this.puzzleELOPenalized) {
-                    const puzzleRating = this.currentPuzzle?.Rating || 1500;
-                    const result = updatePuzzleELO(puzzleRating, 0);
-                    showFeedback(`${result.change} ELO`, 'error');
-                    if (typeof window.updatePuzzleUI === 'function') window.updatePuzzleUI();
-                    this.puzzleELOPenalized = true;
-                }
             }
             return false;
         }
-
         return true;
+    }
+
+    evaluatePuzzleMove(from, to) {
+        const expected = this.moves[this.moveIndex];
+        if (!expected) return false;
+        if (from === to) return false;
+
+        const legalMoves = window.game.moves({ square: from, verbose: true });
+        const isLegal = legalMoves.some(m => m.from === from && m.to === to);
+        if (!isLegal) return false;
+
+        return expected.from === from && expected.to === to;
+    }
+
+    evaluateOpeningMove(from, to) {
+        const expected = this.moves[this.moveIndex];
+        if (!expected) return false;
+        if (from === to) return false;
+
+        const legalMoves = window.game.moves({ square: from, verbose: true });
+        const isLegal = legalMoves.some(m => m.from === from && m.to === to);
+        if (!isLegal) return false;
+
+        return expected.from === from && expected.to === to;
+    }
+
+    handlePuzzleFailure() {
+        this.puzzleStreak = 0;
+        if (!this.puzzleELOPenalized) {
+            const puzzleRating = this.currentPuzzle?.Rating || 1500;
+            const result = updatePuzzleELO(puzzleRating, 0);
+            showFeedback(`${result.change} ELO`, 'error');
+            if (typeof window.updatePuzzleUI === 'function') window.updatePuzzleUI();
+            this.puzzleELOPenalized = true;
+        }
+    }
+
+    handlePuzzleSuccess() {
+        this.completed = true;
+        this.puzzleStreak++;
+        const puzzleRating = this.currentPuzzle?.Rating || 1500;
+        const result = updatePuzzleELO(puzzleRating, 1);
+        if (typeof window.updatePuzzleUI === 'function') window.updatePuzzleUI();
+        playCompletionSound();
+        showFeedback(`+${result.change} ELO`, 'success');
+        savePuzzleStreak(this.puzzleStreak);
+        setTimeout(() => {
+            this.nextLine();
+        }, 600);
+    }
+
+    playOpponentPuzzleMove() {
+        if (this.completed || this._playing || this.isTransitioning) return;
+
+        if (this.moveIndex >= this.moves.length) {
+            if (!this.completed) {
+                this.handlePuzzleSuccess();
+            }
+            return;
+        }
+
+        const expected = this.moves[this.moveIndex];
+        if (!expected) return;
+
+        const isOpponentTurn = this.moveIndex % 2 === 1;
+        if (!isOpponentTurn) return;
+
+        this._playing = true;
+
+        setTimeout(() => {
+            if (this.completed) { this._playing = false; return; }
+
+            const moveResult = window.game.move(expected.san);
+            if (!moveResult) { this._playing = false; return; }
+
+            this.moveIndex++;
+            window.board.setPosition(window.game.fen(), true);
+            updateEvalBar();
+            highlightLastMove(expected.from, expected.to);
+            playMoveSound(moveResult);
+            this.playedSans.push(moveResult.san);
+            this.recordPosition(expected);
+            renderMoveHistory(this.playedSans);
+            updateProgress(this.getProgress());
+
+            this._playing = false;
+
+            if (this.moveIndex >= this.moves.length) {
+                this.handlePuzzleSuccess();
+            } else {
+                this.enableCurrentMoveInput();
+                this.updateHistoryButtons();
+                this.updateInstruction();
+            }
+        }, 400);
     }
 
     endDrillGame() {
@@ -515,14 +615,7 @@ export class Trainer {
             document.getElementById('btnHint').textContent = 'Hint';
 
             if (this.mode === 'puzzle') {
-                this.puzzleStreak = 0;
-                if (!this.puzzleELOPenalized) {
-                    const puzzleRating = this.currentPuzzle?.Rating || 1500;
-                    const result = updatePuzzleELO(puzzleRating, 0);
-                    showFeedback(`${result.change} ELO`, 'error');
-                    if (typeof window.updatePuzzleUI === 'function') window.updatePuzzleUI();
-                    this.puzzleELOPenalized = true;
-                }
+                this.handlePuzzleFailure();
 
                 const moveResult = window.game.move(exp.san);
                 if (moveResult) {
@@ -664,15 +757,7 @@ export class Trainer {
         }
 
         if (this.mode === 'puzzle') {
-            this.puzzleStreak++;
-            const puzzleRating = this.currentPuzzle?.Rating || 1500;
-            const result = updatePuzzleELO(puzzleRating, 1);
-            if (typeof window.updatePuzzleUI === 'function') window.updatePuzzleUI();
-            playCompletionSound();
-            showFeedback(`+${result.change} ELO`, 'success');
-            setTimeout(() => {
-                this.nextLine();
-            }, 600);
+            this.handlePuzzleSuccess();
             return;
         }
 
@@ -785,6 +870,24 @@ function parsePuzzleMoves(puzzle) {
         });
     }
 
+    return moves;
+}
+
+function attachPuzzleMetadata(puzzle, moves) {
+    const solution = moves.map(m => m.san);
+    const toPlay = puzzle.FEN.split(' ')[1] === 'b' ? 'black' : 'white';
+    puzzle._solution = solution;
+    puzzle._toPlay = toPlay;
+    puzzle._playerMoveIndices = [];
+    const initialTurn = puzzle.FEN.split(' ')[1];
+    moves.forEach((m, i) => {
+        const isPlayerTurn = (initialTurn === 'w')
+            ? (i % 2 === 0)
+            : (i % 2 === 1);
+        if (isPlayerTurn) {
+            puzzle._playerMoveIndices.push(i);
+        }
+    });
     return moves;
 }
 

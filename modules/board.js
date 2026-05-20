@@ -25,7 +25,7 @@ export function moveInputHandler(event) {
     const game = window.game;
     const board = window.board;
 
-    if (!trainer || trainer.completed) {
+    if (!trainer || trainer.completed || trainer.isTransitioning) {
         return false;
     }
 

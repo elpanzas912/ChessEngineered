@@ -36,6 +36,22 @@ export function getPuzzleELO() {
     return window.userProgress.puzzleELO || 1500;
 }
 
+export function getPuzzleStreak() {
+    return window.userProgress.puzzleStreak || 0;
+}
+
+export function savePuzzleStreak(streak) {
+    window.userProgress.puzzleStreak = streak;
+    saveLocalProgress();
+    syncToCloud();
+}
+
+export function resetPuzzleStreak() {
+    window.userProgress.puzzleStreak = 0;
+    saveLocalProgress();
+    syncToCloud();
+}
+
 export function updatePuzzleELO(puzzleRating, score) {
     const playerRating = getPuzzleELO();
     const expectedScore = 1 / (1 + Math.pow(10, (puzzleRating - playerRating) / 400));
