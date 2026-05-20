@@ -1,29 +1,19 @@
 # Stripe Integration Setup (Ultra Simple)
 
-## Paso 1: Crear productos en Stripe (2 min)
+## Paso 1: Crear producto en Stripe
 
 1. Andá a [dashboard.stripe.com](https://dashboard.stripe.com) (usá Test Mode por ahora)
 2. Click en **Products** → **Add product**
-3. Creá estos dos productos:
+3. Creá este producto:
 
-### Producto 1: Yearly
+### Producto: Yearly
 - Name: `Unlimited Pass (Yearly)`
-- Price: `$29.99`
+- Price: `$11.99`
 - Billing period: `Yearly`
 - Click **Save product**
 - Copiá el **Price ID** (empieza con `price_`)
 
-### Producto 2: Monthly
-- Name: `Unlimited Pass (Monthly)`
-- Price: `$4.99`
-- Billing period: `Monthly`
-- Click **Save product**
-- Copiá el **Price ID**
-
-4. Pegá los Price IDs en `checkout.html`:
-```javascript
-stripePriceId: 'price_xxxxxxxxxxxxxxxx' // <-- Reemplazar
-```
+4. Guardá ese Price ID como secret de Supabase: `STRIPE_YEARLY_PRICE_ID`.
 
 ## Paso 2: Deployar el backend (1 min)
 
@@ -46,6 +36,7 @@ Necesitás estos 5 valores:
 |---|---|
 | `STRIPE_SECRET_KEY` | Stripe Dashboard → Developers → API Keys → Secret key |
 | `STRIPE_WEBHOOK_SECRET` | Stripe Dashboard → Developers → Webhooks → Add endpoint |
+| `STRIPE_YEARLY_PRICE_ID` | Stripe Dashboard → Product → Price ID |
 | `SUPABASE_URL` | `https://mvvnqkixgxjblgyrnvte.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard → Project Settings → API → service_role key |
 | `SUPABASE_ANON_KEY` | Supabase Dashboard → Project Settings → API → anon/public key |
@@ -86,7 +77,7 @@ Necesitás estos 5 valores:
 
 1. Abrí `http://localhost:8085/checkout.html`
 2. Logueate con tu cuenta
-3. Seleccioná un plan y click **Start Free Trial**
+3. Click **Pay $11.99**
 4. Te redirige a Stripe Checkout
 5. Usá esta tarjeta de prueba:
    - Número: `4242 4242 4242 4242`
@@ -100,7 +91,7 @@ Necesitás estos 5 valores:
 
 1. Activá **Live Mode** en Stripe Dashboard
 2. Creá los mismos productos en Live Mode
-3. Copiá los nuevos Price IDs (live) a `checkout.html`
+3. Guardá el nuevo Price ID live como `STRIPE_YEARLY_PRICE_ID`
 4. Cambiá las keys de test a live en Supabase secrets
 5. Actualizá el webhook endpoint a producción
 6. Deployá de nuevo con `./deploy.sh`
@@ -110,8 +101,8 @@ Necesitás estos 5 valores:
 **"Invalid session" error:**
 → Asegurate de estar logueado antes de ir al checkout
 
-**"Price ID is required" error:**
-→ No reemplazaste los placeholders en `checkout.html`
+**"Invalid checkout plan" error:**
+→ Verificá que `STRIPE_YEARLY_PRICE_ID` esté seteado en Supabase Functions.
 
 **Webhook no funciona:**
 → Verificá que el `STRIPE_WEBHOOK_SECRET` sea el correcto

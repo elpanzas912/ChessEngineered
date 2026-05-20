@@ -304,8 +304,6 @@
         }
 
         /* ── Checkout Logic ── */
-        const STRIPE_PRICE_ID = 'price_1TYzsE0bRhmsCmKquPAdLmh3'; // $11.99/year
-
         async function startCheckout() {
             const btn = document.getElementById('checkoutBtn');
             const btnText = btn.querySelector('.btn-text');
@@ -336,7 +334,6 @@
                     },
                     body: JSON.stringify({
                         plan: 'yearly',
-                        priceId: STRIPE_PRICE_ID,
                         successUrl: window.location.origin + '/openings.html?checkout=success',
                         cancelUrl: window.location.origin + '/checkout.html'
                     })
@@ -344,14 +341,20 @@
 
                 const { url, error } = await response.json();
 
-                if (error) throw new Error(error);
+                if (error) {
+                    if (response.status === 409) {
+                        window.location.href = '/openings.html';
+                        return;
+                    }
+                    throw new Error(error);
+                }
 
                 window.location.href = url;
 
             } catch (err) {
                 console.error('Checkout error:', err);
                 setTimeout(() => {
-                    alert('Stripe redirect failed. Please try again.');
+                    alert(err.message || 'Stripe redirect failed. Please try again.');
                     btn.disabled = false;
                     btnText.style.display = 'block';
                     btnLoader.style.display = 'none';

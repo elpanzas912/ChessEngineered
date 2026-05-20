@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   stripe_customer_id TEXT,
   stripe_subscription_id TEXT UNIQUE,
-  status TEXT CHECK (status IN ('trialing', 'active', 'past_due', 'canceled', 'unpaid')),
+  status TEXT CHECK (status IN ('incomplete', 'incomplete_expired', 'trialing', 'active', 'past_due', 'canceled', 'unpaid', 'paused')),
   plan TEXT DEFAULT 'yearly',
   current_period_start TIMESTAMP WITH TIME ZONE,
   current_period_end TIMESTAMP WITH TIME ZONE,

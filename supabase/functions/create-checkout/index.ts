@@ -1,6 +1,6 @@
 // supabase/functions/create-checkout/index.ts
-// Creates a Stripe Checkout Session for subscription with trial
-// Requires authenticated user - sends user_id as client_reference_id
+// Creates a Stripe Checkout Session for subscription with trial.
+// Requires an authenticated Supabase user.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -13,6 +13,10 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+const priceIds: Record<string, string> = {
+  yearly: Deno.env.get('STRIPE_YEARLY_PRICE_ID') || 'price_1TYzsE0bRhmsCmKquPAdLmh3',
 };
 
 serve(async (req) => {
@@ -54,19 +58,44 @@ serve(async (req) => {
       );
     }
 
-    const { plan, priceId, successUrl, cancelUrl } = await req.json();
+    const { plan = 'yearly', successUrl, cancelUrl } = await req.json();
+    const priceId = priceIds[plan];
 
-    if (!priceId || priceId.includes('placeholder')) {
+    if (!priceId) {
       return new Response(
-        JSON.stringify({ error: 'Price ID is required. Please configure your Stripe Price IDs in checkout.html' }),
+        JSON.stringify({ error: 'Invalid checkout plan' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Create Stripe Checkout Session with user ID
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') || '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+    );
+
+    const { data: existingSubscription } = await supabaseAdmin
+      .from('subscriptions')
+      .select('stripe_customer_id, status, current_period_end')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    const hasActiveSubscription =
+      existingSubscription &&
+      ['active', 'trialing'].includes(existingSubscription.status) &&
+      new Date(existingSubscription.current_period_end).getTime() > Date.now();
+
+    if (hasActiveSubscription) {
+      return new Response(
+        JSON.stringify({ error: 'You already have an active subscription' }),
+        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
+      customer: existingSubscription?.stripe_customer_id || undefined,
+      customer_email: existingSubscription?.stripe_customer_id ? undefined : user.email,
       line_items: [
         {
           price: priceId,
@@ -74,14 +103,18 @@ serve(async (req) => {
         },
       ],
       subscription_data: {
-        trial_period_days: 7, // 7-day free trial
+        trial_period_days: 7,
+        metadata: {
+          plan,
+          user_id: user.id,
+        },
       },
-      // Pass user ID to Stripe so webhook can link subscription to user
       client_reference_id: user.id,
+      allow_promotion_codes: true,
       success_url: successUrl || `${req.headers.get('origin')}/openings.html?checkout=success`,
       cancel_url: cancelUrl || `${req.headers.get('origin')}/checkout.html`,
       metadata: {
-        plan: plan || 'yearly',
+        plan,
         user_id: user.id,
       },
     });
