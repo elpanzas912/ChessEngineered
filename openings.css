@@ -35,6 +35,91 @@
   line-height: 1;
 }
 
+/* ── Unlock Celebration ── */
+.unlock-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  background:
+    radial-gradient(circle at center, oklch(65% 0.18 145 / 0.16), transparent 34%),
+    oklch(8% 0.01 250 / 0.68);
+  transition: opacity 180ms ease, visibility 180ms ease;
+}
+.unlock-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+.unlock-panel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-lg) var(--space-xl);
+  background: var(--color-paper-2);
+  border: 1px solid oklch(65% 0.18 145 / 0.38);
+  border-radius: var(--radius-md);
+  box-shadow: 0 24px 80px oklch(0% 0 0 / 0.42);
+  transform: translateY(12px) scale(0.96);
+}
+.unlock-overlay.active .unlock-panel {
+  animation: unlockPanel 1500ms cubic-bezier(.16, 1, .3, 1) both;
+}
+.unlock-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--color-accent-ink);
+  background: var(--color-success);
+}
+.unlock-icon svg {
+  width: 28px;
+  height: 28px;
+}
+.unlock-kicker {
+  font-size: var(--text-xs);
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--color-success);
+  margin-bottom: var(--space-3xs);
+}
+.unlock-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.unlock-burst {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+}
+.unlock-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 52px;
+  border-radius: var(--radius-pill);
+  background: var(--color-success);
+  transform-origin: 50% 120px;
+  opacity: 0;
+}
+.unlock-overlay.active .unlock-spark {
+  animation: unlockSpark 1100ms ease-out both;
+}
+.unlock-spark.s1 { transform: rotate(0deg) translateY(-110px); }
+.unlock-spark.s2 { transform: rotate(60deg) translateY(-110px); animation-delay: 60ms; }
+.unlock-spark.s3 { transform: rotate(120deg) translateY(-110px); animation-delay: 120ms; }
+.unlock-spark.s4 { transform: rotate(180deg) translateY(-110px); animation-delay: 90ms; }
+.unlock-spark.s5 { transform: rotate(240deg) translateY(-110px); animation-delay: 30ms; }
+.unlock-spark.s6 { transform: rotate(300deg) translateY(-110px); animation-delay: 150ms; }
+
 /* ── Nav ── */
 nav {
   position: fixed;
@@ -302,6 +387,10 @@ main {
   border-color: var(--color-rule-light);
   transform: translateY(-2px);
 }
+.card-unlocking {
+  animation: cardUnlock 850ms cubic-bezier(.16, 1, .3, 1) var(--unlock-delay, 0ms) both;
+  border-color: oklch(65% 0.18 145 / 0.45);
+}
 
 /* Board thumb */
 .card-thumb {
@@ -432,6 +521,37 @@ main {
 .card-lock svg {
   color: var(--color-ink);
   opacity: 0.8;
+}
+
+@keyframes unlockPanel {
+  0% { opacity: 0; transform: translateY(18px) scale(0.94); }
+  18% { opacity: 1; transform: translateY(0) scale(1.02); }
+  72% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-10px) scale(0.98); }
+}
+
+@keyframes unlockSpark {
+  0% { opacity: 0; height: 18px; }
+  20% { opacity: 1; }
+  100% { opacity: 0; height: 68px; }
+}
+
+@keyframes cardUnlock {
+  0% {
+    opacity: 0.55;
+    transform: translateY(10px) scale(0.985);
+    box-shadow: 0 0 0 oklch(65% 0.18 145 / 0);
+  }
+  45% {
+    opacity: 1;
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: 0 0 0 4px oklch(65% 0.18 145 / 0.18);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    box-shadow: 0 0 0 oklch(65% 0.18 145 / 0);
+  }
 }
 
 /* Free tier banner */
