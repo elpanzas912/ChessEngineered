@@ -297,6 +297,31 @@ body { overflow: hidden; }
   font-size: var(--text-sm);
   font-weight: 500;
 }
+.dropdown-item.locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.dropdown-item.locked .line-label {
+  color: var(--color-muted);
+}
+.dropdown-item.locked .line-icon {
+  opacity: 0.5;
+}
+.line-locked-label {
+  margin-left: auto;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.line-check {
+  margin-left: auto;
+  color: var(--color-success);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
 
 /* ── Instruction Dialog ── */
 .instruction-dialog {

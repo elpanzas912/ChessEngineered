@@ -1687,26 +1687,48 @@ function toggleMode() {
 function renderLineDropdown() {
     const list = document.getElementById('dropdownList');
     if (!list || !trainer || !trainer.opening) return;
-    
+
     const lines = trainer.opening.lines || [];
     const names = trainer.opening.lineNames || {};
+    const learned = getLearnedLines(trainer.slug);
+
+    // Find the highest learned line index
+    let lastLearnedIdx = -1;
+    lines.forEach((pgn, idx) => {
+        if (learned.includes(pgn)) lastLearnedIdx = idx;
+    });
+
+    // Unlocked up to (last learned + 1)
+    const unlockedIdx = lastLearnedIdx + 1;
+
     list.innerHTML = '';
-    
+
     lines.forEach((pgn, idx) => {
         const name = names[pgn] || `Line ${idx + 1}`;
         const isActive = trainer.linePgn === pgn;
+        const isLearned = learned.includes(pgn);
+        const isUnlocked = idx <= unlockedIdx;
+        const isLocked = !isUnlocked;
         const num = idx + 1;
-        
+
         const item = document.createElement('div');
-        item.className = `dropdown-item ${isActive ? 'active' : ''}`;
+        item.className = `dropdown-item ${isActive ? 'active' : ''} ${isLocked ? 'locked' : ''}`;
+
+        const icon = isLocked ? '🔒' : (isLearned ? '✓' : '🎯');
+        const checkmark = isActive ? '<span class="line-check">✓</span>' : '';
+        const lockLabel = isLocked ? '<span class="line-locked-label">Locked</span>' : '';
+
         item.innerHTML = `
             <span class="line-num">#${num}</span>
-            <span class="line-icon">🎯</span>
+            <span class="line-icon">${icon}</span>
             <span class="line-label">${esc(name)}</span>
-            ${isActive ? '<span style="margin-left:auto;color:#22c55e;font-size:0.85rem;font-weight:700;">✓</span>' : ''}
+            ${lockLabel}
+            ${checkmark}
         `;
+
         item.addEventListener('click', (e) => {
             e.stopPropagation();
+            if (isLocked) return; // Prevent jumping to locked lines
             if (trainer) {
                 trainer.loadLine(pgn);
                 if (typeof trainer.saveSessionState === 'function') trainer.saveSessionState();
