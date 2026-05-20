@@ -233,6 +233,8 @@ export class Trainer {
         this.completed = false;
         this.wrongAttempts = 0;
         this.hintShown = false;
+        clearCorrectCheckmark();
+        clearIncorrectCross();
         this.puzzleELOPenalized = false;
         this.puzzleStreak = getPuzzleStreak();
         this.positionHistory = [];
@@ -552,6 +554,7 @@ export class Trainer {
                 return;
             }
 
+            clearCorrectCheckmark();
             const moveResult = window.game.move(next.san);
             if (!moveResult) { this._playing = false; return; }
 
