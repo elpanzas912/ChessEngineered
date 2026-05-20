@@ -16,6 +16,20 @@ const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') || '';
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+function dateFromStripeTimestamp(timestamp: number | null | undefined) {
+  return timestamp ? new Date(timestamp * 1000).toISOString() : null;
+}
+
+function getSubscriptionPeriod(subscription: Stripe.Subscription) {
+  const item = subscription.items?.data?.[0];
+  const start = subscription.current_period_start || item?.current_period_start;
+  const end = subscription.current_period_end || item?.current_period_end;
+  return {
+    start: dateFromStripeTimestamp(start),
+    end: dateFromStripeTimestamp(end),
+  };
+}
+
 serve(async (req) => {
   const signature = req.headers.get('stripe-signature');
   if (!signature) {
@@ -41,11 +55,8 @@ serve(async (req) => {
           return new Response('No user_id', { status: 400 });
         }
 
-        // Get subscription details to find trial end date
         const subscription = await stripe.subscriptions.retrieve(subscriptionId as string);
-        const trialEnd = subscription.trial_end
-          ? new Date(subscription.trial_end * 1000).toISOString()
-          : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+        const period = getSubscriptionPeriod(subscription);
 
         const { error } = await supabase
           .from('subscriptions')
@@ -55,9 +66,9 @@ serve(async (req) => {
             stripe_subscription_id: subscriptionId as string,
             status: subscription.status || 'trialing',
             plan: session.metadata?.plan || 'yearly',
-            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-            trial_end: trialEnd,
+            current_period_start: period.start,
+            current_period_end: period.end,
+            trial_end: dateFromStripeTimestamp(subscription.trial_end),
             cancel_at_period_end: subscription.cancel_at_period_end,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -76,13 +87,15 @@ serve(async (req) => {
         const subscriptionId = invoice.subscription;
 
         if (!subscriptionId) break;
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId as string);
+        const period = getSubscriptionPeriod(subscription);
 
         const { error } = await supabase
           .from('subscriptions')
           .update({
-            status: 'active',
-            current_period_start: new Date(invoice.period_start * 1000).toISOString(),
-            current_period_end: new Date(invoice.period_end * 1000).toISOString(),
+            status: subscription.status || 'active',
+            current_period_start: period.start,
+            current_period_end: period.end,
             updated_at: new Date().toISOString(),
           })
           .eq('stripe_subscription_id', subscriptionId);
@@ -132,13 +145,15 @@ serve(async (req) => {
 
       case 'customer.subscription.updated': {
         const subscription = event.data.object;
+        const period = getSubscriptionPeriod(subscription);
 
         const { error } = await supabase
           .from('subscriptions')
           .update({
             status: subscription.status,
-            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            current_period_start: period.start,
+            current_period_end: period.end,
+            trial_end: dateFromStripeTimestamp(subscription.trial_end),
             cancel_at_period_end: subscription.cancel_at_period_end,
             updated_at: new Date().toISOString(),
           })
