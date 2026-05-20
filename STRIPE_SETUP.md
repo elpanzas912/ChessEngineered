@@ -1,109 +1,121 @@
-# Stripe Integration Setup
+# Stripe Integration Setup (Ultra Simple)
 
-## Environment Variables
+## Paso 1: Crear productos en Stripe (2 min)
 
-Add these to your Supabase project settings (Project Settings > Edge Functions):
+1. Andá a [dashboard.stripe.com](https://dashboard.stripe.com) (usá Test Mode por ahora)
+2. Click en **Products** → **Add product**
+3. Creá estos dos productos:
 
+### Producto 1: Yearly
+- Name: `Unlimited Pass (Yearly)`
+- Price: `$29.99`
+- Billing period: `Yearly`
+- Click **Save product**
+- Copiá el **Price ID** (empieza con `price_`)
+
+### Producto 2: Monthly
+- Name: `Unlimited Pass (Monthly)`
+- Price: `$4.99`
+- Billing period: `Monthly`
+- Click **Save product**
+- Copiá el **Price ID**
+
+4. Pegá los Price IDs en `checkout.html`:
+```javascript
+stripePriceId: 'price_xxxxxxxxxxxxxxxx' // <-- Reemplazar
 ```
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-SUPABASE_URL=https://mvvnqkixgxjblgyrnvte.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-```
 
-## Stripe Products Setup
+## Paso 2: Deployar el backend (1 min)
 
-1. Go to Stripe Dashboard > Products
-2. Create two products:
-   - **Unlimited Pass (Yearly)** - $29.99/year
-   - **Unlimited Pass (Monthly)** - $4.99/month
-3. Copy the Price IDs and update them in `checkout.html`
-
-## Deploy Edge Functions
+Corré este comando en tu terminal:
 
 ```bash
-# Login to Supabase
-supabase login
-
-# Link your project
-supabase link --project-ref mvvnqkixgxjblgyrnvte
-
-# Deploy functions
-supabase functions deploy create-checkout
-supabase functions deploy stripe-webhook
-
-# Set secrets
-supabase secrets set STRIPE_SECRET_KEY=sk_test_...
-supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...
-supabase secrets set SUPABASE_URL=https://mvvnqkixgxjblgyrnvte.supabase.co
-supabase secrets set SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+cd /Users/joaquinestruch/Desktop/ChessApp/ChessEngineered
+./deploy.sh
 ```
 
-## Configure Webhook Endpoint
+Te va a pedir:
+- Loguearte a Supabase (si no estás)
+- Setear secrets (te los pide uno por uno)
 
-1. Go to Stripe Dashboard > Developers > Webhooks
-2. Add endpoint: `https://mvvnqkixgxjblgyrnvte.supabase.co/functions/v1/stripe-webhook`
-3. Select events:
-   - `checkout.session.completed`
-   - `invoice.paid`
-   - `invoice.payment_failed`
-   - `customer.subscription.deleted`
-   - `customer.subscription.updated`
-4. Copy the webhook signing secret and add it to Supabase secrets
+## Paso 3: Setear Secrets en Supabase
 
-## Run Database Migration
+Necesitás estos 5 valores:
 
-```bash
-supabase db push
-```
+| Secret | Dónde conseguirlo |
+|---|---|
+| `STRIPE_SECRET_KEY` | Stripe Dashboard → Developers → API Keys → Secret key |
+| `STRIPE_WEBHOOK_SECRET` | Stripe Dashboard → Developers → Webhooks → Add endpoint |
+| `SUPABASE_URL` | `https://mvvnqkixgxjblgyrnvte.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard → Project Settings → API → service_role key |
+| `SUPABASE_ANON_KEY` | Supabase Dashboard → Project Settings → API → anon/public key |
 
-Or run the SQL in `supabase/migrations/20240101000000_add_subscriptions.sql` in the Supabase SQL Editor.
+### Para setearlos:
 
-## Frontend Updates
+**Opción A: Por CLI (el script ya te lo pide)**
 
-Update the Price IDs in `checkout.html`:
+**Opción B: Por web**
+1. Andá a [tu dashboard de Supabase](https://supabase.com/dashboard/project/mvvnqkixgxjblgyrnvte/settings/functions)
+2. Agregá cada secret uno por uno
 
-```javascript
-const PLANS = {
-  yearly: {
-    price: 29.99,
-    period: '/year',
-    equivalent: '$2.50/month, billed annually',
-    label: 'Unlimited Pass (Yearly)',
-    stripePriceId: 'price_xxxxxxxxxxxxxxxx' // Replace with your Stripe Price ID
-  },
-  monthly: {
-    price: 4.99,
-    period: '/month',
-    equivalent: 'Billed monthly, cancel anytime',
-    label: 'Unlimited Pass (Monthly)',
-    stripePriceId: 'price_xxxxxxxxxxxxxxxx' // Replace with your Stripe Price ID
-  }
-};
-```
+## Paso 4: Configurar Webhook en Stripe
 
-Update the Edge Function URL in `checkout.html`:
+1. Stripe Dashboard → Developers → Webhooks → **Add an endpoint**
+2. Endpoint URL:
+   ```
+   https://mvvnqkixgxjblgyrnvte.supabase.co/functions/v1/stripe-webhook
+   ```
+3. Seleccioná estos eventos:
+   - ☑️ `checkout.session.completed`
+   - ☑️ `invoice.paid`
+   - ☑️ `invoice.payment_failed`
+   - ☑️ `customer.subscription.deleted`
+   - ☑️ `customer.subscription.updated`
+4. Click **Add endpoint**
+5. Copiá el **Signing secret** (empieza con `whsec_`)
+6. Pegalo en Supabase secrets como `STRIPE_WEBHOOK_SECRET`
 
-```javascript
-const response = await fetch('https://mvvnqkixgxjblgyrnvte.supabase.co/functions/v1/create-checkout', {
-```
+## Paso 5: Correr migración SQL
 
-## Testing
+1. Andá a [Supabase SQL Editor](https://supabase.com/dashboard/project/mvvnqkixgxjblgyrnvte/sql)
+2. Abrí el archivo `supabase/migrations/20240101000000_add_subscriptions.sql`
+3. Copiá y pegá el contenido en el SQL Editor
+4. Click **Run**
 
-1. Use Stripe test mode
-2. Use test card numbers:
-   - Success: `4242 4242 4242 4242`
-   - Decline: `4000 0000 0000 0002`
-   - Requires 3D Secure: `4000 0025 0000 3155`
-3. Any future date for expiry
-4. Any 3 digits for CVC
-5. Any ZIP code
+## Paso 6: Probar
 
-## Going Live
+1. Abrí `http://localhost:8085/checkout.html`
+2. Logueate con tu cuenta
+3. Seleccioná un plan y click **Start Free Trial**
+4. Te redirige a Stripe Checkout
+5. Usá esta tarjeta de prueba:
+   - Número: `4242 4242 4242 4242`
+   - Fecha: cualquiera futura
+   - CVC: cualquier 3 dígitos
+   - ZIP: cualquiera
+6. Completá el pago
+7. Te redirige a `openings.html?checkout=success`
 
-1. Switch to Stripe live mode
-2. Create live products and prices
-3. Update Price IDs in frontend
-4. Update webhook endpoint to production
-5. Update environment variables with live keys
-6. Deploy functions again
+## Going Live (cuando quieras cobrar de verdad)
+
+1. Activá **Live Mode** en Stripe Dashboard
+2. Creá los mismos productos en Live Mode
+3. Copiá los nuevos Price IDs (live) a `checkout.html`
+4. Cambiá las keys de test a live en Supabase secrets
+5. Actualizá el webhook endpoint a producción
+6. Deployá de nuevo con `./deploy.sh`
+
+## Troubleshooting
+
+**"Invalid session" error:**
+→ Asegurate de estar logueado antes de ir al checkout
+
+**"Price ID is required" error:**
+→ No reemplazaste los placeholders en `checkout.html`
+
+**Webhook no funciona:**
+→ Verificá que el `STRIPE_WEBHOOK_SECRET` sea el correcto
+→ Verificá que la URL del webhook sea exacta
+
+**No se guarda la suscripción:**
+→ Revisá los logs de la función en Supabase Dashboard → Edge Functions → Logs

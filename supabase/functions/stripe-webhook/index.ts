@@ -1,5 +1,6 @@
 // supabase/functions/stripe-webhook/index.ts
 // Handles Stripe webhook events for subscriptions
+// Uses client_reference_id (set to user_id) to link subscription to user
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -30,21 +31,34 @@ serve(async (req) => {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object;
+        // client_reference_id is the user_id we passed from create-checkout
+        const userId = session.client_reference_id || session.metadata?.user_id;
         const customerId = session.customer;
         const subscriptionId = session.subscription;
-        const userId = session.client_reference_id || session.metadata?.user_id;
 
-        // Create or update subscription record
+        if (!userId) {
+          console.error('No user_id found in session');
+          return new Response('No user_id', { status: 400 });
+        }
+
+        // Get subscription details to find trial end date
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId as string);
+        const trialEnd = subscription.trial_end
+          ? new Date(subscription.trial_end * 1000).toISOString()
+          : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
         const { error } = await supabase
           .from('subscriptions')
           .upsert({
             user_id: userId,
-            stripe_customer_id: customerId,
-            stripe_subscription_id: subscriptionId,
-            status: 'trialing',
+            stripe_customer_id: customerId as string,
+            stripe_subscription_id: subscriptionId as string,
+            status: subscription.status || 'trialing',
             plan: session.metadata?.plan || 'yearly',
-            current_period_start: new Date().toISOString(),
-            current_period_end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            trial_end: trialEnd,
+            cancel_at_period_end: subscription.cancel_at_period_end,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           }, { onConflict: 'user_id' });
@@ -53,15 +67,16 @@ serve(async (req) => {
           console.error('Error saving subscription:', error);
           return new Response('Database error', { status: 500 });
         }
+        console.log('Subscription saved for user:', userId);
         break;
       }
 
       case 'invoice.paid': {
         const invoice = event.data.object;
         const subscriptionId = invoice.subscription;
-        const customerId = invoice.customer;
 
-        // Update subscription status to active
+        if (!subscriptionId) break;
+
         const { error } = await supabase
           .from('subscriptions')
           .update({
@@ -82,7 +97,8 @@ serve(async (req) => {
         const invoice = event.data.object;
         const subscriptionId = invoice.subscription;
 
-        // Mark subscription as past_due
+        if (!subscriptionId) break;
+
         const { error } = await supabase
           .from('subscriptions')
           .update({
@@ -100,7 +116,6 @@ serve(async (req) => {
       case 'customer.subscription.deleted': {
         const subscription = event.data.object;
 
-        // Mark subscription as canceled
         const { error } = await supabase
           .from('subscriptions')
           .update({
