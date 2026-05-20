@@ -228,7 +228,7 @@ export class Trainer {
             this.loadNextPuzzle(skipCount + 1);
             return;
         }
-        attachPuzzleMetadata(puzzle, this.moves);
+        attachPuzzleMetadata(puzzle, this.moves, this.opening.playerSide);
         this.moveIndex = 0;
         this.completed = false;
         this.wrongAttempts = 0;
@@ -243,9 +243,8 @@ export class Trainer {
         window.board.setPosition(window.game.fen(), true);
         this.recordPosition(null);
 
-        // The player's color is determined by the first move in the puzzle solution
-        const playerIsBlack = this.moves[0]?.color === 'b';
-        const orientation = playerIsBlack ? COLOR.black : COLOR.white;
+        const playerSide = this.opening.playerSide || puzzle.FEN.split(' ')[1] || 'w';
+        const orientation = playerSide === 'b' ? COLOR.black : COLOR.white;
         window.board.setOrientation(orientation);
 
         const instEl = document.getElementById('instruction');
@@ -253,10 +252,9 @@ export class Trainer {
         if (instEl) instEl.textContent = 'Solve the puzzle! Find the best move.';
         if (bubbleText) bubbleText.textContent = 'Solve the puzzle! Find the best move.';
 
-        const playerColor = playerIsBlack ? COLOR.black : COLOR.white;
+        const playerColor = playerSide === 'b' ? COLOR.black : COLOR.white;
         this.puzzlePlayerColor = playerColor;
         try { window.board.disableMoveInput(); } catch (e) {}
-        window.board.enableMoveInput(moveInputHandler, playerColor);
 
         if (typeof window.updatePuzzleUI === 'function') window.updatePuzzleUI();
         updateLineHeader('Puzzle', this.opening.displayName);
@@ -264,6 +262,8 @@ export class Trainer {
         renderMoveHistory([]);
         this.updateHistoryButtons();
         this.isTransitioning = false;
+        this.playOpponentPuzzleMove();
+        this.enableCurrentMoveInput();
     }
 
     resetCurrentPuzzle() {
@@ -289,8 +289,8 @@ export class Trainer {
         window.board.setPosition(window.game.fen(), true);
         this.recordPosition(null);
 
-        const playerIsBlack = this.moves[0]?.color === 'b';
-        const orientation = playerIsBlack ? COLOR.black : COLOR.white;
+        const playerSide = this.opening.playerSide || this.currentPuzzle.FEN.split(' ')[1] || 'w';
+        const orientation = playerSide === 'b' ? COLOR.black : COLOR.white;
         window.board.setOrientation(orientation);
 
         const instEl = document.getElementById('instruction');
@@ -298,16 +298,17 @@ export class Trainer {
         if (instEl) instEl.textContent = 'Solve the puzzle! Find the best move.';
         if (bubbleText) bubbleText.textContent = 'Solve the puzzle! Find the best move.';
 
-        const playerColor = playerIsBlack ? COLOR.black : COLOR.white;
+        const playerColor = playerSide === 'b' ? COLOR.black : COLOR.white;
         this.puzzlePlayerColor = playerColor;
         try { window.board.disableMoveInput(); } catch (e) {}
-        window.board.enableMoveInput(moveInputHandler, playerColor);
 
         updateLineHeader('Puzzle', this.opening.displayName);
         updateProgress(0);
         renderMoveHistory([]);
         this.updateHistoryButtons();
         this.isTransitioning = false;
+        this.playOpponentPuzzleMove();
+        this.enableCurrentMoveInput();
     }
 
     recordPosition(lastMove) {
@@ -366,6 +367,7 @@ export class Trainer {
         let playerColor;
         if (this.mode === 'puzzle') {
             playerColor = this.puzzlePlayerColor || (window.game.turn() === 'b' ? COLOR.black : COLOR.white);
+            if (window.game.turn() !== playerColor) return;
         } else {
             playerColor = window.game.turn() === 'b' ? COLOR.black : COLOR.white;
         }
@@ -471,6 +473,8 @@ export class Trainer {
     evaluatePuzzleMove(from, to) {
         const expected = this.moves[this.moveIndex];
         if (!expected) return false;
+        const playerSide = this.puzzlePlayerColor || this.opening.playerSide;
+        if (expected.color !== playerSide) return false;
         if (from === to) return false;
 
         const legalMoves = window.game.moves({ square: from, verbose: true });
@@ -530,37 +534,46 @@ export class Trainer {
         const expected = this.moves[this.moveIndex];
         if (!expected) return;
 
-        const isOpponentTurn = this.moveIndex % 2 === 1;
+        const playerSide = this.puzzlePlayerColor || this.opening.playerSide;
+        const isOpponentTurn = expected.color !== playerSide;
         if (!isOpponentTurn) return;
 
         this._playing = true;
 
-        setTimeout(() => {
+        const playNext = () => {
             if (this.completed) { this._playing = false; return; }
 
-            const moveResult = window.game.move(expected.san);
+            const next = this.moves[this.moveIndex];
+            if (!next || next.color === playerSide) {
+                this._playing = false;
+                this.enableCurrentMoveInput();
+                this.updateHistoryButtons();
+                this.updateInstruction();
+                return;
+            }
+
+            const moveResult = window.game.move(next.san);
             if (!moveResult) { this._playing = false; return; }
 
             this.moveIndex++;
             window.board.setPosition(window.game.fen(), true);
             updateEvalBar();
-            highlightLastMove(expected.from, expected.to);
+            highlightLastMove(next.from, next.to);
             playMoveSound(moveResult);
             this.playedSans.push(moveResult.san);
-            this.recordPosition(expected);
+            this.recordPosition(next);
             renderMoveHistory(this.playedSans);
             updateProgress(this.getProgress());
 
-            this._playing = false;
-
             if (this.moveIndex >= this.moves.length) {
+                this._playing = false;
                 this.handlePuzzleSuccess();
             } else {
-                this.enableCurrentMoveInput();
-                this.updateHistoryButtons();
-                this.updateInstruction();
+                setTimeout(playNext, 400);
             }
-        }, 400);
+        };
+
+        setTimeout(playNext, 400);
     }
 
     endDrillGame() {
@@ -617,6 +630,10 @@ export class Trainer {
         if (this.completed) return;
         const exp = this.moves[this.moveIndex];
         if (!exp) return;
+        if (this.mode === 'puzzle' && exp.color !== this.puzzlePlayerColor) {
+            this.playOpponentPuzzleMove();
+            return;
+        }
 
         if (this.hintShown) {
             clearHintSquare();
@@ -638,28 +655,7 @@ export class Trainer {
                     updateProgress(this.getProgress());
 
                     if (this.moveIndex < this.moves.length) {
-                        setTimeout(() => {
-                            const opp = this.moves[this.moveIndex];
-                            if (opp) {
-                                const oppResult = window.game.move(opp.san);
-                                if (oppResult) {
-                                    this.moveIndex++;
-                                    window.board.setPosition(window.game.fen(), true);
-                                    highlightLastMove(opp.from, opp.to);
-                                    playMoveSound(oppResult);
-                                    this.playedSans.push(oppResult.san);
-                                    renderMoveHistory(this.playedSans);
-                                    updateProgress(this.getProgress());
-                                    this.recordPosition(opp);
-                                }
-                            }
-                            if (this.moveIndex >= this.moves.length) {
-                                setTimeout(() => this.loadNextPuzzle(), 600);
-                                return;
-                            }
-                            this.enableCurrentMoveInput();
-                            this.updateHistoryButtons();
-                        }, 600);
+                        setTimeout(() => this.playOpponentPuzzleMove(), 600);
                         return;
                     }
                 }
@@ -882,18 +878,14 @@ function parsePuzzleMoves(puzzle) {
     return moves;
 }
 
-function attachPuzzleMetadata(puzzle, moves) {
+function attachPuzzleMetadata(puzzle, moves, playerSide) {
     const solution = moves.map(m => m.san);
     const toPlay = puzzle.FEN.split(' ')[1] === 'b' ? 'black' : 'white';
     puzzle._solution = solution;
     puzzle._toPlay = toPlay;
     puzzle._playerMoveIndices = [];
-    const initialTurn = puzzle.FEN.split(' ')[1];
     moves.forEach((m, i) => {
-        const isPlayerTurn = (initialTurn === 'w')
-            ? (i % 2 === 0)
-            : (i % 2 === 1);
-        if (isPlayerTurn) {
+        if (m.color === playerSide) {
             puzzle._playerMoveIndices.push(i);
         }
     });
