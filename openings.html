@@ -146,10 +146,7 @@
             if (auth) {
                 const { data: { user } } = await auth.getUser();
                 if (user) {
-                    // Bypass for developer testing
-                    if (user.email === 'celujuli00@gmail.com') {
-                        hasActiveSubscription = true;
-                    } else if (supabaseClient) {
+                    if (supabaseClient) {
                         try {
                             const { data: sub } = await supabaseClient
                                 .from('subscriptions')
@@ -165,11 +162,6 @@
                         }
                     }
                 }
-            }
-
-            // Local bypass for testing (set in console: localStorage.setItem('chesspeps_dev_premium', 'true'))
-            if (localStorage.getItem('chesspeps_dev_premium') === 'true') {
-                hasActiveSubscription = true;
             }
 
             // Show free tier banner if no subscription and no free opening picked

@@ -823,10 +823,6 @@
             if (auth) {
                 const { data: { user } } = await auth.getUser();
                 if (user) {
-                    // Bypass for developer testing
-                    if (user.email === 'celujuli00@gmail.com') return;
-                    if (localStorage.getItem('chesspeps_dev_premium') === 'true') return;
-
                     if (supabaseClient) {
                         try {
                             const { data: sub } = await supabaseClient

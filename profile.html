@@ -214,17 +214,7 @@
             // Check subscription
             let hasSub = false;
 
-            // Bypass for developer testing
-            if (user.email === 'celujuli00@gmail.com' || localStorage.getItem('chesspeps_dev_premium') === 'true') {
-                hasSub = true;
-                document.getElementById('subscriptionStatus').innerHTML = `
-                    <span class="status-badge status-active">Unlimited Pass</span>
-                    <span class="status-text">Developer access</span>
-                `;
-                document.getElementById('subscriptionDesc').textContent = 'You have full access to all openings and features.';
-                document.getElementById('subActionBtn').textContent = 'Manage Subscription';
-                document.getElementById('subActionBtn').href = '/pricing.html';
-            } else if (supabaseClient) {
+            if (supabaseClient) {
                 try {
                     const { data: sub } = await supabaseClient
                         .from('subscriptions')
