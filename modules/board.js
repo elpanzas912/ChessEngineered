@@ -35,7 +35,12 @@ export function moveInputHandler(event) {
             return false;
         }
         const piece = game.get(event.squareFrom);
-        const playerColor = trainer.mode === 'puzzle' ? game.turn() : trainer.opening.playerSide;
+        let playerColor;
+        if (trainer.mode === 'puzzle') {
+            playerColor = trainer.puzzlePlayerColor || game.turn();
+        } else {
+            playerColor = trainer.opening.playerSide;
+        }
         if (!piece || piece.color !== playerColor) {
             return false;
         }

@@ -33,6 +33,7 @@ export class Trainer {
         this.playedSans = [];
         this.isTransitioning = false;
         this.currentPuzzleStep = 0;
+        this.puzzlePlayerColor = null;
     }
 
     loadOpening(slug) {
@@ -242,11 +243,8 @@ export class Trainer {
         window.board.setPosition(window.game.fen(), true);
         this.recordPosition(null);
 
-        // Robust turn extraction: chess.js parsed the FEN already, so use game.turn()
-        const fenTurn = window.game.turn();
-        // Fallback/validation: the first move in the solution tells us who the player really is
-        const firstMoveColor = this.moves[0]?.color;
-        const playerIsBlack = firstMoveColor === 'b' || fenTurn === 'b';
+        // The player's color is determined by the first move in the puzzle solution
+        const playerIsBlack = this.moves[0]?.color === 'b';
         const orientation = playerIsBlack ? COLOR.black : COLOR.white;
         window.board.setOrientation(orientation);
 
@@ -256,6 +254,7 @@ export class Trainer {
         if (bubbleText) bubbleText.textContent = 'Solve the puzzle! Find the best move.';
 
         const playerColor = playerIsBlack ? COLOR.black : COLOR.white;
+        this.puzzlePlayerColor = playerColor;
         try { window.board.disableMoveInput(); } catch (e) {}
         window.board.enableMoveInput(moveInputHandler, playerColor);
 
@@ -290,9 +289,7 @@ export class Trainer {
         window.board.setPosition(window.game.fen(), true);
         this.recordPosition(null);
 
-        const fenTurn = window.game.turn();
-        const firstMoveColor = this.moves[0]?.color;
-        const playerIsBlack = firstMoveColor === 'b' || fenTurn === 'b';
+        const playerIsBlack = this.moves[0]?.color === 'b';
         const orientation = playerIsBlack ? COLOR.black : COLOR.white;
         window.board.setOrientation(orientation);
 
@@ -302,6 +299,7 @@ export class Trainer {
         if (bubbleText) bubbleText.textContent = 'Solve the puzzle! Find the best move.';
 
         const playerColor = playerIsBlack ? COLOR.black : COLOR.white;
+        this.puzzlePlayerColor = playerColor;
         try { window.board.disableMoveInput(); } catch (e) {}
         window.board.enableMoveInput(moveInputHandler, playerColor);
 
@@ -365,7 +363,12 @@ export class Trainer {
 
     enableCurrentMoveInput() {
         if (this.completed || this._playing) return;
-        const playerColor = window.game.turn() === 'b' ? COLOR.black : COLOR.white;
+        let playerColor;
+        if (this.mode === 'puzzle') {
+            playerColor = this.puzzlePlayerColor || (window.game.turn() === 'b' ? COLOR.black : COLOR.white);
+        } else {
+            playerColor = window.game.turn() === 'b' ? COLOR.black : COLOR.white;
+        }
         try { window.board.disableMoveInput(); } catch (e) {}
         window.board.enableMoveInput(moveInputHandler, playerColor);
     }
