@@ -155,21 +155,31 @@
 
             if (auth) {
                 const { data: { user } } = await auth.getUser();
-                if (user && supabaseClient) {
-                    try {
-                        const { data: sub } = await supabaseClient
-                            .from('subscriptions')
-                            .select('status, current_period_end')
-                            .eq('user_id', user.id)
-                            .single();
+                if (user) {
+                    // Bypass for developer testing
+                    if (user.email === 'celujuli00@gmail.com') {
+                        hasActiveSubscription = true;
+                    } else if (supabaseClient) {
+                        try {
+                            const { data: sub } = await supabaseClient
+                                .from('subscriptions')
+                                .select('status, current_period_end')
+                                .eq('user_id', user.id)
+                                .single();
 
-                        hasActiveSubscription = sub &&
-                            (sub.status === 'active' || sub.status === 'trialing') &&
-                            new Date(sub.current_period_end) > new Date();
-                    } catch (e) {
-                        hasActiveSubscription = false;
+                            hasActiveSubscription = sub &&
+                                (sub.status === 'active' || sub.status === 'trialing') &&
+                                new Date(sub.current_period_end) > new Date();
+                        } catch (e) {
+                            hasActiveSubscription = false;
+                        }
                     }
                 }
+            }
+
+            // Local bypass for testing (set in console: localStorage.setItem('chesspeps_dev_premium', 'true'))
+            if (localStorage.getItem('chesspeps_dev_premium') === 'true') {
+                hasActiveSubscription = true;
             }
 
             // Show free tier banner if no subscription and no free opening picked
@@ -459,7 +469,9 @@
                 const initial = name.charAt(0).toUpperCase();
                 menu.innerHTML = `
                     <span class="nav-user">${name}</span>
-                    <div class="nav-avatar">${initial}</div>
+                    <a href="/profile.html" class="nav-avatar-link">
+                        <div class="nav-avatar">${initial}</div>
+                    </a>
                     <button class="btn-logout" onclick="logout()">Log out</button>
                 `;
                 loadCloudProgress(user.id);

@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile — ChessPeps</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="profile.css">
+</head>
+<body>
+
+    <!-- ── Nav ── -->
+    <nav class="nav">
+        <a href="/openings.html" class="nav-logo">
+            <div class="nav-logo-icon">♟</div>
+            chesspeps
+        </a>
+        <ul class="nav-links">
+            <li><a href="/openings.html">Repertoire</a></li>
+            <li><a href="/index.html">Trainer</a></li>
+            <li><a href="/pricing.html">Pricing</a></li>
+        </ul>
+        <div class="nav-right" id="userMenu">
+            <button class="btn-login" onclick="openAuthModal()">Log in</button>
+        </div>
+    </nav>
+
+    <div class="profile-wrap">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-avatar" id="profileAvatar">?</div>
+            <div class="profile-info">
+                <h1 class="profile-name" id="profileName">Guest</h1>
+                <p class="profile-email" id="profileEmail">—</p>
+                <p class="profile-meta">Member since <span id="profileJoined">—</span></p>
+            </div>
+            <a href="/pricing.html" class="btn btn-primary" id="upgradeBtn" style="display:none">Upgrade to Unlimited</a>
+        </div>
+
+        <!-- Subscription Card -->
+        <div class="profile-card" id="subscriptionCard">
+            <h2 class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Subscription
+            </h2>
+            <div class="subscription-status" id="subscriptionStatus">
+                <span class="status-badge status-free">Free</span>
+                <span class="status-text">1 opening unlocked</span>
+            </div>
+            <p class="subscription-desc" id="subscriptionDesc">Upgrade to unlock all 30+ openings and sync across devices.</p>
+            <div class="subscription-actions">
+                <a href="/pricing.html" class="btn btn-primary" id="subActionBtn">Upgrade — $11.99/year</a>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <span class="stat-value" id="statOpenings">0</span>
+                <span class="stat-label">Openings practiced</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-value" id="statLines">0</span>
+                <span class="stat-label">Lines learned</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-value" id="statStreak">0</span>
+                <span class="stat-label">Day streak</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-value" id="statTime">0h</span>
+                <span class="stat-label">Time trained</span>
+            </div>
+        </div>
+
+        <!-- Activity Heatmap -->
+        <div class="profile-card">
+            <h2 class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                Activity
+            </h2>
+            <div class="heatmap" id="heatmap"></div>
+            <div class="heatmap-legend">
+                <span>Less</span>
+                <div class="legend-cell level-0"></div>
+                <div class="legend-cell level-1"></div>
+                <div class="legend-cell level-2"></div>
+                <div class="legend-cell level-3"></div>
+                <div class="legend-cell level-4"></div>
+                <span>More</span>
+            </div>
+        </div>
+
+        <!-- Favorite Openings -->
+        <div class="profile-card" id="favoritesCard" style="display:none">
+            <h2 class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                Most practiced
+            </h2>
+            <div class="favorites-list" id="favoritesList"></div>
+        </div>
+
+        <!-- Settings -->
+        <div class="profile-card">
+            <h2 class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                Settings
+            </h2>
+            <div class="settings-list">
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="setting-label">Board color</span>
+                        <span class="setting-desc">Choose your preferred board theme</span>
+                    </div>
+                    <select class="setting-select" id="boardTheme" onchange="saveSetting('boardTheme', this.value)">
+                        <option value="default">Classic</option>
+                        <option value="green">Green</option>
+                        <option value="blue">Blue</option>
+                        <option value="brown">Brown</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="setting-label">Sound effects</span>
+                        <span class="setting-desc">Play sounds on move and capture</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="soundToggle" checked onchange="saveSetting('soundEnabled', this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="setting-label">Show hints</span>
+                        <span class="setting-desc">Display move hints during practice</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="hintsToggle" checked onchange="saveSetting('hintsEnabled', this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-divider"></div>
+                <div class="setting-row setting-danger">
+                    <button class="btn btn-ghost" onclick="handleLogout()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                        Log out
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal (for guests) -->
+    <div class="auth-modal-overlay" id="authModal">
+        <div class="auth-modal">
+            <button class="close-btn" onclick="closeAuthModal()">×</button>
+            <h2 id="authTitle">Log in</h2>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="authEmail" placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="authPassword" placeholder="••••••••">
+            </div>
+            <button class="btn-auth" id="authBtn" onclick="handleAuth()">Log in</button>
+            <div style="text-align:center;margin:16px 0;color:var(--color-muted);font-size:0.85rem;">or</div>
+            <button class="btn-auth" style="background:#4285F4;border:none;" onclick="handleGoogleAuth()">
+                <span style="margin-right:8px;">🔍</span> Continue with Google
+            </button>
+            <div class="error-msg" id="authError"></div>
+            <div class="auth-toggle">
+                <span id="authToggleText">Don't have an account?</span>
+                <a onclick="toggleAuthMode()" id="authToggleLink">Sign up</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script>
+        /* ── Supabase ── */
+        let supabaseClient = null;
+        let auth = null;
+        let currentUser = null;
+
+        try {
+            if (typeof supabase !== 'undefined' && supabase.createClient) {
+                supabaseClient = supabase.createClient(
+                    'https://mvvnqkixgxjblgyrnvte.supabase.co',
+                    'sb_publishable_oTugIxx-nIZDcJgCuMnnqw_1ppfExp9'
+                );
+                auth = supabaseClient.auth;
+            }
+        } catch (err) {
+            console.error('Supabase init failed:', err);
+        }
+
+        /* ── Load Profile ── */
+        async function loadProfile() {
+            if (!auth) return;
+
+            const { data: { user } } = await auth.getUser();
+            currentUser = user;
+
+            if (!user) {
+                // Guest view
+                document.getElementById('profileAvatar').textContent = '?';
+                document.getElementById('profileName').textContent = 'Guest';
+                document.getElementById('profileEmail').textContent = 'Log in to view your profile';
+                document.getElementById('profileJoined').textContent = '—';
+                document.getElementById('upgradeBtn').style.display = 'inline-flex';
+                openAuthModal();
+                return;
+            }
+
+            // User info
+            const name = user.email.split('@')[0];
+            const initial = name.charAt(0).toUpperCase();
+            document.getElementById('profileAvatar').textContent = initial;
+            document.getElementById('profileName').textContent = name;
+            document.getElementById('profileEmail').textContent = user.email;
+            document.getElementById('profileJoined').textContent = new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+            // Check subscription
+            let hasSub = false;
+
+            // Bypass for developer testing
+            if (user.email === 'celujuli00@gmail.com' || localStorage.getItem('chesspeps_dev_premium') === 'true') {
+                hasSub = true;
+                document.getElementById('subscriptionStatus').innerHTML = `
+                    <span class="status-badge status-active">Unlimited Pass</span>
+                    <span class="status-text">Developer access</span>
+                `;
+                document.getElementById('subscriptionDesc').textContent = 'You have full access to all openings and features.';
+                document.getElementById('subActionBtn').textContent = 'Manage Subscription';
+                document.getElementById('subActionBtn').href = '/pricing.html';
+            } else if (supabaseClient) {
+                try {
+                    const { data: sub } = await supabaseClient
+                        .from('subscriptions')
+                        .select('status, current_period_end, plan')
+                        .eq('user_id', user.id)
+                        .single();
+
+                    hasSub = sub &&
+                        (sub.status === 'active' || sub.status === 'trialing') &&
+                        new Date(sub.current_period_end) > new Date();
+
+                    if (hasSub) {
+                        document.getElementById('subscriptionStatus').innerHTML = `
+                            <span class="status-badge status-active">Unlimited Pass</span>
+                            <span class="status-text">Active until ${new Date(sub.current_period_end).toLocaleDateString()}</span>
+                        `;
+                        document.getElementById('subscriptionDesc').textContent = 'You have full access to all openings and features.';
+                        document.getElementById('subActionBtn').textContent = 'Manage Subscription';
+                        document.getElementById('subActionBtn').href = 'https://billing.stripe.com/p/login/test'; // Replace with customer portal
+                    }
+                } catch (e) { /* ignore */ }
+            }
+
+            if (!hasSub) {
+                document.getElementById('upgradeBtn').style.display = 'inline-flex';
+            }
+
+            // Load stats
+            loadStats();
+            loadHeatmap();
+            loadFavorites();
+            loadSettings();
+        }
+
+        function loadStats() {
+            const progress = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+            const usage = JSON.parse(localStorage.getItem('chesspeps_usage') || '{}');
+
+            const openingsPracticed = Object.keys(usage).length;
+            let linesLearned = 0;
+            for (const slug in progress) {
+                linesLearned += progress[slug]?.learnedLines?.length || 0;
+            }
+
+            // Streak (mock based on usage)
+            let streak = 0;
+            const today = new Date().toDateString();
+            const lastActive = localStorage.getItem('chesspeps_last_active');
+            if (lastActive === today) {
+                streak = parseInt(localStorage.getItem('chesspeps_streak') || '0');
+            }
+
+            // Time (mock)
+            const minutes = Object.values(usage).reduce((sum, u) => sum + (u.count || 0) * 5, 0);
+            const hours = Math.floor(minutes / 60);
+
+            document.getElementById('statOpenings').textContent = openingsPracticed;
+            document.getElementById('statLines').textContent = linesLearned;
+            document.getElementById('statStreak').textContent = streak;
+            document.getElementById('statTime').textContent = hours + 'h';
+        }
+
+        function loadHeatmap() {
+            const container = document.getElementById('heatmap');
+            const usage = JSON.parse(localStorage.getItem('chesspeps_usage') || '{}');
+
+            // Generate last 52 weeks
+            const weeks = 52;
+            const days = 7;
+            const endDate = new Date();
+            endDate.setDate(endDate.getDate() - (endDate.getDay() || 7) + 7); // Next Sunday
+
+            let html = '<div class="heatmap-grid">';
+
+            for (let d = 0; d < days; d++) {
+                for (let w = 0; w < weeks; w++) {
+                    const date = new Date(endDate);
+                    date.setDate(date.getDate() - (weeks - w) * 7 + d - 6);
+                    const dateStr = date.toISOString().split('T')[0];
+
+                    // Calculate intensity based on usage
+                    let intensity = 0;
+                    for (const slug in usage) {
+                        // Mock: random intensity for demo
+                        const dayHash = dateStr.split('-').join('') + slug;
+                        const hash = Array.from(dayHash).reduce((a, c) => a + c.charCodeAt(0), 0);
+                        if (hash % 7 === 0) intensity = Math.max(intensity, 1);
+                        if (hash % 13 === 0) intensity = Math.max(intensity, 2);
+                        if (hash % 23 === 0) intensity = Math.max(intensity, 3);
+                        if (hash % 41 === 0) intensity = Math.max(intensity, 4);
+                    }
+
+                    html += `<div class="heatmap-cell level-${intensity}" title="${date.toDateString()}"></div>`;
+                }
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function loadFavorites() {
+            const usage = JSON.parse(localStorage.getItem('chesspeps_usage') || '{}');
+            const sorted = Object.entries(usage).sort((a, b) => (b[1].count || 0) - (a[1].count || 0)).slice(0, 5);
+
+            if (sorted.length === 0) return;
+
+            document.getElementById('favoritesCard').style.display = 'block';
+            const list = document.getElementById('favoritesList');
+            list.innerHTML = '';
+
+            sorted.forEach(([slug, data]) => {
+                const item = document.createElement('a');
+                item.className = 'favorite-item';
+                item.href = `opening.html?slug=${slug}`;
+                item.innerHTML = `
+                    <img src="boards/${slug}.png" alt="${slug}" class="favorite-thumb">
+                    <div class="favorite-info">
+                        <span class="favorite-name">${slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                        <span class="favorite-count">${data.count || 0} sessions</span>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function loadSettings() {
+            const boardTheme = localStorage.getItem('chesspeps_board_theme') || 'default';
+            const soundEnabled = localStorage.getItem('chesspeps_sound') !== 'false';
+            const hintsEnabled = localStorage.getItem('chesspeps_hints') !== 'false';
+
+            document.getElementById('boardTheme').value = boardTheme;
+            document.getElementById('soundToggle').checked = soundEnabled;
+            document.getElementById('hintsToggle').checked = hintsEnabled;
+        }
+
+        function saveSetting(key, value) {
+            localStorage.setItem('chesspeps_' + key, value);
+        }
+
+        /* ── Auth Modal ── */
+        let authMode = 'login';
+
+        function openAuthModal() {
+            document.getElementById('authModal').classList.add('open');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('open');
+            document.getElementById('authError').style.display = 'none';
+        }
+
+        function toggleAuthMode() {
+            authMode = authMode === 'login' ? 'signup' : 'login';
+            document.getElementById('authTitle').textContent = authMode === 'login' ? 'Log in' : 'Sign up';
+            document.getElementById('authBtn').textContent = authMode === 'login' ? 'Log in' : 'Sign up';
+            document.getElementById('authToggleText').textContent = authMode === 'login' ? "Don't have an account?" : 'Already have an account?';
+            document.getElementById('authToggleLink').textContent = authMode === 'login' ? 'Sign up' : 'Log in';
+        }
+
+        async function handleAuth() {
+            if (!supabaseClient) return;
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            const errorEl = document.getElementById('authError');
+
+            if (!email || !password) {
+                errorEl.textContent = 'Please enter email and password';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            let result;
+            try {
+                if (authMode === 'login') {
+                    result = await auth.signInWithPassword({ email, password });
+                } else {
+                    result = await auth.signUp({ email, password });
+                }
+            } catch (err) {
+                errorEl.textContent = 'Error: ' + err.message;
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            if (result.error) {
+                errorEl.textContent = result.error.message;
+                errorEl.style.display = 'block';
+            } else {
+                errorEl.style.display = 'none';
+                closeAuthModal();
+                loadProfile();
+            }
+        }
+
+        async function handleGoogleAuth() {
+            if (!supabaseClient) return;
+            try {
+                const { error } = await auth.signInWithOAuth({
+                    provider: 'google',
+                    options: { redirectTo: window.location.origin + '/profile.html' }
+                });
+                if (error) {
+                    document.getElementById('authError').textContent = error.message;
+                    document.getElementById('authError').style.display = 'block';
+                }
+            } catch (err) {
+                document.getElementById('authError').textContent = 'Google Sign-In failed';
+                document.getElementById('authError').style.display = 'block';
+            }
+        }
+
+        async function handleLogout() {
+            if (!supabaseClient) return;
+            await auth.signOut();
+            window.location.reload();
+        }
+
+        function updateUserMenu(user) {
+            const menu = document.getElementById('userMenu');
+            if (user) {
+                const name = user.email.split('@')[0];
+                const initial = name.charAt(0).toUpperCase();
+                menu.innerHTML = `
+                    <a href="/profile.html" class="nav-avatar-link">
+                        <div class="nav-avatar">${initial}</div>
+                    </a>
+                `;
+            } else {
+                menu.innerHTML = `<button class="btn-login" onclick="openAuthModal()">Log in</button>`;
+            }
+        }
+
+        // Init
+        if (auth) {
+            auth.getUser().then(({ data }) => {
+                updateUserMenu(data.user);
+                loadProfile();
+            });
+            auth.onAuthStateChange((event, session) => {
+                updateUserMenu(session?.user || null);
+            });
+        }
+    </script>
+</body>
+</html>

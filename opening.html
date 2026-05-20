@@ -730,7 +730,9 @@
                 menu.innerHTML = `
                     <div style="display:flex;align-items:center;gap:10px;">
                         <span style="color:var(--color-ink-2);font-size:0.85rem;">${name}</span>
-                        <div class="user-avatar">${initial}</div>
+                        <a href="/profile.html" class="nav-avatar-link" style="text-decoration:none;">
+                            <div class="user-avatar">${initial}</div>
+                        </a>
                         <button class="btn-login" style="background:var(--color-paper-2);color:var(--color-ink);border:1px solid var(--color-rule);" onclick="logout()">Log out</button>
                     </div>
                 `;
@@ -793,20 +795,26 @@
             if (freeOpening === slug) return; // Free opening, allow
 
             // Check subscription
-            if (auth && supabaseClient) {
+            if (auth) {
                 const { data: { user } } = await auth.getUser();
                 if (user) {
-                    try {
-                        const { data: sub } = await supabaseClient
-                            .from('subscriptions')
-                            .select('status, current_period_end')
-                            .eq('user_id', user.id)
-                            .single();
-                        const hasSub = sub &&
-                            (sub.status === 'active' || sub.status === 'trialing') &&
-                            new Date(sub.current_period_end) > new Date();
-                        if (hasSub) return; // Has subscription, allow
-                    } catch (e) { /* ignore */ }
+                    // Bypass for developer testing
+                    if (user.email === 'celujuli00@gmail.com') return;
+                    if (localStorage.getItem('chesspeps_dev_premium') === 'true') return;
+
+                    if (supabaseClient) {
+                        try {
+                            const { data: sub } = await supabaseClient
+                                .from('subscriptions')
+                                .select('status, current_period_end')
+                                .eq('user_id', user.id)
+                                .single();
+                            const hasSub = sub &&
+                                (sub.status === 'active' || sub.status === 'trialing') &&
+                                new Date(sub.current_period_end) > new Date();
+                            if (hasSub) return; // Has subscription, allow
+                        } catch (e) { /* ignore */ }
+                    }
                 }
             }
 

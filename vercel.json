@@ -5,6 +5,7 @@
     { "source": "/opening/:slug", "destination": "/opening.html?slug=:slug" },
     { "source": "/pricing", "destination": "/pricing.html" },
     { "source": "/checkout", "destination": "/checkout.html" },
-    { "source": "/onboarding", "destination": "/onboarding.html" }
+    { "source": "/onboarding", "destination": "/onboarding.html" },
+    { "source": "/profile", "destination": "/profile.html" }
   ]
 }
