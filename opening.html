@@ -651,6 +651,9 @@
             document.getElementById('authError').textContent = 'Connection error. Please refresh.';
         }
 
+        // Initialize progress from localStorage for all users (logged in or not)
+        window.userProgress = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+
         async function handleAuth() {
             if (!supabaseClient) {
                 document.getElementById('authError').textContent = 'Not connected. Refresh the page.';
