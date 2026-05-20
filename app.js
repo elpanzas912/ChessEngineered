@@ -632,6 +632,7 @@ class Trainer {
 
         // Restore saved learn index and mode from dedicated localStorage key
         const saved = this.loadSessionState();
+        console.log('[Session] loadOpening:', slug, 'saved=', saved);
 
         // Sync skip button visibility (always defaults to learn)
         const skipBtn = document.getElementById('btnSkip');
@@ -643,7 +644,9 @@ class Trainer {
         // If we have a saved linePgn, load that exact line
         // This ensures user returns to exactly where they left off
         const lines = this.opening.lines || [];
-        if (saved && saved.linePgn && lines.includes(saved.linePgn)) {
+        const hasSavedLine = saved && saved.linePgn && lines.some(l => l.trim() === saved.linePgn.trim());
+        console.log('[Session] hasSavedLine=', hasSavedLine, 'linePgn=', saved?.linePgn);
+        if (hasSavedLine) {
             this.loadLine(saved.linePgn);
         } else {
             this.nextLine();
@@ -653,12 +656,14 @@ class Trainer {
     saveSessionState() {
         // Use dedicated localStorage key to avoid conflicts with Supabase auth
         const key = `chesspeps_session_${this.slug}`;
-        localStorage.setItem(key, JSON.stringify({
+        const payload = {
             learnIndex: this.learnIndex,
             mode: this.mode,
             linePgn: this.linePgn,
             lastVisited: Date.now()
-        }));
+        };
+        localStorage.setItem(key, JSON.stringify(payload));
+        console.log('[Session] saveSessionState:', key, payload);
     }
 
     loadSessionState() {
@@ -671,9 +676,11 @@ class Trainer {
                 this.linePgn = saved.linePgn || null;
                 // Always default to learn mode on reopening
                 this.mode = 'learn';
+                console.log('[Session] loadSessionState:', key, saved);
                 return saved;
             }
         } catch (e) { /* ignore corrupt storage */ }
+        console.log('[Session] loadSessionState: no saved state for', key);
         return null;
     }
 
