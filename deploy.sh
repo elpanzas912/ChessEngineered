@@ -25,8 +25,8 @@ supabase link --project-ref $PROJECT_REF
 
 echo ""
 echo "📦 Step 2: Deploying Edge Functions..."
-supabase functions deploy create-checkout
-supabase functions deploy stripe-webhook
+supabase functions deploy create-checkout --no-verify-jwt
+supabase functions deploy stripe-webhook --no-verify-jwt
 
 echo ""
 echo "🔐 Step 3: Checking secrets..."
