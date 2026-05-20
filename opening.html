@@ -396,7 +396,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-    <script type="module" src="app.js?v=27"></script>
+    <script type="module" src="app.js?v=28"></script>
 
     <!-- Auth Modal Controls (non-module, always works) -->
     <script>
@@ -633,7 +633,12 @@
             const ratingEl = document.getElementById('puzzleRating');
             const labelEl = document.getElementById('puzzleRatingLabel');
             const diffEl = document.getElementById('puzzleDifficulty');
-            if (streakEl) streakEl.textContent = trainer?.puzzleStreak || 0;
+            const rawStreak = trainer?.puzzleStreak ?? window.userProgress?.puzzleStreak ?? 0;
+            const streak = typeof window.getPuzzleStreak === 'function'
+                ? window.getPuzzleStreak()
+                : (Number.isFinite(Number(rawStreak)) ? Math.max(0, Math.round(Number(rawStreak))) : 0);
+            if (trainer) trainer.puzzleStreak = streak;
+            if (streakEl) streakEl.textContent = streak;
             
             // Show user's puzzle ELO
             const rawELO = window.userProgress?.puzzleELO ?? 1500;

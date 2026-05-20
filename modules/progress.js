@@ -65,11 +65,17 @@ export function getPuzzleELO() {
 }
 
 export function getPuzzleStreak() {
-    return window.userProgress.puzzleStreak || 0;
+    const streak = normalizePuzzleCount(window.userProgress?.puzzleStreak, 0);
+    if (!window.userProgress) window.userProgress = {};
+    if (window.userProgress.puzzleStreak !== streak) {
+        window.userProgress.puzzleStreak = streak;
+        saveLocalProgress();
+    }
+    return streak;
 }
 
 export function savePuzzleStreak(streak) {
-    window.userProgress.puzzleStreak = streak;
+    window.userProgress.puzzleStreak = normalizePuzzleCount(streak, 0);
     saveLocalProgress();
     syncToCloud();
 }
@@ -290,4 +296,26 @@ function mergeProgress(local, cloud) {
         }
     }
     return merged;
+}
+
+export function normalizePuzzleCount(value, fallback = 0) {
+    const direct = Number(value);
+    if (Number.isFinite(direct)) return Math.max(0, Math.round(direct));
+
+    if (value && typeof value === 'object') {
+        const preferredKeys = ['puzzleStreak', 'puzzle_streak', 'streak', 'count', 'value'];
+        for (const key of preferredKeys) {
+            if (Object.prototype.hasOwnProperty.call(value, key)) {
+                const normalized = normalizePuzzleCount(value[key], NaN);
+                if (Number.isFinite(normalized)) return normalized;
+            }
+        }
+
+        for (const nestedValue of Object.values(value)) {
+            const normalized = normalizePuzzleCount(nestedValue, NaN);
+            if (Number.isFinite(normalized)) return normalized;
+        }
+    }
+
+    return fallback;
 }
