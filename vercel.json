@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/openings.html" },
+    { "source": "/openings", "destination": "/openings.html" },
+    { "source": "/opening/:slug", "destination": "/opening.html?slug=:slug" },
+    { "source": "/pricing", "destination": "/pricing.html" },
+    { "source": "/checkout", "destination": "/checkout.html" },
+    { "source": "/onboarding", "destination": "/onboarding.html" }
+  ]
+}

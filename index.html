@@ -2,83 +2,39 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0; url=/openings.html">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChessPeps - Opening Trainer</title>
-    <link rel="stylesheet" href="tokens.css">
-    <link rel="stylesheet" href="lib/cm-chessboard-assets/chessboard.css">
-    <link rel="stylesheet" href="lib/cm-chessboard-assets/extensions/markers/markers.css">
-    <link rel="stylesheet" href="lib/cm-chessboard-assets/extensions/arrows/arrows.css">
-    <link rel="stylesheet" href="style.css">
+    <title>ChessPeps</title>
+    <style>
+        body {
+            background: #0a0a0f;
+            color: #e8e8ec;
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .loading {
+            text-align: center;
+        }
+        .loading-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        a {
+            color: #5a8fc7;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <header class="topbar">
-            <div class="logo">ChessPeps</div>
-            <select id="openingSelect">
-                <option value="">-- Select Opening --</option>
-            </select>
-            <div class="controls">
-                <button id="btnMode" class="btn btn-secondary">Mode: Learn</button>
-                <button id="btnReset" class="btn btn-icon" title="Reset">&#8634;</button>
-            </div>
-        </header>
-
-        <div class="main-layout">
-            <aside class="panel lines-panel">
-                <h3>Repertoire Lines</h3>
-                <div id="linesList" class="lines-list">
-                    <div class="empty">Select an opening to begin</div>
-                </div>
-            </aside>
-
-            <section class="board-section">
-                <div class="board-header">
-                    <h2 id="lineTitle">Choose an Opening</h2>
-                    <div id="lineSubtitle" class="subtitle"></div>
-                </div>
-
-                <div class="board-wrap">
-                    <div id="board"></div>
-                </div>
-
-                <div class="board-actions">
-                    <button id="btnHint" class="btn btn-secondary">Hint</button>
-                    <button id="btnNext" class="btn btn-primary">Next Line</button>
-                </div>
-
-                <div class="progress-track">
-                    <div id="progressFill" class="progress-fill"></div>
-                </div>
-            </section>
-
-            <aside class="panel info-panel">
-                <div class="info-card">
-                    <h3>Instruction</h3>
-                    <div id="instruction" class="instruction">
-                        Welcome to ChessPeps! Select an opening above to start training your repertoire.
-                    </div>
-                </div>
-
-                <div class="info-card">
-                    <h3>Move History</h3>
-                    <div id="moveHistory" class="move-history"></div>
-                </div>
-
-                <div class="info-card stats">
-                    <h3>Session Stats</h3>
-                    <div class="stats-grid">
-                        <div><span id="statLines" class="stat-val">0</span><span class="stat-label">Lines</span></div>
-                        <div><span id="statMoves" class="stat-val">0</span><span class="stat-label">Moves</span></div>
-                        <div><span id="statAcc" class="stat-val">-</span><span class="stat-label">Accuracy</span></div>
-                    </div>
-                </div>
-            </aside>
-        </div>
+    <div class="loading">
+        <div class="loading-icon">♟</div>
+        <p>Loading ChessPeps...</p>
+        <p>If nothing happens, <a href="/openings.html">click here</a>.</p>
     </div>
-
-    <div id="feedback" class="feedback hidden"></div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-    <script type="module" src="app.js"></script>
+    <script>window.location.replace('/openings.html');</script>
 </body>
 </html>
