@@ -6,965 +6,9 @@
     <title>ChessPeps - Practice</title>
     <link rel="stylesheet" href="lib/cm-chessboard-assets/chessboard.css">
     <link rel="stylesheet" href="lib/cm-chessboard-assets/extensions/markers/markers.css">
+    <link rel="stylesheet" href="tokens.css">
     <link rel="stylesheet" href="style.css">
-    <style>
-        :root {
-            --purple: #8b5cf6;
-            --purple-light: #a78bfa;
-            --purple-hover: #7c3aed;
-            --board-green-light: #769656;
-            --board-green-dark: #eeeed2;
-            --surface: #18181b;
-            --surface-hover: #27272a;
-            --border: #27272a;
-            --border-light: #3f3f46;
-            --text: #fafafa;
-            --text-muted: #a1a1aa;
-            --text-dim: #71717a;
-            --danger: #ef4444;
-            --bg: #0a0a0f;
-        }
-
-        body {
-            overflow: hidden;
-            background: var(--bg);
-        }
-
-        /* Minimal Header */
-        .trainer-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 24px;
-            background: var(--bg);
-            border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
-        }
-
-        .trainer-header .brand {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            color: var(--text);
-            font-weight: 700;
-            font-size: 1.05rem;
-        }
-
-        .trainer-header .brand-icon {
-            width: 26px;
-            height: 26px;
-            background: var(--purple);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.85rem;
-        }
-
-        .search-bar-mini {
-            flex: 1;
-            max-width: 400px;
-            margin: 0 24px;
-        }
-
-        .search-bar-mini input {
-            width: 100%;
-            padding: 8px 14px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            outline: none;
-            text-align: center;
-            cursor: pointer;
-        }
-
-        /* Main Trainer Layout */
-        .trainer-layout {
-            display: flex;
-            height: calc(100vh - 53px);
-            padding: 24px 32px 32px;
-            gap: 32px;
-            max-width: 1600px;
-            margin: 0 auto;
-            align-items: center;
-        }
-
-        /* Board Area */
-        .board-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-width: 0;
-            padding: 20px;
-            gap: 24px;
-        }
-
-        .board-with-eval {
-            display: flex;
-            align-items: stretch;
-            gap: 8px;
-        }
-
-        .eval-bar {
-            width: 24px;
-            background: #27272a;
-            border-radius: 4px;
-            position: relative;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .eval-bar-white {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: #e4e4e7;
-            transition: height 0.3s ease;
-        }
-
-        .eval-bar-black {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #18181b;
-            transition: height 0.3s ease;
-        }
-
-        .eval-bar-score {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 0.65rem;
-            font-weight: 700;
-            color: #fff;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-            z-index: 2;
-            white-space: nowrap;
-        }
-
-        #board {
-            width: min(960px, calc(100vh - 140px), calc(100vw - 480px));
-            height: min(960px, calc(100vh - 140px), calc(100vw - 480px));
-            max-width: 100%;
-        }
-
-        /* Progress Bar */
-        .line-progress-wrap {
-            width: 100%;
-            max-width: min(960px, calc(100vh - 140px), calc(100vw - 480px));
-        }
-
-        .line-progress-track {
-            position: relative;
-            width: 100%;
-            height: 10px;
-            background: #27272a;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        .line-progress-fill {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background: linear-gradient(90deg, #a78bfa 0%, #8b5cf6 100%);
-            border-radius: 5px;
-            transition: width 0.3s ease;
-            width: 0%;
-        }
-
-        .line-progress-label {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 6px;
-            padding: 0 4px;
-        }
-
-        .line-progress-label .move-num {
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            font-weight: 600;
-        }
-
-        .line-progress-label .move-name {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        /* Right Panel */
-        .trainer-panel {
-            width: 400px;
-            min-width: 400px;
-            max-width: 400px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 20px;
-            background: rgba(24, 24, 27, 0.5);
-            border: 1px solid rgba(39, 39, 42, 0.5);
-            border-radius: 12px;
-        }
-
-        .panel-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            overflow-y: auto;
-            min-height: 0;
-        }
-
-        /* Mode Header */
-        .mode-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 14px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            cursor: pointer;
-            position: relative;
-            transition: border-color 0.15s, background 0.15s;
-            flex-shrink: 0;
-        }
-
-        .mode-header:hover {
-            border-color: var(--border-light);
-            background: rgba(255,255,255,0.02);
-        }
-
-        .mode-header .mode-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .mode-header .mode-icon {
-            width: 22px;
-            height: 22px;
-        }
-
-        .mode-header .mode-name {
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: var(--text);
-        }
-
-        .mode-header .opening-name {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-
-        .mode-header .line-counter {
-            color: var(--text-dim);
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        /* Line Dropdown */
-        .line-dropdown {
-            display: none;
-            position: absolute;
-            top: calc(100% + 8px);
-            left: 0;
-            right: 0;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            z-index: 50;
-            max-height: 420px;
-            overflow-y: auto;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-        }
-
-        .line-dropdown.open {
-            display: block;
-            animation: dropdownIn 0.15s ease;
-        }
-
-        @keyframes dropdownIn {
-            from { opacity: 0; transform: translateY(-8px) scale(0.96); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        .dropdown-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
-            cursor: pointer;
-            transition: background 0.1s;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .dropdown-item:last-child {
-            border-bottom: none;
-        }
-
-        .dropdown-item:hover {
-            background: rgba(139, 92, 246, 0.08);
-        }
-
-        .dropdown-item.active {
-            background: rgba(139, 92, 246, 0.15);
-            color: var(--purple-light);
-        }
-
-        .dropdown-item .line-num {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--text-dim);
-            min-width: 28px;
-        }
-
-        .dropdown-item .line-label {
-            font-size: 0.88rem;
-            font-weight: 500;
-        }
-
-        /* Instruction Dialog */
-        .instruction-dialog {
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-            flex-shrink: 0;
-        }
-
-        .coach-avatar {
-            width: 40px;
-            height: 40px;
-            flex-shrink: 0;
-            margin-top: 4px;
-        }
-
-        .coach-avatar svg {
-            width: 100%;
-            height: 100%;
-        }
-
-        .speech-bubble {
-            flex: 1;
-            position: relative;
-            background: #fff;
-            border-radius: 12px;
-            padding: 12px 16px;
-            color: #000;
-            font-size: 0.92rem;
-            line-height: 1.5;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        .speech-bubble::before {
-            content: '';
-            position: absolute;
-            top: 14px;
-            left: -6px;
-            width: 12px;
-            height: 12px;
-            background: #fff;
-            transform: rotate(45deg);
-            border-radius: 2px;
-        }
-
-        .speech-bubble .instruction-text {
-            color: #000;
-            font-size: 0.92rem;
-            line-height: 1.5;
-        }
-
-        /* Mode Selector */
-        .mode-selector {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-
-        .mode-btn {
-            width: 100%;
-            background: rgba(39, 39, 42, 0.4);
-            border: 1px solid rgba(63, 63, 70, 0.5);
-            border-radius: 10px;
-            padding: 10px 16px;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            color: var(--text);
-            text-align: center;
-        }
-
-        .mode-btn:hover {
-            background: rgba(63, 63, 70, 0.5);
-        }
-
-        .mode-btn:active {
-            background: rgba(63, 63, 70, 0.7);
-        }
-
-        .mode-btn.active {
-            border-color: var(--purple);
-            background: rgba(139, 92, 246, 0.08);
-        }
-
-        .mode-btn.locked {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .mode-btn.locked:hover {
-            transform: none;
-            background: rgba(39, 39, 42, 0.4);
-        }
-
-        .mode-btn-main {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .mode-btn .mode-icon {
-            width: 22px;
-            height: 22px;
-        }
-
-        .mode-btn .mode-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .mode-btn .mode-sub {
-            font-size: 0.75rem;
-            color: var(--text-dim);
-        }
-
-        .mode-btn.small {
-            height: 64px;
-            padding: 8px;
-            gap: 2px;
-        }
-
-        .mode-btn.small .mode-icon {
-            width: 18px;
-            height: 18px;
-        }
-
-        .mode-btn.small .mode-title {
-            font-size: 0.95rem;
-        }
-
-        .mode-btn.small .mode-sub {
-            font-size: 0.7rem;
-        }
-
-        .mode-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
-        /* Mode Panels Container */
-        .mode-panels-container {
-            position: relative;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Drill Panel */
-        .drill-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            flex: 1;
-            justify-content: center;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(10px);
-            transition: opacity 0.35s ease, transform 0.35s ease, visibility 0.35s;
-            pointer-events: none;
-            position: absolute;
-            inset: 0;
-        }
-        .drill-panel.active {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-            pointer-events: auto;
-            position: relative;
-        }
-
-        .drill-scoreboard {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px;
-            background: rgba(39, 39, 42, 0.4);
-            border: 1px solid rgba(63, 63, 70, 0.5);
-            border-radius: 12px;
-        }
-
-        .drill-score-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .drill-score-label {
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            font-weight: 600;
-        }
-
-        .drill-score-value {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: var(--text);
-        }
-
-        .drill-high-score {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
-        }
-
-        .drill-high-score.locked {
-            opacity: 0.5;
-            cursor: default;
-        }
-
-        .drill-high-score svg {
-            width: 20px;
-            height: 20px;
-            color: var(--text-dim);
-        }
-
-        .drill-leaderboard {
-            border: 1px solid rgba(63, 63, 70, 0.5);
-            border-radius: 12px;
-            padding: 12px;
-            background: rgba(39, 39, 42, 0.4);
-        }
-
-        .drill-leaderboard-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            color: var(--text-muted);
-        }
-
-        .drill-leaderboard-header svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        .drill-leaderboard-header h3 {
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .drill-leaderboard-msg {
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            text-align: center;
-            padding: 12px 0;
-        }
-
-        /* Time Panel */
-        .time-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            flex: 1;
-            justify-content: center;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(10px);
-            transition: opacity 0.35s ease, transform 0.35s ease, visibility 0.35s;
-            pointer-events: none;
-            position: absolute;
-            inset: 0;
-        }
-        .time-panel.active {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-            pointer-events: auto;
-            position: relative;
-        }
-
-        /* Puzzle Panel */
-        .puzzle-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            flex: 1;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(10px);
-            transition: opacity 0.35s ease, transform 0.35s ease, visibility 0.35s;
-            pointer-events: none;
-            position: absolute;
-            inset: 0;
-        }
-        .puzzle-panel.active {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-            pointer-events: auto;
-            position: relative;
-        }
-
-        .puzzle-rating-display {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .puzzle-rating-label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .puzzle-rating-value {
-            font-size: 3.5rem;
-            font-weight: 800;
-            color: var(--text);
-            line-height: 1;
-        }
-
-        .puzzle-streak {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 20px;
-            background: rgba(39, 39, 42, 0.4);
-            border: 1px solid rgba(63, 63, 70, 0.5);
-            border-radius: 12px;
-        }
-
-        .puzzle-streak-icon {
-            width: 28px;
-            height: 28px;
-            color: #22c55e;
-        }
-
-        .puzzle-streak-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .puzzle-streak-label {
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .puzzle-streak-value {
-            font-size: 1.6rem;
-            font-weight: 800;
-            color: var(--text);
-        }
-
-        .puzzle-divider {
-            width: 100%;
-            height: 1px;
-            background: var(--border);
-            margin: 8px 0;
-        }
-
-        .time-timer {
-            display: flex;
-            align-items: baseline;
-            justify-content: center;
-            gap: 8px;
-            font-family: 'Courier New', monospace;
-            padding: 16px;
-        }
-
-        .time-timer .timer-secs {
-            font-size: 3rem;
-            font-weight: 800;
-            color: #fff;
-        }
-
-        .time-timer .timer-cs {
-            font-size: 2rem;
-            font-weight: 600;
-            color: var(--text-muted);
-        }
-
-        .time-timer .timer-label {
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-        }
-
-        .time-scoreboard {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px;
-            background: rgba(39, 39, 42, 0.4);
-            border: 1px solid rgba(63, 63, 70, 0.5);
-            border-radius: 12px;
-        }
-
-        .time-leaderboard {
-            border: 1px solid rgba(63, 63, 70, 0.5);
-            border-radius: 12px;
-            padding: 12px;
-            background: rgba(39, 39, 42, 0.4);
-        }
-
-        .time-controls {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-leave-drill {
-            width: 100%;
-            padding: 12px;
-            background: rgba(39, 39, 42, 0.4);
-            border: 1px solid rgba(63, 63, 70, 0.5);
-            border-radius: 10px;
-            color: var(--text);
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .btn-leave-drill:hover {
-            background: rgba(63, 63, 70, 0.5);
-        }
-
-        /* Unlock Modal */
-        .unlock-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(9,9,11,0.9);
-            z-index: 200;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .unlock-overlay.open {
-            display: flex;
-            animation: unlockFadeIn 0.4s ease;
-        }
-        @keyframes unlockFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        .unlock-overlay h2 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #fbbf24;
-            text-align: center;
-        }
-        .unlock-overlay p {
-            font-size: 1.1rem;
-            color: var(--text-muted);
-            text-align: center;
-        }
-        .unlock-icon {
-            font-size: 5rem;
-            animation: unlockBounce 0.6s ease;
-        }
-        @keyframes unlockBounce {
-            0% { transform: scale(0); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-        .btn-unlock-close {
-            padding: 12px 32px;
-            background: var(--purple);
-            border: none;
-            border-radius: 10px;
-            color: #fff;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-        .btn-unlock-close:hover { background: var(--purple-hover); }
-
-        /* Game Over Overlay */
-        .gameover-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(9,9,11,0.85);
-            z-index: 100;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 16px;
-        }
-        .gameover-overlay.open { display: flex; }
-        .gameover-overlay h2 {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #ef4444;
-        }
-        .gameover-overlay .gameover-score {
-            font-size: 1.3rem;
-            color: var(--text);
-        }
-        .gameover-overlay .gameover-high {
-            font-size: 1rem;
-            color: var(--text-muted);
-        }
-
-        /* Bottom Toolbar */
-        .trainer-toolbar {
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            padding-top: 8px;
-            border-top: 1px solid var(--border);
-        }
-
-        .toolbar-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .toolbar-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 8px 14px;
-            background: transparent;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text);
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s;
-            white-space: nowrap;
-        }
-
-        .toolbar-btn:hover {
-            background: var(--surface-hover);
-            border-color: var(--border-light);
-        }
-
-        .toolbar-btn.icon-only {
-            padding: 8px;
-            width: 36px;
-            height: 36px;
-        }
-
-        .toolbar-btn svg {
-            width: 18px;
-            height: 18px;
-        }
-
-        .nav-group .toolbar-btn {
-            width: 36px;
-            height: 36px;
-            padding: 0;
-        }
-
-        /* Completion Overlay */
-        .completion-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(9,9,11,0.85);
-            z-index: 100;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .completion-overlay.open {
-            display: flex;
-        }
-
-        .completion-overlay h2 {
-            font-size: 2.2rem;
-            font-weight: 800;
-            color: #fff;
-            text-align: center;
-        }
-
-        .completion-overlay .completion-sub {
-            font-size: 1.1rem;
-            color: var(--text-muted);
-            text-align: center;
-            max-width: 400px;
-        }
-
-        .completion-overlay .btn-next-line {
-            padding: 14px 32px;
-            background: var(--purple);
-            border: none;
-            border-radius: 10px;
-            color: #fff;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-
-        .completion-overlay .btn-next-line:hover {
-            background: var(--purple-hover);
-        }
-
-        /* Auth */
-        .auth-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
-        .auth-modal-overlay.open { display: flex; }
-        .auth-modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; width: 100%; max-width: 380px; position: relative; }
-        .auth-modal h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 24px; text-align: center; }
-        .auth-modal .form-group { margin-bottom: 16px; }
-        .auth-modal label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
-        .auth-modal input { width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.95rem; outline: none; }
-        .auth-modal input:focus { border-color: var(--purple); }
-        .auth-modal .btn-auth { width: 100%; padding: 12px; background: var(--purple); border: none; border-radius: 8px; color: #fff; font-size: 0.95rem; font-weight: 600; cursor: pointer; margin-top: 8px; }
-        .auth-modal .auth-toggle { text-align: center; margin-top: 16px; font-size: 0.85rem; color: var(--text-muted); }
-        .auth-modal .auth-toggle a { color: var(--purple); cursor: pointer; text-decoration: underline; }
-        .auth-modal .close-btn { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
-        .auth-modal .error-msg { color: #ef4444; font-size: 0.85rem; margin-top: 8px; text-align: center; display: none; }
-        .btn-login { padding: 8px 18px; background: var(--purple); border: none; border-radius: 8px; color: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
-        .user-avatar { width: 32px; height: 32px; background: var(--purple); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: #fff; }
-    </style>
+    <link rel="stylesheet" href="opening.css">
 </head>
 <body>
     <header class="trainer-header">
@@ -972,9 +16,11 @@
             <div class="brand-icon">♟</div>
             <span>chesspeps.com</span>
         </a>
-        <div class="search-bar-mini">
-            <input type="text" placeholder="Search openings..." readonly onclick="location.href='openings.html'">
-        </div>
+        <nav class="trainer-nav">
+            <a href="/openings.html">Repertoire</a>
+            <a href="/index.html">Trainer</a>
+            <a href="/pricing.html">Pricing</a>
+        </nav>
         <div class="user-menu" id="userMenu" style="margin-left:auto;">
             <button class="btn-login" onclick="openAuthModal()">Log in</button>
         </div>
@@ -1008,7 +54,7 @@
                 <!-- Mode Header -->
                 <div class="mode-header" id="modeHeader" onclick="toggleLineDropdown()">
                     <div class="mode-info">
-                        <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted)">
+                        <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-ink-2)">
                             <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
                             <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
                         </svg>
@@ -1019,7 +65,7 @@
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;">
                         <span class="line-counter" id="lineCounter">#1</span>
-                        <span id="dropdownChevron" style="font-size:0.7rem;color:var(--text-dim);transition:transform 0.2s;">▼</span>
+                        <span id="dropdownChevron" style="font-size:0.7rem;color:var(--color-muted);transition:transform 0.2s;">▼</span>
                     </div>
 
                     <!-- Line Dropdown -->
@@ -1047,7 +93,7 @@
                 <div class="mode-selector">
                     <button class="mode-btn active" id="modeLearn" onclick="setMode('learn')">
                         <div class="mode-btn-main">
-                            <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text)">
+                            <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-ink)">
                                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
                                 <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
                             </svg>
@@ -1058,7 +104,7 @@
 
                     <button class="mode-btn" id="modePractice" onclick="setMode('practice')">
                         <div class="mode-btn-main">
-                            <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text)">
+                            <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-ink)">
                                 <circle cx="12" cy="12" r="10"/>
                                 <circle cx="12" cy="12" r="6"/>
                                 <circle cx="12" cy="12" r="2"/>
@@ -1071,7 +117,7 @@
                     <div class="mode-grid">
                         <button class="mode-btn small locked" id="modeDrill" onclick="setMode('drill')" disabled>
                             <div class="mode-btn-main">
-                                <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text);opacity:0.5">
+                                <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-ink);opacity:0.5">
                                     <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
                                 </svg>
                                 <span class="mode-title">Drill</span>
@@ -1081,7 +127,7 @@
 
                         <button class="mode-btn small locked" id="modeTime" onclick="setMode('time')" disabled>
                             <div class="mode-btn-main">
-                                <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text);opacity:0.5">
+                                <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-ink);opacity:0.5">
                                     <path d="M5 22h14"/>
                                     <path d="M5 2h14"/>
                                     <path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/>
@@ -1094,7 +140,7 @@
 
                         <button class="mode-btn small locked" id="modePuzzles" onclick="setMode('puzzle')" disabled>
                             <div class="mode-btn-main">
-                                <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text);opacity:0.5">
+                                <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-ink);opacity:0.5">
                                     <path d="M19.439 7.85c-.049.322.059.648.289.878l1.378 1.378a1 1 0 0 1 .289.878c0 .486-.166.893-.457 1.181l-1.99 1.99a1 1 0 0 1-.878.289 1 1 0 0 1-.878-.289l-1.378-1.378a1.05 1.05 0 0 0-.878-.289c-.322 0-.649.059-.878.289l-1.378 1.378a1 1 0 0 1-.878.289 1 1 0 0 1-.878-.289l-1.99-1.99a1 1 0 0 1-.289-.878c0-.486.166-.893.457-1.181l1.378-1.378a1.05 1.05 0 0 0 .289-.878c0-.322-.059-.649-.289-.878l-1.378-1.378a1 1 0 0 1-.289-.878c0-.486.166-.893.457-1.181l1.99-1.99a1 1 0 0 1 .878-.289c.322 0 .649.059.878.289l1.378 1.378a1.05 1.05 0 0 0 .878.289c.322 0 .649-.059.878-.289l1.378-1.378a1 1 0 0 1 .878-.289 1 1 0 0 1 .878.289l1.99 1.99a1 1 0 0 1 .289.878c0 .486-.166.893-.457 1.181l-1.378 1.378a1.05 1.05 0 0 0-.289.878z"/>
                                     <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
                                 </svg>
@@ -1140,7 +186,7 @@
                             <span class="timer-secs" id="timeSecs">60</span>
                             <span class="timer-label">SEC</span>
                         </div>
-                        <span style="font-size:2rem;color:var(--text-dim);">.</span>
+                        <span style="font-size:2rem;color:var(--color-muted);">.</span>
                         <div style="display:flex;flex-direction:column;align-items:center;">
                             <span class="timer-cs" id="timeCs">00</span>
                             <span class="timer-label">CS</span>
@@ -1199,7 +245,7 @@
                     <div class="puzzle-streak" style="margin-top:8px;">
                         <div class="puzzle-streak-info" style="align-items:center;">
                             <span class="puzzle-streak-label">Puzzle difficulty</span>
-                            <span class="puzzle-streak-value" id="puzzleDifficulty" style="font-size:1rem;color:var(--text-muted);">---</span>
+                            <span class="puzzle-streak-value" id="puzzleDifficulty" style="font-size:1rem;color:var(--color-ink-2);">---</span>
                         </div>
                     </div>
 
@@ -1226,7 +272,7 @@
                     </button>
                 </div>
                 <div class="toolbar-group">
-                    <button class="toolbar-btn" id="btnSkip" style="display:none;color:var(--text-muted);">Skip</button>
+                    <button class="toolbar-btn" id="btnSkip" style="display:none;color:var(--color-ink-2);">Skip</button>
                     <button class="toolbar-btn" id="btnMode">Mode</button>
                 </div>
                 <div class="toolbar-group nav-group">
@@ -1268,7 +314,7 @@
         <div class="gameover-score" id="gameoverScore">Score: 0</div>
         <div class="gameover-high" id="gameoverHigh">High Score: --</div>
         <button class="btn-next-line" onclick="restartDrill()">Try Again</button>
-        <button class="btn-next-line" style="background:var(--surface);color:var(--text);margin-top:8px;" onclick="setMode('learn')">Leave Drill</button>
+        <button class="btn-next-line" style="background:var(--color-paper-2);color:var(--color-ink);margin-top:8px;" onclick="setMode('learn')">Leave Drill</button>
     </div>
 
     <!-- Time Over Overlay -->
@@ -1277,7 +323,7 @@
         <div class="gameover-score" id="timeoverScore">Score: 0</div>
         <div class="gameover-high" id="timeoverHigh">High Score: --</div>
         <button class="btn-next-line" onclick="restartTime()">Try Again</button>
-        <button class="btn-next-line" style="background:var(--surface);color:var(--text);margin-top:8px;" onclick="setMode('learn')">Leave Time Trials</button>
+        <button class="btn-next-line" style="background:var(--color-paper-2);color:var(--color-ink);margin-top:8px;" onclick="setMode('learn')">Leave Time Trials</button>
     </div>
 
     <!-- Auth Modal -->
@@ -1288,7 +334,7 @@
             <div class="form-group"><label>Email</label><input type="email" id="authEmail" placeholder="you@example.com"></div>
             <div class="form-group"><label>Password</label><input type="password" id="authPassword" placeholder="••••••••"></div>
             <button class="btn-auth" id="authBtn" onclick="handleAuth()">Log in</button>
-            <div style="text-align:center;margin:16px 0;color:var(--text-dim);font-size:0.85rem;">or</div>
+            <div style="text-align:center;margin:16px 0;color:var(--color-muted);font-size:0.85rem;">or</div>
             <button class="btn-auth" style="background:#4285F4;border:none;" onclick="handleGoogleAuth()">
                 <span style="margin-right:8px;">🔍</span> Continue with Google
             </button>
@@ -1649,9 +695,9 @@
                 const initial = name.charAt(0).toUpperCase();
                 menu.innerHTML = `
                     <div style="display:flex;align-items:center;gap:10px;">
-                        <span style="color:var(--text-muted);font-size:0.85rem;">${name}</span>
+                        <span style="color:var(--color-ink-2);font-size:0.85rem;">${name}</span>
                         <div class="user-avatar">${initial}</div>
-                        <button class="btn-login" style="background:var(--surface);color:var(--text);border:1px solid var(--border);" onclick="logout()">Log out</button>
+                        <button class="btn-login" style="background:var(--color-paper-2);color:var(--color-ink);border:1px solid var(--color-rule);" onclick="logout()">Log out</button>
                     </div>
                 `;
                 loadCloudProgress(user.id);
