@@ -242,8 +242,12 @@ export class Trainer {
         window.board.setPosition(window.game.fen(), true);
         this.recordPosition(null);
 
-        const turn = puzzle.FEN.split(' ')[1];
-        const orientation = turn === 'b' ? COLOR.black : COLOR.white;
+        // Robust turn extraction: chess.js parsed the FEN already, so use game.turn()
+        const fenTurn = window.game.turn();
+        // Fallback/validation: the first move in the solution tells us who the player really is
+        const firstMoveColor = this.moves[0]?.color;
+        const playerIsBlack = firstMoveColor === 'b' || fenTurn === 'b';
+        const orientation = playerIsBlack ? COLOR.black : COLOR.white;
         window.board.setOrientation(orientation);
 
         const instEl = document.getElementById('instruction');
@@ -251,7 +255,7 @@ export class Trainer {
         if (instEl) instEl.textContent = 'Solve the puzzle! Find the best move.';
         if (bubbleText) bubbleText.textContent = 'Solve the puzzle! Find the best move.';
 
-        const playerColor = turn === 'b' ? COLOR.black : COLOR.white;
+        const playerColor = playerIsBlack ? COLOR.black : COLOR.white;
         try { window.board.disableMoveInput(); } catch (e) {}
         window.board.enableMoveInput(moveInputHandler, playerColor);
 
@@ -286,8 +290,10 @@ export class Trainer {
         window.board.setPosition(window.game.fen(), true);
         this.recordPosition(null);
 
-        const turn = this.currentPuzzle.FEN.split(' ')[1];
-        const orientation = turn === 'b' ? COLOR.black : COLOR.white;
+        const fenTurn = window.game.turn();
+        const firstMoveColor = this.moves[0]?.color;
+        const playerIsBlack = firstMoveColor === 'b' || fenTurn === 'b';
+        const orientation = playerIsBlack ? COLOR.black : COLOR.white;
         window.board.setOrientation(orientation);
 
         const instEl = document.getElementById('instruction');
@@ -295,7 +301,7 @@ export class Trainer {
         if (instEl) instEl.textContent = 'Solve the puzzle! Find the best move.';
         if (bubbleText) bubbleText.textContent = 'Solve the puzzle! Find the best move.';
 
-        const playerColor = turn === 'b' ? COLOR.black : COLOR.white;
+        const playerColor = playerIsBlack ? COLOR.black : COLOR.white;
         try { window.board.disableMoveInput(); } catch (e) {}
         window.board.enableMoveInput(moveInputHandler, playerColor);
 
