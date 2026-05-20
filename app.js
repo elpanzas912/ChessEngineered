@@ -4,7 +4,7 @@ import { Trainer } from './modules/trainer.js';
 import { stats } from './modules/stats.js';
 import { renderLinesList, renderLineDropdown, updateLineHeader, updateProgress, updateStats, updateModeStats, showFeedback } from './modules/ui.js';
 import { updateEvalBar } from './modules/evaluator.js';
-import { getLearnedLines } from './modules/progress.js';
+import { getLearnedLines, getPuzzleELO } from './modules/progress.js';
 
 let db = {};
 let game = null;
@@ -16,6 +16,7 @@ window.game = game;
 window.board = board;
 window.trainer = trainer;
 window.stats = stats;
+window.getPuzzleELO = getPuzzleELO;
 
 // ── Load Database ──
 fetch('data/openings.json')

@@ -32,8 +32,36 @@ export function updateLineProgress(slug, linePgn, update) {
     upsertLineProgress(slug, linePgn, window.userProgress[slug].lines[linePgn]);
 }
 
+export function normalizePuzzleELO(value, fallback = 1500) {
+    const direct = Number(value);
+    if (Number.isFinite(direct)) return Math.max(400, Math.round(direct));
+
+    if (value && typeof value === 'object') {
+        const preferredKeys = ['puzzleELO', 'puzzle_elo', 'elo', 'rating', 'newRating'];
+        for (const key of preferredKeys) {
+            if (Object.prototype.hasOwnProperty.call(value, key)) {
+                const normalized = normalizePuzzleELO(value[key], NaN);
+                if (Number.isFinite(normalized)) return normalized;
+            }
+        }
+
+        for (const nestedValue of Object.values(value)) {
+            const normalized = normalizePuzzleELO(nestedValue, NaN);
+            if (Number.isFinite(normalized)) return normalized;
+        }
+    }
+
+    return fallback;
+}
+
 export function getPuzzleELO() {
-    return window.userProgress.puzzleELO || 1500;
+    const rating = normalizePuzzleELO(window.userProgress?.puzzleELO, 1500);
+    if (!window.userProgress) window.userProgress = {};
+    if (window.userProgress.puzzleELO !== rating) {
+        window.userProgress.puzzleELO = rating;
+        saveLocalProgress();
+    }
+    return rating;
 }
 
 export function getPuzzleStreak() {
@@ -54,7 +82,8 @@ export function resetPuzzleStreak() {
 
 export function updatePuzzleELO(puzzleRating, score) {
     const playerRating = getPuzzleELO();
-    const expectedScore = 1 / (1 + Math.pow(10, (puzzleRating - playerRating) / 400));
+    const normalizedPuzzleRating = normalizePuzzleELO(puzzleRating, 1500);
+    const expectedScore = 1 / (1 + Math.pow(10, (normalizedPuzzleRating - playerRating) / 400));
     const change = Math.round(K_FACTOR * (score - expectedScore));
     const newRating = Math.max(400, playerRating + change);
     window.userProgress.puzzleELO = newRating;
@@ -65,7 +94,8 @@ export function updatePuzzleELO(puzzleRating, score) {
 }
 
 export function findPuzzleInELORange(puzzles, elo, range = 150) {
-    const candidates = puzzles.filter(p => Math.abs(p.Rating - elo) <= range);
+    const targetElo = normalizePuzzleELO(elo, 1500);
+    const candidates = puzzles.filter(p => Math.abs(normalizePuzzleELO(p.Rating, 1500) - targetElo) <= range);
     if (candidates.length === 0 && range < 1000) {
         return findPuzzleInELORange(puzzles, elo, range + 100);
     }
