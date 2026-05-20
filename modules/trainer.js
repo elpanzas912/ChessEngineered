@@ -44,9 +44,6 @@ export class Trainer {
         const saved = this.loadSessionState();
         console.log('[Session] loadOpening:', slug, 'saved=', saved);
 
-        const skipBtn = document.getElementById('btnSkip');
-        if (skipBtn) skipBtn.style.display = this.mode === 'learn' ? '' : 'none';
-
         renderLinesList(this);
         updateModeStats();
 

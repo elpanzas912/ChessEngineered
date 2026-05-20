@@ -76,10 +76,6 @@ function initApp() {
     const resetBtn = document.getElementById('btnReset');
     if (resetBtn) resetBtn.addEventListener('click', () => trainer && trainer.resetLine());
     document.getElementById('btnHint').addEventListener('click', () => trainer && trainer.showHint());
-    const modeBtn = document.getElementById('btnMode');
-    if (modeBtn) modeBtn.addEventListener('click', toggleMode);
-    const skipBtn = document.getElementById('btnSkip');
-    if (skipBtn) skipBtn.addEventListener('click', () => trainer && trainer.skipLine());
 
     document.addEventListener('keydown', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
