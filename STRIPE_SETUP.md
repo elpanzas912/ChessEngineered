@@ -87,6 +87,8 @@ Necesitás estos 5 valores:
 6. Completá el pago
 7. Te redirige a `openings.html?checkout=success`
 
+Nota: la app ofrece una apertura gratis sin tarjeta. Stripe no tiene trial configurado; el checkout cobra la suscripción anual cuando el usuario quiere desbloquear más aperturas.
+
 ## Going Live (cuando quieras cobrar de verdad)
 
 1. Activá **Live Mode** en Stripe Dashboard

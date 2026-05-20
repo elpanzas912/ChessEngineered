@@ -1,5 +1,5 @@
 // supabase/functions/create-checkout/index.ts
-// Creates a Stripe Checkout Session for subscription with trial.
+// Creates a Stripe Checkout Session for the annual subscription.
 // Requires an authenticated Supabase user.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
@@ -103,7 +103,6 @@ serve(async (req) => {
         },
       ],
       subscription_data: {
-        trial_period_days: 7,
         metadata: {
           plan,
           user_id: user.id,
