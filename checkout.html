@@ -59,17 +59,17 @@
             <div class="checkout-summary">
                 <div class="summary-card">
                     <div class="plan-header">
-                        <span class="plan-badge" id="planBadge">Most Popular</span>
+                        <span class="plan-badge">Unlimited Pass</span>
                         <h1 class="plan-name">Unlimited Pass</h1>
                         <p class="plan-desc">Full access to every opening, all modes, on every device.</p>
                     </div>
 
                     <div class="plan-price">
                         <span class="price-currency">$</span>
-                        <span class="price-value" id="priceValue">29.99</span>
-                        <span class="price-period" id="pricePeriod">/year</span>
+                        <span class="price-value">11.99</span>
+                        <span class="price-period">/year</span>
                     </div>
-                    <p class="price-equivalent" id="priceEquivalent">$2.50/month, billed annually</p>
+                    <p class="price-equivalent">Less than $1/month</p>
 
                     <div class="plan-divider"></div>
 
@@ -98,7 +98,7 @@
 
                     <div class="trial-note">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                        7-day free trial — cancel anytime
+                        30-day money-back guarantee
                     </div>
                 </div>
             </div>
@@ -108,35 +108,23 @@
                 <div class="payment-card">
                     <h2 class="payment-title">Complete your purchase</h2>
 
-                    <!-- Plan Toggle -->
-                    <div class="plan-toggle" role="group" aria-label="Billing period">
-                        <button class="toggle-btn active" data-plan="yearly" onclick="setPlan('yearly')">
-                            Yearly
-                            <span class="save-tag">Save 40%</span>
-                        </button>
-                        <button class="toggle-btn" data-plan="monthly" onclick="setPlan('monthly')">
-                            Monthly
-                        </button>
-                    </div>
-
                     <!-- Order Summary Line -->
                     <div class="order-line">
-                        <span class="order-label" id="orderLabel">Unlimited Pass (Yearly)</span>
-                        <span class="order-price" id="orderPrice">$29.99</span>
+                        <span class="order-label">Unlimited Pass (Yearly)</span>
+                        <span class="order-price" id="orderPrice">$11.99</span>
                     </div>
 
                     <div class="order-divider"></div>
 
                     <!-- Total -->
                     <div class="order-total">
-                        <span>Total due today</span>
-                        <span class="total-price" id="totalPrice">$0.00</span>
+                        <span>Total</span>
+                        <span class="total-price">$11.99</span>
                     </div>
-                    <p class="trial-text">Your card won't be charged until after your 7-day free trial.</p>
 
                     <!-- Stripe Checkout Button -->
                     <button class="checkout-btn" id="checkoutBtn" onclick="startCheckout()">
-                        <span class="btn-text">Start Free Trial</span>
+                        <span class="btn-text">Pay $11.99</span>
                         <span class="btn-loader" style="display:none">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 12v4m-6-6h4m8 0h4"/><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/></svg>
                         </span>
@@ -327,41 +315,7 @@
         }
 
         /* ── Checkout Logic ── */
-        const PLANS = {
-            yearly: {
-                price: 29.99,
-                period: '/year',
-                equivalent: '$2.50/month, billed annually',
-                label: 'Unlimited Pass (Yearly)',
-                stripePriceId: 'price_yearly_placeholder' // TODO: Replace with your Stripe Price ID
-            },
-            monthly: {
-                price: 4.99,
-                period: '/month',
-                equivalent: 'Billed monthly, cancel anytime',
-                label: 'Unlimited Pass (Monthly)',
-                stripePriceId: 'price_monthly_placeholder' // TODO: Replace with your Stripe Price ID
-            }
-        };
-
-        let currentPlan = 'yearly';
-
-        function setPlan(plan) {
-            currentPlan = plan;
-            const data = PLANS[plan];
-
-            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector(`[data-plan="${plan}"]`).classList.add('active');
-
-            document.getElementById('priceValue').textContent = data.price;
-            document.getElementById('pricePeriod').textContent = data.period;
-            document.getElementById('priceEquivalent').textContent = data.equivalent;
-            document.getElementById('orderLabel').textContent = data.label;
-            document.getElementById('orderPrice').textContent = '$' + data.price;
-            document.getElementById('totalPrice').textContent = '$0.00';
-
-            document.getElementById('planBadge').style.display = plan === 'yearly' ? 'inline-block' : 'none';
-        }
+        const STRIPE_PRICE_ID = 'price_1TYzsE0bRhmsCmKquPAdLmh3'; // $11.99/year
 
         async function startCheckout() {
             const btn = document.getElementById('checkoutBtn');
@@ -392,8 +346,8 @@
                         'Authorization': 'Bearer ' + accessToken
                     },
                     body: JSON.stringify({
-                        plan: currentPlan,
-                        priceId: PLANS[currentPlan].stripePriceId,
+                        plan: 'yearly',
+                        priceId: STRIPE_PRICE_ID,
                         successUrl: window.location.origin + '/openings.html?checkout=success',
                         cancelUrl: window.location.origin + '/checkout.html'
                     })
@@ -408,18 +362,12 @@
             } catch (err) {
                 console.error('Checkout error:', err);
                 setTimeout(() => {
-                    alert('In production, this redirects to Stripe Checkout.\n\nPlan: ' + currentPlan + '\nPrice: $' + PLANS[currentPlan].price);
+                    alert('Stripe redirect failed. Please try again.');
                     btn.disabled = false;
                     btnText.style.display = 'block';
                     btnLoader.style.display = 'none';
                 }, 800);
             }
-        }
-
-        const params = new URLSearchParams(window.location.search);
-        const planParam = params.get('plan');
-        if (planParam === 'monthly') {
-            setPlan('monthly');
         }
     </script>
 </body>

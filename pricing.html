@@ -3,19 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pricing — ChessPeps Membership</title>
+    <title>Pricing — ChessPeps</title>
     <link rel="stylesheet" href="tokens.css">
     <link rel="stylesheet" href="pricing.css">
 </head>
 <body>
-
-    <!-- ── Sticky Trial Banner ── -->
-    <div class="trial-banner">
-        <div class="trial-banner-inner">
-            <p>Your free trial is reserved for: <span class="trial-timer" id="trialTimer">15:00</span></p>
-            <a href="#pricing" class="btn btn-primary btn-sm">Start for Free</a>
-        </div>
-    </div>
 
     <!-- ── Nav ── -->
     <nav class="nav">
@@ -29,7 +21,7 @@
             <li><a href="/pricing.html" class="active">Pricing</a></li>
         </ul>
         <div class="nav-right">
-            <button class="btn-login" onclick="alert('Auth coming soon')">Log in</button>
+            <button class="btn-login" onclick="location.href='/openings.html'">Get Started</button>
         </div>
     </nav>
 
@@ -39,13 +31,13 @@
             <!-- Left: Copy -->
             <div class="pricing-copy">
                 <h1 class="pricing-title">
-                    Try ChessPeps<br><span class="accent">free for 7 days</span>
+                    Start for free.<br><span class="accent">Upgrade when ready.</span>
                 </h1>
                 <p class="pricing-lede">
-                    Then <strong>$29.99/year</strong>, only <strong>$2.50/month</strong>
+                    One opening completely free.<br>Upgrade to unlock all 30+.
                 </p>
-                <a href="/checkout.html" class="btn btn-primary btn-lg pricing-cta-left">Start for Free</a>
-                <p class="pricing-note-left">No risk, no payment today, cancel anytime.</p>
+                <a href="/openings.html" class="btn btn-primary btn-lg pricing-cta-left">Pick Your Free Opening</a>
+                <p class="pricing-note-left">No credit card required.</p>
                 <p class="social-proof social-proof-left">
                     <span class="social-dot"></span>
                     12,847 players joined ChessPeps this week
@@ -54,71 +46,79 @@
 
             <!-- Right: Card -->
             <div class="pricing-card-wrap">
-                <!-- Toggle -->
-                <div class="billing-toggle" role="group" aria-label="Billing period">
-                    <button class="toggle-btn active" data-plan="yearly" onclick="setPlan('yearly')">Yearly <span class="save-badge">Save 40%</span></button>
-                    <button class="toggle-btn" data-plan="monthly" onclick="setPlan('monthly')">Monthly</button>
-                </div>
-
                 <div class="pricing-card">
                     <div class="pricing-card-top">
-                        <span class="pricing-badge">Most Popular</span>
+                        <span class="pricing-badge">Unlimited Pass</span>
                         <div class="pricing-price">
                             <span class="price-currency">$</span>
-                            <span class="price-value" id="priceValue">29.99</span>
-                            <span class="price-period" id="pricePeriod">/year</span>
+                            <span class="price-value">11.99</span>
+                            <span class="price-period">/year</span>
                         </div>
-                        <p class="pricing-equivalent" id="priceEquivalent">$2.50/month, billed annually</p>
+                        <p class="pricing-equivalent">Less than $1/month</p>
                     </div>
 
                     <ul class="pricing-features">
                         <li>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                            Unlimited access to all 30+ opening courses
+                            All 30+ opening courses
                         </li>
                         <li>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                            Interactive board trainer with move validation
+                            Interactive board trainer
                         </li>
                         <li>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                            All game modes: Learn, Practice, Drill, Time, Puzzles
+                            All modes: Learn, Practice, Drill, Time, Puzzles
                         </li>
                         <li>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                            Progress tracking across every line
+                            Cloud sync across devices
                         </li>
                         <li>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                            Cloud sync — continue on any device
+                            Progress tracking
                         </li>
                     </ul>
+
+                    <a href="/checkout.html" class="btn btn-primary btn-lg" style="width:100%;margin-top:var(--space-md)">Upgrade — $11.99/year</a>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- ── Trial Timeline ── -->
-    <section class="timeline-section">
+    <!-- ── Free vs Unlimited ── -->
+    <section class="compare-section">
         <div class="section-inner">
-            <div class="timeline">
-                <div class="timeline-step">
-                    <div class="timeline-dot active"></div>
-                    <span class="timeline-date">Today</span>
-                    <p>Unlimited Pass unlocked, instantly</p>
+            <h2 class="section-title">What you get</h2>
+            <div class="compare-grid">
+                <div class="compare-card">
+                    <h3 class="compare-heading">Free</h3>
+                    <ul class="compare-list">
+                        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>1 opening of your choice</li>
+                        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>All game modes</li>
+                        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>Progress tracking</li>
+                        <li class="compare-no"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>Cloud sync</li>
+                        <li class="compare-no"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>Multiple openings</li>
+                    </ul>
+                    <a href="/openings.html" class="btn btn-secondary btn-lg" style="width:100%">Get Started Free</a>
                 </div>
-                <div class="timeline-step">
-                    <div class="timeline-dot"></div>
-                    <span class="timeline-date">Day 6</span>
-                    <p>We'll remind you your trial is ending</p>
-                </div>
-                <div class="timeline-step">
-                    <div class="timeline-dot"></div>
-                    <span class="timeline-date">Day 7</span>
-                    <p>Subscription starts. Enjoy!</p>
+                <div class="compare-card compare-premium">
+                    <div class="compare-badge">Best Value</div>
+                    <h3 class="compare-heading">Unlimited Pass</h3>
+                    <div class="compare-price">
+                        <span class="compare-amount">$11.99</span>
+                        <span class="compare-period">/year</span>
+                    </div>
+                    <ul class="compare-list">
+                        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>All 30+ openings</li>
+                        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>All game modes</li>
+                        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>Progress tracking</li>
+                        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>Cloud sync</li>
+                        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>New openings added</li>
+                    </ul>
+                    <a href="/checkout.html" class="btn btn-primary btn-lg" style="width:100%">Upgrade Now</a>
                 </div>
             </div>
-            <p class="timeline-whisper">psst.. we'll remind you before your trial ends!</p>
         </div>
     </section>
 
@@ -146,12 +146,12 @@
             <h2 class="section-title">Common questions</h2>
             <div class="faq-list">
                 <details class="faq-item">
-                    <summary>How does the free trial work?</summary>
-                    <p>You get full access to every feature for 7 days. We'll remind you before it ends. Cancel anytime with one click — no questions asked.</p>
+                    <summary>What's included in the free tier?</summary>
+                    <p>You get full access to one opening of your choice. All game modes, all lines, all features within that opening. No credit card required, no time limit.</p>
                 </details>
                 <details class="faq-item">
-                    <summary>What openings are included?</summary>
-                    <p>Every major opening system from the Italian Game to the Sicilian Dragon, for both White and Black. We add new lines regularly.</p>
+                    <summary>Can I change my free opening later?</summary>
+                    <p>No, once you pick your free opening it's locked in. But you can upgrade to Unlimited Pass anytime to unlock all 30+ openings.</p>
                 </details>
                 <details class="faq-item">
                     <summary>Will it actually improve my game?</summary>
@@ -159,7 +159,7 @@
                 </details>
                 <details class="faq-item">
                     <summary>Can I use it on multiple devices?</summary>
-                    <p>Absolutely. Your progress syncs automatically. Start on your phone, continue on desktop.</p>
+                    <p>With Unlimited Pass, yes — your progress syncs automatically. The free tier saves locally on one device.</p>
                 </details>
             </div>
         </div>
@@ -170,13 +170,13 @@
         <div class="section-inner final-cta-inner">
             <div class="final-cta-copy">
                 <h2 class="final-cta-title">
-                    Try ChessPeps<br><span class="accent">free for 7 days</span>
+                    Unlock everything<br><span class="accent">for $11.99/year</span>
                 </h2>
-                <p class="final-cta-price">Then <strong>$29.99/year</strong>, only <strong>$2.50/month</strong></p>
+                <p class="final-cta-price">Less than $1/month. Cancel anytime.</p>
             </div>
             <div class="final-cta-actions">
-                <a href="/checkout.html" class="btn btn-primary btn-lg">Start for Free</a>
-                <p class="pricing-note">No risk, no payment today, cancel anytime.</p>
+                <a href="/checkout.html" class="btn btn-primary btn-lg">Upgrade Now</a>
+                <p class="pricing-note">30-day money-back guarantee.</p>
             </div>
         </div>
     </section>
@@ -190,37 +190,5 @@
             <p class="footer-copy">© 2026 ChessPeps. All rights reserved.</p>
         </div>
     </footer>
-
-    <script>
-        function setPlan(plan) {
-            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector(`[data-plan="${plan}"]`).classList.add('active');
-
-            const priceValue = document.getElementById('priceValue');
-            const pricePeriod = document.getElementById('pricePeriod');
-            const priceEquivalent = document.getElementById('priceEquivalent');
-
-            if (plan === 'yearly') {
-                priceValue.textContent = '29.99';
-                pricePeriod.textContent = '/year';
-                priceEquivalent.textContent = '$2.50/month, billed annually';
-            } else {
-                priceValue.textContent = '4.99';
-                pricePeriod.textContent = '/month';
-                priceEquivalent.textContent = 'Billed monthly, cancel anytime';
-            }
-        }
-
-        let trialSeconds = 15 * 60;
-        function updateTrialTimer() {
-            const m = Math.floor(trialSeconds / 60).toString().padStart(2, '0');
-            const s = (trialSeconds % 60).toString().padStart(2, '0');
-            const el = document.getElementById('trialTimer');
-            if (el) el.textContent = `${m}:${s}`;
-            if (trialSeconds > 0) trialSeconds--;
-        }
-        setInterval(updateTrialTimer, 1000);
-        updateTrialTimer();
-    </script>
 </body>
 </html>

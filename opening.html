@@ -11,6 +11,40 @@
     <link rel="stylesheet" href="opening.css">
 </head>
 <body>
+    <!-- Access Check -->
+    <script>
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            const slug = params.get('slug');
+            if (!slug) return;
+            const freeOpening = localStorage.getItem('chesspeps_free_opening');
+            const isFree = freeOpening === slug;
+            if (isFree) return; // Free opening, allow access
+            // For now, allow all if no free opening picked yet (they'll pick on openings page)
+            // Or check subscription in Supabase (async, handled below)
+            // If not free and has free opening picked → redirect
+            if (freeOpening && !isFree) {
+                // Will check subscription below and redirect if needed
+                window.__needsAccessCheck = true;
+            }
+        })();
+    </script>
+
+    <!-- Paywall Overlay -->
+    <div class="paywall-overlay" id="paywallOverlay" style="display:none">
+        <div class="paywall-card">
+            <div class="paywall-icon">🔒</div>
+            <h2 class="paywall-title">This opening is locked</h2>
+            <p class="paywall-desc">Upgrade to Unlimited Pass to access all 30+ openings.</p>
+            <div class="paywall-price">
+                <span class="paywall-amount">$11.99</span>
+                <span class="paywall-period">/year</span>
+            </div>
+            <a href="/checkout.html" class="btn btn-primary btn-lg" style="width:100%;margin-bottom:var(--space-sm)">Upgrade Now</a>
+            <a href="/openings.html" class="btn btn-secondary" style="width:100%">Back to Repertoire</a>
+        </div>
+    </div>
+
     <header class="trainer-header">
         <a href="/openings.html" class="brand">
             <div class="brand-icon">♟</div>
@@ -748,6 +782,41 @@
         window.handleAuth = handleAuth;
         window.handleGoogleAuth = handleGoogleAuth;
         window.logout = logout;
+
+        // Access check for free tier
+        async function checkAccess() {
+            const params = new URLSearchParams(window.location.search);
+            const slug = params.get('slug');
+            if (!slug) return;
+
+            const freeOpening = localStorage.getItem('chesspeps_free_opening');
+            if (freeOpening === slug) return; // Free opening, allow
+
+            // Check subscription
+            if (auth && supabaseClient) {
+                const { data: { user } } = await auth.getUser();
+                if (user) {
+                    try {
+                        const { data: sub } = await supabaseClient
+                            .from('subscriptions')
+                            .select('status, current_period_end')
+                            .eq('user_id', user.id)
+                            .single();
+                        const hasSub = sub &&
+                            (sub.status === 'active' || sub.status === 'trialing') &&
+                            new Date(sub.current_period_end) > new Date();
+                        if (hasSub) return; // Has subscription, allow
+                    } catch (e) { /* ignore */ }
+                }
+            }
+
+            // No access - show paywall
+            if (freeOpening && freeOpening !== slug) {
+                document.getElementById('paywallOverlay').style.display = 'flex';
+                document.querySelector('.trainer-layout').style.display = 'none';
+            }
+        }
+        checkAccess();
 
         if (auth) {
             auth.getUser().then(({ data }) => {

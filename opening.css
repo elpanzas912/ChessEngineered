@@ -894,6 +894,58 @@ body { overflow: hidden; }
   color: var(--color-accent-ink);
 }
 
+/* ── Paywall ── */
+.paywall-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: var(--color-paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+}
+.paywall-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--color-paper-2);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl);
+  text-align: center;
+}
+.paywall-icon {
+  font-size: var(--text-3xl);
+  margin-bottom: var(--space-md);
+}
+.paywall-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-bottom: var(--space-sm);
+}
+.paywall-desc {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+  margin-bottom: var(--space-lg);
+  line-height: 1.5;
+}
+.paywall-price {
+  margin-bottom: var(--space-lg);
+}
+.paywall-amount {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: 600;
+  color: var(--color-ink);
+  letter-spacing: -0.02em;
+}
+.paywall-period {
+  font-size: var(--text-md);
+  color: var(--color-muted);
+}
+
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .trainer-panel { width: 340px; min-width: 340px; max-width: 340px; }

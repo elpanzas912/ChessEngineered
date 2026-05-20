@@ -13,8 +13,16 @@
     <div class="checkout-success-banner" id="checkoutSuccessBanner" style="display:none">
         <div class="checkout-success-inner">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            <span>Welcome aboard! Your 7-day free trial has started.</span>
+            <span>Welcome aboard! Your Unlimited Pass is now active.</span>
             <button onclick="document.getElementById('checkoutSuccessBanner').style.display='none'" class="checkout-success-close">×</button>
+        </div>
+    </div>
+
+    <!-- ── Free Tier Banner ── -->
+    <div class="free-tier-banner" id="freeTierBanner" style="display:none">
+        <div class="free-tier-inner">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 21 9.4a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span>Pick <strong>one opening</strong> to unlock for free. Upgrade anytime for all 30+.</span>
         </div>
     </div>
 
@@ -115,6 +123,7 @@
         let authMode = 'login';
         let supabaseClient = null;
         let auth = null;
+        let hasActiveSubscription = false;
 
         // Initialize Supabase
         try {
@@ -136,9 +145,41 @@
             .then(r => r.json())
             .then(data => {
                 allOpenings = data.openings || {};
-                renderCourses(allOpenings);
+                checkSubscriptionAndRender();
             })
             .catch(err => { /* ignore */ });
+
+        // Check subscription status and render
+        async function checkSubscriptionAndRender() {
+            const freeOpening = localStorage.getItem('chesspeps_free_opening');
+
+            if (auth) {
+                const { data: { user } } = await auth.getUser();
+                if (user && supabaseClient) {
+                    try {
+                        const { data: sub } = await supabaseClient
+                            .from('subscriptions')
+                            .select('status, current_period_end')
+                            .eq('user_id', user.id)
+                            .single();
+
+                        hasActiveSubscription = sub &&
+                            (sub.status === 'active' || sub.status === 'trialing') &&
+                            new Date(sub.current_period_end) > new Date();
+                    } catch (e) {
+                        hasActiveSubscription = false;
+                    }
+                }
+            }
+
+            // Show free tier banner if no subscription and no free opening picked
+            const banner = document.getElementById('freeTierBanner');
+            if (banner && !hasActiveSubscription && !freeOpening) {
+                banner.style.display = 'block';
+            }
+
+            renderCourses(allOpenings);
+        }
 
         function getUsageData() {
             try {
@@ -164,6 +205,7 @@
 
             let entries = Object.entries(openings);
             const usage = getUsageData();
+            const freeOpening = localStorage.getItem('chesspeps_free_opening');
 
             // Sort by: last used first, then by usage count (most used first)
             entries.sort((a, b) => {
@@ -233,18 +275,38 @@
                 // Get piece emoji based on opening side
                 const pieceEmoji = o.playerSide === 'w' ? '♙' : '♟';
 
+                // Determine if this opening is unlocked
+                const isUnlocked = hasActiveSubscription || freeOpening === slug;
+                const isFreePickable = !hasActiveSubscription && !freeOpening;
+                const lockOverlay = (!isUnlocked && !isFreePickable)
+                    ? `<div class="card-lock"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>`
+                    : '';
+                const freeBadge = isFreePickable
+                    ? '<span class="badge badge-free">Pick Free</span>'
+                    : '';
+                const unlockedBadge = (freeOpening === slug && !hasActiveSubscription)
+                    ? '<span class="badge badge-unlocked">Free</span>'
+                    : '';
+
+                card.classList.toggle('card-locked', !isUnlocked && !isFreePickable);
+
                 card.innerHTML = `
                     <div class="card-thumb">
                         <img src="boards/${slug}.png" alt="${o.displayName} board">
                         <div class="card-thumb-fade"></div>
                         <div class="card-thumb-piece">${pieceEmoji}</div>
+                        ${lockOverlay}
                     </div>
                     <div class="card-body">
                         <div class="card-shimmer"></div>
                         <div class="card-corner-tl"></div>
                         <div class="card-top">
                             <h2 class="card-title">${o.displayName}</h2>
-                            <span class="badge badge-${side}">${sideLabel}</span>
+                            <div class="card-badges">
+                                <span class="badge badge-${side}">${sideLabel}</span>
+                                ${freeBadge}
+                                ${unlockedBadge}
+                            </div>
                         </div>
                         <p class="card-desc">${shortDesc}</p>
                         <div class="card-foot">
@@ -254,14 +316,26 @@
                                     <div class="progress-fill" style="width: ${pct}%"></div>
                                 </div>
                             </div>
-                            <span class="card-cta">Start training <span class="cta-arrow">→</span></span>
+                            <span class="card-cta">${isFreePickable ? 'Pick as Free →' : (isUnlocked ? 'Start training →' : 'Upgrade to unlock →')}</span>
                         </div>
                     </div>
                 `;
 
-                // Track usage before navigating
+                // Handle click
                 card.addEventListener('click', (e) => {
-                    trackOpeningUsage(slug);
+                    e.preventDefault();
+                    if (isFreePickable) {
+                        // Save as free opening and navigate
+                        localStorage.setItem('chesspeps_free_opening', slug);
+                        trackOpeningUsage(slug);
+                        location.href = `opening.html?slug=${slug}`;
+                    } else if (isUnlocked) {
+                        trackOpeningUsage(slug);
+                        location.href = `opening.html?slug=${slug}`;
+                    } else {
+                        // Locked - go to pricing
+                        location.href = '/pricing.html';
+                    }
                 });
 
                 grid.appendChild(card);
