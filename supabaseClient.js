@@ -1,71 +1,65 @@
-// supabaseClient.js - Uses the globally loaded Supabase client from opening.html
-// The UMD bundle is loaded via CDN in the HTML, so we reuse that instance
+// supabaseClient.js - Single source of truth for Supabase credentials
+// Load this script AFTER the Supabase UMD CDN bundle
 
 const SUPABASE_URL = 'https://mvvnqkixgxjblgyrnvte.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_oTugIxx-nIZDcJgCuMnnqw_1ppfExp9';
 
-// Use the globally initialized client if available, otherwise create one
-const supabase = window.supabaseClient || (typeof supabase !== 'undefined' ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null);
+window.SUPABASE_URL = SUPABASE_URL;
+window.SUPABASE_KEY = SUPABASE_KEY;
 
-export { supabase };
+// Auto-initialize the Supabase client if the CDN library is loaded
+if (typeof supabase !== 'undefined' && supabase.createClient) {
+    window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    window.auth = window.supabaseClient.auth;
+}
 
 // Auth helpers
-export async function signUp(email, password) {
-    if (!supabase) return { data: null, error: new Error('Supabase not initialized') };
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    return { data, error };
-}
-
-export async function signIn(email, password) {
-    if (!supabase) return { data: null, error: new Error('Supabase not initialized') };
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    return { data, error };
-}
-
-export async function signOut() {
-    if (!supabase) return { error: new Error('Supabase not initialized') };
-    const { error } = await supabase.auth.signOut();
-    return { error };
-}
-
-export async function getUser() {
-    if (!supabase) return null;
-    const { data: { user } } = await supabase.auth.getUser();
-    return user;
-}
-
-// Profile / Progress helpers
-export async function getProfile(userId) {
-    if (!supabase) return { data: null, error: new Error('Supabase not initialized') };
-    const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-    return { data, error };
-}
-
-export async function updateProgress(userId, userProgress) {
-    if (!supabase) return { data: null, error: new Error('Supabase not initialized') };
-    const { data, error } = await supabase
-        .from('profiles')
-        .update({ user_progress: userProgress, updated_at: new Date().toISOString() })
-        .eq('id', userId);
-    return { data, error };
-}
-
-export async function getDailyEvents(userId, timezone = 'UTC') {
-    if (!supabase) return { data: null, error: new Error('Supabase not initialized') };
-    const { data, error } = await supabase
-        .rpc('get_daily_event_counts_by_timezone', {
-            p_user_id: userId,
-            p_timezone: timezone
-        });
-    return { data, error };
-}
-
-// Auth state listener
-export function onAuthStateChange(callback) {
-    if (!supabase) return { data: { subscription: { unsubscribe: () => {} } } };
-    return supabase.auth.onAuthStateChange(callback);
-}
+window.supabaseHelpers = {
+    signUp: async function(email, password) {
+        if (!window.supabaseClient) return { data: null, error: new Error('Supabase not initialized') };
+        const { data, error } = await window.supabaseClient.auth.signUp({ email, password });
+        return { data, error };
+    },
+    signIn: async function(email, password) {
+        if (!window.supabaseClient) return { data: null, error: new Error('Supabase not initialized') };
+        const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+        return { data, error };
+    },
+    signOut: async function() {
+        if (!window.supabaseClient) return { error: new Error('Supabase not initialized') };
+        const { error } = await window.supabaseClient.auth.signOut();
+        return { error };
+    },
+    getUser: async function() {
+        if (!window.supabaseClient) return null;
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        return user;
+    },
+    getProfile: async function(userId) {
+        if (!window.supabaseClient) return { data: null, error: new Error('Supabase not initialized') };
+        const { data, error } = await window.supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+        return { data, error };
+    },
+    updateProgress: async function(userId, userProgress) {
+        if (!window.supabaseClient) return { data: null, error: new Error('Supabase not initialized') };
+        const { data, error } = await window.supabaseClient
+            .from('profiles')
+            .update({ user_progress: userProgress, updated_at: new Date().toISOString() })
+            .eq('id', userId);
+        return { data, error };
+    },
+    getDailyEvents: async function(userId, timezone = 'UTC') {
+        if (!window.supabaseClient) return { data: null, error: new Error('Supabase not initialized') };
+        const { data, error } = await window.supabaseClient
+            .rpc('get_daily_event_counts_by_timezone', { p_user_id: userId, p_timezone: timezone });
+        return { data, error };
+    },
+    onAuthStateChange: function(callback) {
+        if (!window.supabaseClient) return { data: { subscription: { unsubscribe: function() {} } } };
+        return window.supabaseClient.auth.onAuthStateChange(callback);
+    }
+};

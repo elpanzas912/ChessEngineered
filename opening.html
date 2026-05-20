@@ -633,21 +633,12 @@
 
     <!-- Supabase Auth (global bundle - more reliable) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="supabaseClient.js"></script>
     <script>
-        let supabaseClient = null;
-        let auth = null;
+        let supabaseClient = window.supabaseClient || null;
+        let auth = window.auth || null;
 
-        try {
-            if (typeof supabase !== 'undefined' && supabase.createClient) {
-                window.supabaseClient = supabaseClient = supabase.createClient(
-                    'https://mvvnqkixgxjblgyrnvte.supabase.co',
-                    'sb_publishable_oTugIxx-nIZDcJgCuMnnqw_1ppfExp9'
-                );
-                auth = supabaseClient.auth;
-            } else {
-                throw new Error('Supabase library not loaded');
-            }
-        } catch (err) {
+        if (!supabaseClient) {
             document.getElementById('authError').textContent = 'Connection error. Please refresh.';
         }
 

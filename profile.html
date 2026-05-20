@@ -178,23 +178,12 @@
 
     <!-- Supabase Auth -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="supabaseClient.js"></script>
     <script>
         /* ── Supabase ── */
-        let supabaseClient = null;
-        let auth = null;
+        let supabaseClient = window.supabaseClient || null;
+        let auth = window.auth || null;
         let currentUser = null;
-
-        try {
-            if (typeof supabase !== 'undefined' && supabase.createClient) {
-                supabaseClient = supabase.createClient(
-                    'https://mvvnqkixgxjblgyrnvte.supabase.co',
-                    'sb_publishable_oTugIxx-nIZDcJgCuMnnqw_1ppfExp9'
-                );
-                auth = supabaseClient.auth;
-            }
-        } catch (err) {
-            console.error('Supabase init failed:', err);
-        }
 
         /* ── Load Profile ── */
         async function loadProfile() {

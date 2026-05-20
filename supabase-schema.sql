@@ -61,14 +61,14 @@ RETURNS TABLE (date_str TEXT, event_count BIGINT) AS $$
 BEGIN
     RETURN QUERY
     SELECT 
-        TO_TIMESTAMP(last_attempt_timestamp / 1000.0) AT TIME ZONE p_timezone::TEXT as date_str,
+        (TO_TIMESTAMP((line_data->>'lastAttemptTimestamp')::BIGINT / 1000.0) AT TIME ZONE p_timezone)::DATE::TEXT as date_str,
         COUNT(*)::BIGINT as event_count
     FROM public.profiles,
     LATERAL jsonb_each(user_progress) as openings(opening_slug, opening_data),
     LATERAL jsonb_each(opening_data->'lines') as lines(line_pgn, line_data)
     WHERE id = p_user_id
-      AND (line_data->>'lastAttemptTimestamp')::BIGINT IS NOT NULL
-    GROUP BY date_str;
+      AND (line_data->>'lastAttemptTimestamp') IS NOT NULL
+    GROUP BY (TO_TIMESTAMP((line_data->>'lastAttemptTimestamp')::BIGINT / 1000.0) AT TIME ZONE p_timezone)::DATE::TEXT;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

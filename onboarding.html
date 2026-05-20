@@ -171,6 +171,7 @@
 
     <!-- Supabase Auth — same setup as openings.html & opening.html -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="supabaseClient.js"></script>
     <script>
         /* ── State ── */
         let currentStep = 1;
@@ -184,22 +185,8 @@
         };
 
         /* ── Supabase ── */
-        let supabaseClient = null;
-        let auth = null;
-
-        try {
-            if (typeof supabase !== 'undefined' && supabase.createClient) {
-                supabaseClient = supabase.createClient(
-                    'https://mvvnqkixgxjblgyrnvte.supabase.co',
-                    'sb_publishable_oTugIxx-nIZDcJgCuMnnqw_1ppfExp9'
-                );
-                auth = supabaseClient.auth;
-            } else {
-                throw new Error('Supabase library not loaded');
-            }
-        } catch (err) {
-            console.error('Supabase init failed:', err);
-        }
+        let supabaseClient = window.supabaseClient || null;
+        let auth = window.auth || null;
 
         // If already logged in, skip to app
         if (auth) {
