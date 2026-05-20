@@ -58,6 +58,12 @@ window.supabaseHelpers = {
             .rpc('get_daily_event_counts_by_timezone', { p_user_id: userId, p_timezone: timezone });
         return { data, error };
     },
+    getUserProgressNormalized: async function(userId) {
+        if (!window.supabaseClient) return { data: null, error: new Error('Supabase not initialized') };
+        const { data, error } = await window.supabaseClient
+            .rpc('get_user_progress', { p_user_id: userId });
+        return { data, error };
+    },
     onAuthStateChange: function(callback) {
         if (!window.supabaseClient) return { data: { subscription: { unsubscribe: function() {} } } };
         return window.supabaseClient.auth.onAuthStateChange(callback);

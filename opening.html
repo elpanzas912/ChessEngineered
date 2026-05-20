@@ -741,39 +741,52 @@
             if (!supabaseClient) return;
             try {
                 const { data, error } = await supabaseClient
-                    .from('profiles')
-                    .select('user_progress')
-                    .eq('id', userId)
-                    .single();
-                if (data && data.user_progress) {
-                    const local = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
-                    // Merge: keep local learnedLines + merge cloud learnedLines
-                    const merged = { ...data.user_progress };
-                    for (const slug in local) {
-                        if (!merged[slug]) merged[slug] = local[slug];
-                        else {
-                            // Merge learnedLines
-                            const localLearned = local[slug].learnedLines || [];
-                            const cloudLearned = merged[slug].learnedLines || [];
-                            const allLearned = [...new Set([...cloudLearned, ...localLearned])];
-                            merged[slug].learnedLines = allLearned;
-                            // Merge line stats
-                            const localLines = local[slug].lines || {};
-                            const cloudLines = merged[slug].lines || {};
-                            for (const pgn in localLines) {
-                                if (!cloudLines[pgn] || (localLines[pgn].lastAttemptTimestamp > cloudLines[pgn].lastAttemptTimestamp)) {
-                                    cloudLines[pgn] = localLines[pgn];
-                                }
-                            }
-                            merged[slug].lines = cloudLines;
+                    .rpc('get_user_progress', { p_user_id: userId });
+
+                if (error || !data) {
+                    const fb = await supabaseClient
+                        .from('profiles')
+                        .select('user_progress')
+                        .eq('id', userId)
+                        .single();
+                    if (fb.data && fb.data.user_progress) {
+                        const local = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+                        const cloud = fb.data.user_progress;
+                        const merged = mergeProgress(local, cloud);
+                        window.userProgress = merged;
+                        localStorage.setItem('chesspeps_progress', JSON.stringify(merged));
+                        await supabaseClient.from('profiles').update({ user_progress: merged, updated_at: new Date().toISOString() }).eq('id', userId);
+                    }
+                    return;
+                }
+
+                const local = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+                const merged = mergeProgress(local, data);
+                window.userProgress = merged;
+                localStorage.setItem('chesspeps_progress', JSON.stringify(merged));
+                await supabaseClient.from('profiles').update({ user_progress: merged, updated_at: new Date().toISOString() }).eq('id', userId);
+            } catch (e) { /* silently ignore */ }
+        }
+
+        function mergeProgress(local, cloud) {
+            const merged = { ...cloud };
+            for (const slug in local) {
+                if (!merged[slug]) merged[slug] = local[slug];
+                else {
+                    const localLearned = local[slug].learnedLines || [];
+                    const cloudLearned = merged[slug].learnedLines || [];
+                    merged[slug].learnedLines = [...new Set([...cloudLearned, ...localLearned])];
+                    const localLines = local[slug].lines || {};
+                    const cloudLines = merged[slug].lines || {};
+                    for (const pgn in localLines) {
+                        if (!cloudLines[pgn] || (localLines[pgn].lastAttemptTimestamp > cloudLines[pgn].lastAttemptTimestamp)) {
+                            cloudLines[pgn] = localLines[pgn];
                         }
                     }
-                    window.userProgress = merged;
-                    localStorage.setItem('chesspeps_progress', JSON.stringify(merged));
-                    // Sync merged back to cloud
-                    await supabaseClient.from('profiles').update({ user_progress: merged, updated_at: new Date().toISOString() }).eq('id', userId);
+                    merged[slug].lines = cloudLines;
                 }
-            } catch (e) { /* silently ignore */ }
+            }
+            return merged;
         }
 
         window.handleAuth = handleAuth;

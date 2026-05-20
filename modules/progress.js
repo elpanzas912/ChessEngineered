@@ -29,9 +29,8 @@ export function updateLineProgress(slug, linePgn, update) {
     Object.assign(window.userProgress[slug].lines[linePgn], update);
     saveLocalProgress();
     syncToCloud();
+    upsertLineProgress(slug, linePgn, window.userProgress[slug].lines[linePgn]);
 }
-
-const K_FACTOR = 32;
 
 export function getPuzzleELO() {
     return window.userProgress.puzzleELO || 1500;
@@ -45,6 +44,7 @@ export function updatePuzzleELO(puzzleRating, score) {
     window.userProgress.puzzleELO = newRating;
     saveLocalProgress();
     syncToCloud();
+    upsertPuzzleRating(newRating);
     return { change, newRating };
 }
 
@@ -67,8 +67,11 @@ export function markLineAsLearned(slug, linePgn) {
         window.userProgress[slug].learnedLines.push(linePgn);
         saveLocalProgress();
         syncToCloud();
+        insertLearnedLine(slug, linePgn);
     }
 }
+
+const K_FACTOR = 32;
 
 let _syncVersion = 0;
 let _syncDebounceTimer = null;
@@ -102,4 +105,143 @@ export async function syncToCloud() {
             window.lastSyncError = e.message;
         }
     }, 500);
+}
+
+// ── Normalized table writes ──
+
+async function upsertLineProgress(slug, linePgn, data) {
+    const supabase = window.supabaseClient;
+    const user = window.currentUser;
+    if (!supabase || !user) return;
+
+    const row = {
+        user_id: user.id,
+        opening_slug: slug,
+        line_pgn: linePgn,
+        completions: data.completions || 0,
+        perfect_attempts: data.perfectAttempts || 0,
+        last_attempt_timestamp: data.lastAttemptTimestamp || null,
+        confidence: data.confidence || 0,
+        updated_at: new Date().toISOString()
+    };
+
+    const { error } = await supabase
+        .from('line_progress')
+        .upsert(row, { onConflict: 'user_id,opening_slug,line_pgn' });
+    if (error) console.warn('line_progress upsert failed:', error.message);
+
+    upsertOpeningProgress(slug);
+}
+
+async function upsertOpeningProgress(slug) {
+    const supabase = window.supabaseClient;
+    const user = window.currentUser;
+    if (!supabase || !user) return;
+
+    const slugData = window.userProgress[slug] || {};
+    const row = {
+        user_id: user.id,
+        opening_slug: slug,
+        drill_high_score: slugData.drillHighScore || 0,
+        time_high_score: slugData.timeHighScore || 0,
+        updated_at: new Date().toISOString()
+    };
+
+    const { error } = await supabase
+        .from('opening_progress')
+        .upsert(row, { onConflict: 'user_id,opening_slug' });
+    if (error) console.warn('opening_progress upsert failed:', error.message);
+}
+
+async function insertLearnedLine(slug, linePgn) {
+    const supabase = window.supabaseClient;
+    const user = window.currentUser;
+    if (!supabase || !user) return;
+
+    const { error } = await supabase
+        .from('learned_lines')
+        .upsert({ user_id: user.id, opening_slug: slug, line_pgn: linePgn }, { onConflict: 'user_id,opening_slug,line_pgn' });
+    if (error) console.warn('learned_lines upsert failed:', error.message);
+}
+
+async function upsertPuzzleRating(elo) {
+    const supabase = window.supabaseClient;
+    const user = window.currentUser;
+    if (!supabase || !user) return;
+
+    const { error } = await supabase
+        .from('puzzle_ratings')
+        .upsert({ user_id: user.id, puzzle_elo: elo, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+    if (error) console.warn('puzzle_ratings upsert failed:', error.message);
+}
+
+// ── Load cloud progress from normalized tables ──
+
+export async function loadCloudProgressNormalized(userId) {
+    const supabase = window.supabaseClient;
+    if (!supabase) return;
+
+    try {
+        // Use the RPC function to reconstruct progress as JSONB
+        const { data, error } = await supabase
+            .rpc('get_user_progress', { p_user_id: userId });
+
+        if (error) {
+            // Fallback to old JSONB column if RPC fails (migration not yet applied)
+            console.warn('get_user_progress RPC failed, falling back to JSONB:', error.message);
+            await loadCloudProgressFallback(userId);
+            return;
+        }
+
+        if (data) {
+            const local = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+            const merged = mergeProgress(local, data);
+            window.userProgress = merged;
+            localStorage.setItem('chesspeps_progress', JSON.stringify(merged));
+        }
+    } catch (e) {
+        console.warn('loadCloudProgressNormalized error:', e);
+        await loadCloudProgressFallback(userId);
+    }
+}
+
+async function loadCloudProgressFallback(userId) {
+    const supabase = window.supabaseClient;
+    if (!supabase) return;
+
+    try {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('user_progress')
+            .eq('id', userId)
+            .single();
+
+        if (data && data.user_progress) {
+            const local = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+            const merged = mergeProgress(local, data.user_progress);
+            window.userProgress = merged;
+            localStorage.setItem('chesspeps_progress', JSON.stringify(merged));
+        }
+    } catch (e) { /* silently ignore */ }
+}
+
+function mergeProgress(local, cloud) {
+    const merged = { ...cloud };
+    for (const slug in local) {
+        if (!merged[slug]) merged[slug] = local[slug];
+        else {
+            const localLearned = local[slug].learnedLines || [];
+            const cloudLearned = merged[slug].learnedLines || [];
+            merged[slug].learnedLines = [...new Set([...cloudLearned, ...localLearned])];
+            const localLines = local[slug].lines || {};
+            const cloudLines = merged[slug].lines || {};
+            for (const pgn in localLines) {
+                if (!cloudLines[pgn] || (localLines[pgn].lastAttemptTimestamp > cloudLines[pgn].lastAttemptTimestamp)) {
+                    cloudLines[pgn] = localLines[pgn];
+                }
+            }
+            merged[slug].lines = cloudLines;
+        }
+    }
+    return merged;
 }
