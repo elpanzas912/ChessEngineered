@@ -795,6 +795,7 @@ export class Trainer {
             if (instEl) instEl.textContent = 'Line complete!';
             const bubbleText = document.querySelector('.instruction-text');
             if (bubbleText) bubbleText.textContent = 'Line complete!';
+            this.playCompletionConfetti();
             setTimeout(() => {
                 this.nextLine();
             }, 350);
@@ -807,37 +808,7 @@ export class Trainer {
         if (bubbleText) bubbleText.textContent = 'Line complete! Great job!';
 
         playCompletionSound();
-        if (typeof confetti !== 'undefined') {
-            const boardEl = document.getElementById('board');
-            let originX = 0.5;
-            let originY = 1.1;
-            if (boardEl) {
-                const rect = boardEl.getBoundingClientRect();
-                originX = (rect.left + rect.width / 2) / window.innerWidth;
-                originY = (rect.bottom + 20) / window.innerHeight;
-            }
-            const count = 300;
-            const defaults = {
-                origin: { x: originX, y: originY },
-                scalar: 1.8,
-                gravity: 0.8,
-                ticks: 250,
-                colors: ['#a78bfa', '#8b5cf6', '#22c55e', '#fbbf24', '#f472b6', '#60a5fa']
-            };
-
-            function fire(particleRatio, opts) {
-                confetti({
-                    ...defaults,
-                    ...opts,
-                    particleCount: Math.floor(count * particleRatio)
-                });
-            }
-
-            fire(0.3, { spread: 40, startVelocity: 65, angle: 90 });
-            fire(0.25, { spread: 80, startVelocity: 55, angle: 90 });
-            fire(0.3, { spread: 120, startVelocity: 45, angle: 90, decay: 0.92 });
-            fire(0.15, { spread: 160, startVelocity: 30, angle: 90, decay: 0.94, scalar: 2.2 });
-        }
+        this.playCompletionConfetti();
 
         setTimeout(() => {
             const overlay = document.getElementById('completionOverlay');
@@ -851,6 +822,40 @@ export class Trainer {
                 overlay.classList.add('open');
             }
         }, 1200);
+    }
+
+    playCompletionConfetti() {
+        if (typeof confetti === 'undefined') return;
+
+        const boardEl = document.getElementById('board');
+        let originX = 0.5;
+        let originY = 1.1;
+        if (boardEl) {
+            const rect = boardEl.getBoundingClientRect();
+            originX = (rect.left + rect.width / 2) / window.innerWidth;
+            originY = (rect.bottom + 20) / window.innerHeight;
+        }
+        const count = 300;
+        const defaults = {
+            origin: { x: originX, y: originY },
+            scalar: 1.8,
+            gravity: 0.8,
+            ticks: 250,
+            colors: ['#a78bfa', '#8b5cf6', '#22c55e', '#fbbf24', '#f472b6', '#60a5fa']
+        };
+
+        function fire(particleRatio, opts) {
+            confetti({
+                ...defaults,
+                ...opts,
+                particleCount: Math.floor(count * particleRatio)
+            });
+        }
+
+        fire(0.3, { spread: 40, startVelocity: 65, angle: 90 });
+        fire(0.25, { spread: 80, startVelocity: 55, angle: 90 });
+        fire(0.3, { spread: 120, startVelocity: 45, angle: 90, decay: 0.92 });
+        fire(0.15, { spread: 160, startVelocity: 30, angle: 90, decay: 0.94, scalar: 2.2 });
     }
 }
 
