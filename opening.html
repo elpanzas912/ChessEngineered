@@ -396,7 +396,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-    <script type="module" src="app.js?v=28"></script>
+    <script type="module" src="app.js?v=29"></script>
 
     <!-- Auth Modal Controls (non-module, always works) -->
     <script>
@@ -634,9 +634,10 @@
             const labelEl = document.getElementById('puzzleRatingLabel');
             const diffEl = document.getElementById('puzzleDifficulty');
             const rawStreak = trainer?.puzzleStreak ?? window.userProgress?.puzzleStreak ?? 0;
-            const streak = typeof window.getPuzzleStreak === 'function'
-                ? window.getPuzzleStreak()
-                : (Number.isFinite(Number(rawStreak)) ? Math.max(0, Math.round(Number(rawStreak))) : 0);
+            const numericStreak = Number(rawStreak);
+            const streak = Number.isFinite(numericStreak)
+                ? Math.max(0, Math.round(numericStreak))
+                : (typeof window.getPuzzleStreak === 'function' ? window.getPuzzleStreak() : 0);
             if (trainer) trainer.puzzleStreak = streak;
             if (streakEl) streakEl.textContent = streak;
             

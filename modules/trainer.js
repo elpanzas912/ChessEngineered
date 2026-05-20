@@ -500,6 +500,7 @@ export class Trainer {
 
     handlePuzzleFailure() {
         this.puzzleStreak = 0;
+        savePuzzleStreak(this.puzzleStreak);
         if (!this.puzzleELOPenalized) {
             const puzzleRating = this.currentPuzzle?.Rating || 1500;
             const result = updatePuzzleELO(puzzleRating, 0);
@@ -512,12 +513,12 @@ export class Trainer {
     handlePuzzleSuccess() {
         this.completed = true;
         this.puzzleStreak++;
+        savePuzzleStreak(this.puzzleStreak);
         const puzzleRating = this.currentPuzzle?.Rating || 1500;
         const result = updatePuzzleELO(puzzleRating, 1);
         if (typeof window.updatePuzzleUI === 'function') window.updatePuzzleUI();
         playCompletionSound();
         showFeedback(`+${result.change} ELO`, 'success');
-        savePuzzleStreak(this.puzzleStreak);
         setTimeout(() => {
             this.nextLine();
         }, 600);
