@@ -631,7 +631,7 @@ class Trainer {
         board.setOrientation(orientation);
 
         // Restore saved learn index and mode from dedicated localStorage key
-        this.loadSessionState();
+        const saved = this.loadSessionState();
 
         // Sync skip button visibility (always defaults to learn)
         const skipBtn = document.getElementById('btnSkip');
@@ -639,7 +639,15 @@ class Trainer {
 
         renderLinesList();
         updateModeStats();
-        this.nextLine();
+
+        // If we have a saved linePgn, load that exact line
+        // This ensures user returns to exactly where they left off
+        const lines = this.opening.lines || [];
+        if (saved && saved.linePgn && lines.includes(saved.linePgn)) {
+            this.loadLine(saved.linePgn);
+        } else {
+            this.nextLine();
+        }
     }
 
     saveSessionState() {
@@ -660,6 +668,7 @@ class Trainer {
             if (stored) {
                 const saved = JSON.parse(stored);
                 this.learnIndex = saved.learnIndex || 0;
+                this.linePgn = saved.linePgn || null;
                 // Always default to learn mode on reopening
                 this.mode = 'learn';
                 return saved;
@@ -729,6 +738,9 @@ class Trainer {
         this.moveIndex = 0;
         this.completed = false;
         this.wrongAttempts = 0;
+        
+        // Save that we're on this line
+        this.saveSessionState();
 
         game.reset();
         board.setPosition(game.fen(), true);
