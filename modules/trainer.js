@@ -790,6 +790,17 @@ export class Trainer {
         updateModeStats();
         updateProgress(100);
 
+        if (this.mode === 'practice') {
+            const instEl = document.getElementById('instruction');
+            if (instEl) instEl.textContent = 'Line complete!';
+            const bubbleText = document.querySelector('.instruction-text');
+            if (bubbleText) bubbleText.textContent = 'Line complete!';
+            setTimeout(() => {
+                this.nextLine();
+            }, 350);
+            return;
+        }
+
         const instEl = document.getElementById('instruction');
         if (instEl) instEl.textContent = 'Line complete!';
         const bubbleText = document.querySelector('.instruction-text');
