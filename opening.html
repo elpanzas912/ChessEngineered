@@ -405,7 +405,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-    <script type="module" src="app.js?v=35"></script>
+    <script type="module" src="app.js?v=36"></script>
 
     <!-- Auth Modal Controls (non-module, always works) -->
     <script>
@@ -790,7 +790,7 @@
                     if (fb.data && fb.data.user_progress) {
                         const local = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
                         const cloud = fb.data.user_progress;
-                        const merged = mergeProgress(local, cloud);
+                        const merged = hasOpeningProgress(cloud) ? mergeProgress(local, cloud) : cloud;
                         window.userProgress = merged;
                         localStorage.setItem('chesspeps_progress', JSON.stringify(merged));
                         await supabaseClient.from('profiles').update({ user_progress: merged, updated_at: new Date().toISOString() }).eq('id', userId);
@@ -799,11 +799,17 @@
                 }
 
                 const local = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
-                const merged = mergeProgress(local, data);
+                const merged = hasOpeningProgress(data) ? mergeProgress(local, data) : data;
                 window.userProgress = merged;
                 localStorage.setItem('chesspeps_progress', JSON.stringify(merged));
                 await supabaseClient.from('profiles').update({ user_progress: merged, updated_at: new Date().toISOString() }).eq('id', userId);
             } catch (e) { /* silently ignore */ }
+        }
+
+        function hasOpeningProgress(progress) {
+            return Object.entries(progress || {}).some(([slug, value]) => {
+                return slug !== 'puzzleELO' && value && typeof value === 'object';
+            });
         }
 
         function mergeProgress(local, cloud) {
