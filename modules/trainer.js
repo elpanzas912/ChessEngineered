@@ -51,11 +51,17 @@ export class Trainer {
         updateModeStats();
 
         const lines = this.opening.lines || [];
-        const hasSavedLine = saved && saved.linePgn && lines.some(l => l.trim() === saved.linePgn.trim());
+        const hasProgress = this.hasOpeningProgress();
+        const hasSavedLine = hasProgress && saved && saved.linePgn && lines.some(l => l.trim() === saved.linePgn.trim());
         console.log('[Session] hasSavedLine=', hasSavedLine, 'linePgn=', saved?.linePgn);
         if (hasSavedLine) {
             this.loadLine(saved.linePgn);
         } else {
+            if (!hasProgress) {
+                this.learnIndex = 0;
+                this.linePgn = null;
+                this.clearSessionState();
+            }
             this.nextLine();
         }
     }
@@ -87,6 +93,17 @@ export class Trainer {
         } catch (e) {}
         console.log('[Session] loadSessionState: no saved state for', key);
         return null;
+    }
+
+    clearSessionState() {
+        localStorage.removeItem(`chesspeps_session_${this.slug}`);
+    }
+
+    hasOpeningProgress() {
+        const progress = window.userProgress?.[this.slug];
+        if (!progress) return false;
+        if ((progress.learnedLines || []).length > 0) return true;
+        return Object.values(progress.lines || {}).some(line => (Number(line?.completions) || 0) > 0);
     }
 
     skipLine() {
@@ -142,6 +159,10 @@ export class Trainer {
         this.hintShown = false;
         document.getElementById('btnHint').textContent = 'Hint';
         this.linePgn = pgn;
+        const selectedIndex = this.opening?.lines?.indexOf(pgn);
+        if (this.mode === 'learn' && selectedIndex >= 0) {
+            this.learnIndex = selectedIndex;
+        }
         this.lineName = (this.opening.lineNames || {})[pgn] || 'Unknown Line';
         this.moves = parsePgnToMoves(pgn);
         this.moveIndex = 0;
