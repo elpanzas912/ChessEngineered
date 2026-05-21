@@ -805,6 +805,7 @@ export class Trainer {
                     ? `Next Line (${learnedCount}/${totalLines})`
                     : 'Next Line';
             }
+            this.playCompletionConfetti();
             document.body.classList.add('line-complete-mobile');
             setTimeout(() => {
                 if (!window.matchMedia('(max-width: 800px)').matches) {
@@ -830,6 +831,7 @@ export class Trainer {
         }
 
         if (window.matchMedia('(max-width: 800px)').matches) {
+            this.playCompletionConfetti();
             document.body.classList.add('line-complete-mobile');
             return;
         }
