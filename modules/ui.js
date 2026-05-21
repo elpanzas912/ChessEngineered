@@ -150,6 +150,8 @@ export function updateStats() {
     const learnStats = document.getElementById('learnStats');
     const practiceStats = document.getElementById('practiceStats');
     const currentSlug = window.trainer?.slug;
+    const currentLines = window.trainer?.opening?.lines || [];
+    const learned = currentSlug ? getLearnedLines(currentSlug) : [];
     const lineProgress = currentSlug ? (window.userProgress[currentSlug]?.lines || {}) : {};
     const practiceCount = Object.values(lineProgress).reduce((total, line) => {
         return total + (Number(line?.completions) || 0);
@@ -159,7 +161,7 @@ export function updateStats() {
     if (statMoves) statMoves.textContent = stats.movesMade;
     const acc = stats.attempts > 0 ? Math.round((stats.correct / stats.attempts) * 100) + '%' : '-';
     if (statAcc) statAcc.textContent = acc;
-    if (learnStats) learnStats.textContent = `${stats.linesDone} lines discovered`;
+    if (learnStats) learnStats.textContent = `${learned.length}/${currentLines.length} lines discovered`;
     if (practiceStats) practiceStats.textContent = `${practiceCount} practices completed`;
 }
 
