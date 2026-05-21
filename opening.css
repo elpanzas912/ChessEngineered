@@ -147,6 +147,30 @@ body { overflow: hidden; }
   width: 100%;
   max-width: min(960px, calc(100vh - 140px), calc(100vw - 480px));
 }
+.line-progress-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+.progress-back-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  color: var(--color-ink);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+}
+.progress-back-btn:hover {
+  background: var(--color-paper-2);
+}
+.progress-back-btn svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
 .line-progress-track {
   position: relative;
   width: 100%;
@@ -1206,6 +1230,10 @@ body { overflow: hidden; }
     width: 100%;
     max-width: none;
     padding: 0 var(--space-xs);
+  }
+
+  .progress-back-btn {
+    display: inline-flex;
   }
 
   .line-progress-track {
