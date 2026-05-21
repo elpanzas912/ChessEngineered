@@ -30,6 +30,7 @@ export function moveInputHandler(event) {
     }
 
     if (event.type === INPUT_EVENT_TYPE.moveInputStarted) {
+        document.body.classList.remove('show-mobile-modes');
         clearIncorrectCross();
         if (trainer.mode === 'puzzle' && trainer.historyIndex !== trainer.positionHistory.length - 1) {
             return false;

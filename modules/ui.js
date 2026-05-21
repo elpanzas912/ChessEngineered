@@ -149,19 +149,28 @@ export function updateStats() {
     const statAcc = document.getElementById('statAcc');
     const learnStats = document.getElementById('learnStats');
     const practiceStats = document.getElementById('practiceStats');
+    const currentSlug = window.trainer?.slug;
+    const lineProgress = currentSlug ? (window.userProgress[currentSlug]?.lines || {}) : {};
+    const practiceCount = Object.values(lineProgress).reduce((total, line) => {
+        return total + (Number(line?.completions) || 0);
+    }, 0);
 
     if (statLines) statLines.textContent = stats.linesDone;
     if (statMoves) statMoves.textContent = stats.movesMade;
     const acc = stats.attempts > 0 ? Math.round((stats.correct / stats.attempts) * 100) + '%' : '-';
     if (statAcc) statAcc.textContent = acc;
     if (learnStats) learnStats.textContent = `${stats.linesDone} lines discovered`;
-    if (practiceStats) practiceStats.textContent = `${stats.correct} lines perfected`;
+    if (practiceStats) practiceStats.textContent = `${practiceCount} practices completed`;
 }
 
 export function updateModeStats() {
     if (!window.trainer || !window.trainer.opening) return;
     const lines = window.trainer.opening.lines || [];
     const learned = getLearnedLines(window.trainer.slug);
+    const lineProgress = window.userProgress[window.trainer.slug]?.lines || {};
+    const practiceCount = Object.values(lineProgress).reduce((total, line) => {
+        return total + (Number(line?.completions) || 0);
+    }, 0);
 
     const learnStats = document.getElementById('learnStats');
     const practiceStats = document.getElementById('practiceStats');
@@ -170,7 +179,7 @@ export function updateModeStats() {
         learnStats.textContent = `${learned.length}/${lines.length} lines discovered`;
     }
     if (practiceStats) {
-        practiceStats.textContent = `${learned.length} lines perfected`;
+        practiceStats.textContent = `${practiceCount} practices completed`;
     }
 
     const practiceBtn = document.getElementById('modePractice');
