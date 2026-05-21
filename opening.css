@@ -1180,11 +1180,12 @@ body { overflow: hidden; }
 
   .mode-header {
     order: 1;
-    min-height: 36px;
-    padding: 0 var(--space-xs);
+    min-height: 40px;
+    padding: 0 var(--space-sm);
     border: 0;
     background: transparent;
     border-radius: var(--radius-md);
+    gap: var(--space-xs);
   }
 
   .mode-header:hover {
@@ -1192,30 +1193,49 @@ body { overflow: hidden; }
   }
 
   .mode-header .mode-info {
+    flex: 1 1 auto;
     min-width: 0;
     gap: var(--space-xs);
   }
 
+  .mode-header .mode-info > div {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    align-items: baseline;
+    gap: var(--space-xs);
+  }
+
   .mode-header .mode-icon {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
   }
 
   .mode-header .mode-name {
+    flex: 0 0 auto;
     font-size: var(--text-md);
+    font-weight: 600;
     line-height: 1.1;
   }
 
   .mode-header .opening-name {
-    max-width: 56vw;
+    min-width: 0;
+    max-width: none;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: var(--text-sm);
+    font-size: var(--text-md);
+    color: var(--color-muted);
+  }
+
+  #dropdownChevron {
+    display: none;
   }
 
   .mode-header .line-counter {
-    font-size: var(--text-sm);
+    font-size: var(--text-md);
+    color: var(--color-muted);
   }
 
   .line-dropdown {
