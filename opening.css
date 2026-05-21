@@ -1335,13 +1335,14 @@ body { overflow: hidden; }
   .mode-selector {
     display: none;
     position: fixed;
-    left: var(--space-sm);
-    right: var(--space-sm);
+    left: 50%;
     bottom: 48px;
+    transform: translateX(-50%);
     z-index: var(--z-dropdown);
+    width: 256px;
     max-height: min(380px, calc(100dvh - 96px));
     overflow-y: auto;
-    padding: var(--space-sm);
+    padding: 6px;
     background: var(--color-paper-2);
     border: 1px solid var(--color-rule);
     border-radius: var(--radius-md);
@@ -1353,12 +1354,77 @@ body { overflow: hidden; }
   }
 
   .mode-btn {
-    min-height: 56px;
-    padding: var(--space-xs) var(--space-sm);
+    min-height: 64px;
+    padding: var(--space-sm);
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    column-gap: var(--space-md);
+    row-gap: 2px;
+    align-items: center;
+    justify-content: flex-start;
+    border-color: transparent;
+    background: transparent;
+    text-align: left;
   }
 
   .mode-btn.small {
-    height: 56px;
+    height: auto;
+  }
+
+  .mode-btn:hover {
+    background: var(--color-paper-3);
+    border-color: transparent;
+  }
+
+  .mode-btn.active {
+    background: var(--color-paper-3);
+    border-color: var(--color-rule-light);
+  }
+
+  .mode-btn.locked {
+    opacity: 0.45;
+  }
+
+  .mode-grid {
+    display: contents;
+  }
+
+  .mode-btn-main {
+    gap: 0;
+    flex: 0 0 auto;
+  }
+
+  .mode-btn .mode-icon,
+  .mode-btn.small .mode-icon {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: 32px;
+    height: 32px;
+  }
+
+  .mode-btn .mode-title,
+  .mode-btn.small .mode-title {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: var(--text-base);
+    font-weight: 600;
+  }
+
+  .mode-btn .mode-sub,
+  .mode-btn.small .mode-sub {
+    grid-column: 2;
+    grid-row: 2;
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+    line-height: 1.25;
+  }
+
+  .mode-btn-main + .mode-sub {
+    display: block;
+  }
+
+  .mode-btn .mode-btn-main {
+    display: contents;
   }
 
   .mode-panels-container {
