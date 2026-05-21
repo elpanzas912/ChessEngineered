@@ -89,6 +89,8 @@ export function updateEvalBar() {
 
     whiteEl.style.height = whiteHeight + '%';
     blackEl.style.height = blackHeight + '%';
+    whiteEl.style.width = whiteHeight + '%';
+    blackEl.style.width = blackHeight + '%';
 
     const displayScore = pawnScore >= 0 ? '+' + pawnScore.toFixed(1) : pawnScore.toFixed(1);
     scoreEl.textContent = displayScore;

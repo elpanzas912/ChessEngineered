@@ -307,6 +307,7 @@
                     </button>
                 </div>
                 <div class="toolbar-group">
+                    <button class="toolbar-btn mobile-mode-toggle" type="button" aria-label="Change mode" onclick="document.body.classList.toggle('show-mobile-modes')">Mode</button>
                 </div>
                 <div class="toolbar-group nav-group">
                     <button class="toolbar-btn icon-only" id="btnPrev" aria-label="Previous move">
@@ -396,7 +397,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-    <script type="module" src="app.js?v=29"></script>
+    <script type="module" src="app.js?v=30"></script>
 
     <!-- Auth Modal Controls (non-module, always works) -->
     <script>
@@ -480,6 +481,7 @@
             }
             
             trainer.mode = mode;
+            document.body.classList.remove('show-mobile-modes');
             if (typeof trainer.saveSessionState === 'function') trainer.saveSessionState();
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
             const btn = document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1));

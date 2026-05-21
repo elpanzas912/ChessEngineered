@@ -108,7 +108,10 @@ function initApp() {
         }
     });
 
-    window.addEventListener('resize', () => board && board.resize());
+    window.addEventListener('resize', () => {
+        if (board?.resize) board.resize();
+        else if (board?.view?.handleResize) board.view.handleResize();
+    });
 
     // Auto-load from URL if slug present
     const params = new URLSearchParams(window.location.search);
