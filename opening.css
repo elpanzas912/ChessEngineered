@@ -1219,9 +1219,9 @@ body { overflow: hidden; }
 
   .instruction-dialog {
     order: 3;
-    height: 72px;
-    min-height: 72px;
-    max-height: 72px;
+    height: 112px;
+    min-height: 112px;
+    max-height: 112px;
     overflow: hidden;
     padding: 0 var(--space-xs);
     align-items: flex-end;
@@ -1407,12 +1407,12 @@ body { overflow: hidden; }
 
   .instruction-dialog,
   .speech-bubble {
-    max-height: 56px;
+    max-height: 88px;
   }
 
   .instruction-dialog {
-    height: 56px;
-    min-height: 56px;
+    height: 88px;
+    min-height: 88px;
   }
 
   #board {
