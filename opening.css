@@ -1219,9 +1219,9 @@ body { overflow: hidden; }
 
   .instruction-dialog {
     order: 3;
-    height: 112px;
-    min-height: 112px;
-    max-height: 112px;
+    height: 184px;
+    min-height: 184px;
+    max-height: 184px;
     overflow: hidden;
     padding: 0 var(--space-xs);
     align-items: flex-end;
@@ -1260,7 +1260,7 @@ body { overflow: hidden; }
   }
 
   .eval-bar {
-    width: min(100%, calc(100dvh - 300px), calc(100vw - 24px));
+    width: min(100%, calc(100dvh - 372px), calc(100vw - 24px));
     max-width: calc(100vw - 24px);
     height: 14px;
     border-radius: var(--radius-sm);
@@ -1289,8 +1289,8 @@ body { overflow: hidden; }
   }
 
   #board {
-    width: min(calc(100vw - 24px), calc(100dvh - 300px));
-    height: min(calc(100vw - 24px), calc(100dvh - 300px));
+    width: min(calc(100vw - 24px), calc(100dvh - 372px));
+    height: min(calc(100vw - 24px), calc(100dvh - 372px));
     min-width: 260px;
     min-height: 260px;
   }
@@ -1407,20 +1407,20 @@ body { overflow: hidden; }
 
   .instruction-dialog,
   .speech-bubble {
-    max-height: 88px;
+    max-height: 140px;
   }
 
   .instruction-dialog {
-    height: 88px;
-    min-height: 88px;
+    height: 140px;
+    min-height: 140px;
   }
 
   #board {
-    width: min(calc(100vw - 20px), calc(100dvh - 248px));
-    height: min(calc(100vw - 20px), calc(100dvh - 248px));
+    width: min(calc(100vw - 20px), calc(100dvh - 340px));
+    height: min(calc(100vw - 20px), calc(100dvh - 340px));
   }
 
   .eval-bar {
-    width: min(calc(100vw - 20px), calc(100dvh - 248px));
+    width: min(calc(100vw - 20px), calc(100dvh - 340px));
   }
 }
