@@ -152,8 +152,8 @@ export function updateStats() {
     const currentSlug = window.trainer?.slug;
     const currentLines = window.trainer?.opening?.lines || [];
     const learned = currentSlug ? getLearnedLines(currentSlug) : [];
-    const learnedInOpening = uniqueKnownLines(learned, currentLines);
     const lineProgress = currentSlug ? (window.userProgress[currentSlug]?.lines || {}) : {};
+    const learnedInOpening = completedKnownLines(lineProgress, currentLines, learned);
     const practiceCount = Object.entries(lineProgress).reduce((total, [pgn, line]) => {
         if (!currentLines.includes(pgn)) return total;
         return total + (Number(line?.completions) || 0);
@@ -171,8 +171,8 @@ export function updateModeStats() {
     if (!window.trainer || !window.trainer.opening) return;
     const lines = window.trainer.opening.lines || [];
     const learned = getLearnedLines(window.trainer.slug);
-    const learnedInOpening = uniqueKnownLines(learned, lines);
     const lineProgress = window.userProgress[window.trainer.slug]?.lines || {};
+    const learnedInOpening = completedKnownLines(lineProgress, lines, learned);
     const practiceCount = Object.entries(lineProgress).reduce((total, [pgn, line]) => {
         if (!lines.includes(pgn)) return total;
         return total + (Number(line?.completions) || 0);
@@ -268,7 +268,12 @@ function esc(text) {
     return div.innerHTML;
 }
 
-function uniqueKnownLines(linePgns, knownLines) {
+function completedKnownLines(lineProgress, knownLines, learnedFallback = []) {
     const known = new Set(knownLines);
-    return [...new Set(linePgns || [])].filter(pgn => known.has(pgn));
+    const completed = Object.entries(lineProgress || {})
+        .filter(([pgn, line]) => known.has(pgn) && (Number(line?.completions) || 0) > 0)
+        .map(([pgn]) => pgn);
+
+    if (completed.length > 0) return [...new Set(completed)];
+    return [...new Set(learnedFallback || [])].filter(pgn => known.has(pgn));
 }
