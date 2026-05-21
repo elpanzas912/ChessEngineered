@@ -152,8 +152,10 @@ export function updateStats() {
     const currentSlug = window.trainer?.slug;
     const currentLines = window.trainer?.opening?.lines || [];
     const learned = currentSlug ? getLearnedLines(currentSlug) : [];
+    const learnedInOpening = uniqueKnownLines(learned, currentLines);
     const lineProgress = currentSlug ? (window.userProgress[currentSlug]?.lines || {}) : {};
-    const practiceCount = Object.values(lineProgress).reduce((total, line) => {
+    const practiceCount = Object.entries(lineProgress).reduce((total, [pgn, line]) => {
+        if (!currentLines.includes(pgn)) return total;
         return total + (Number(line?.completions) || 0);
     }, 0);
 
@@ -161,7 +163,7 @@ export function updateStats() {
     if (statMoves) statMoves.textContent = stats.movesMade;
     const acc = stats.attempts > 0 ? Math.round((stats.correct / stats.attempts) * 100) + '%' : '-';
     if (statAcc) statAcc.textContent = acc;
-    if (learnStats) learnStats.textContent = `${learned.length}/${currentLines.length} lines discovered`;
+    if (learnStats) learnStats.textContent = `${learnedInOpening.length}/${currentLines.length} lines discovered`;
     if (practiceStats) practiceStats.textContent = `${practiceCount} practices completed`;
 }
 
@@ -169,8 +171,10 @@ export function updateModeStats() {
     if (!window.trainer || !window.trainer.opening) return;
     const lines = window.trainer.opening.lines || [];
     const learned = getLearnedLines(window.trainer.slug);
+    const learnedInOpening = uniqueKnownLines(learned, lines);
     const lineProgress = window.userProgress[window.trainer.slug]?.lines || {};
-    const practiceCount = Object.values(lineProgress).reduce((total, line) => {
+    const practiceCount = Object.entries(lineProgress).reduce((total, [pgn, line]) => {
+        if (!lines.includes(pgn)) return total;
         return total + (Number(line?.completions) || 0);
     }, 0);
 
@@ -178,7 +182,7 @@ export function updateModeStats() {
     const practiceStats = document.getElementById('practiceStats');
 
     if (learnStats) {
-        learnStats.textContent = `${learned.length}/${lines.length} lines discovered`;
+        learnStats.textContent = `${learnedInOpening.length}/${lines.length} lines discovered`;
     }
     if (practiceStats) {
         practiceStats.textContent = `${practiceCount} practices completed`;
@@ -262,4 +266,9 @@ function esc(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function uniqueKnownLines(linePgns, knownLines) {
+    const known = new Set(knownLines);
+    return [...new Set(linePgns || [])].filter(pgn => known.has(pgn));
 }
