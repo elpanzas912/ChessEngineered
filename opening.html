@@ -45,21 +45,6 @@
         </div>
     </div>
 
-    <header class="trainer-header">
-        <a href="/openings.html" class="brand">
-            <div class="brand-icon">♟</div>
-            <span>chesspeps.com</span>
-        </a>
-        <nav class="trainer-nav">
-            <a href="/openings.html">Repertoire</a>
-            <a href="/index.html">Trainer</a>
-            <a href="/pricing.html">Pricing</a>
-        </nav>
-        <div class="user-menu" id="userMenu" style="margin-left:auto;">
-            <button class="btn-login" onclick="openAuthModal()">Log in</button>
-        </div>
-    </header>
-
     <div class="trainer-layout">
         <!-- Board -->
         <div class="board-area">
@@ -750,17 +735,19 @@
             if (user) {
                 const name = user.email.split('@')[0];
                 const initial = name.charAt(0).toUpperCase();
-                menu.innerHTML = `
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <span style="color:var(--color-ink-2);font-size:0.85rem;">${name}</span>
-                        <a href="/profile.html" class="nav-avatar-link" style="text-decoration:none;">
-                            <div class="user-avatar">${initial}</div>
-                        </a>
-                        <button class="btn-login" style="background:var(--color-paper-2);color:var(--color-ink);border:1px solid var(--color-rule);" onclick="logout()">Log out</button>
-                    </div>
-                `;
+                if (menu) {
+                    menu.innerHTML = `
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span style="color:var(--color-ink-2);font-size:0.85rem;">${name}</span>
+                            <a href="/profile.html" class="nav-avatar-link" style="text-decoration:none;">
+                                <div class="user-avatar">${initial}</div>
+                            </a>
+                            <button class="btn-login" style="background:var(--color-paper-2);color:var(--color-ink);border:1px solid var(--color-rule);" onclick="logout()">Log out</button>
+                        </div>
+                    `;
+                }
                 loadCloudProgress(user.id);
-            } else {
+            } else if (menu) {
                 menu.innerHTML = `<button class="btn-login" onclick="openAuthModal()">Log in</button>`;
             }
         }

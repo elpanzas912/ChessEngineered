@@ -78,7 +78,7 @@ body { overflow: hidden; }
 /* ── Main Trainer Layout ── */
 .trainer-layout {
   display: flex;
-  height: calc(100vh - 56px);
+  height: 100vh;
   padding: var(--space-lg) var(--space-xl) var(--space-xl);
   gap: var(--space-xl);
   max-width: 1600px;
@@ -1138,7 +1138,7 @@ body { overflow: hidden; }
 
   .trainer-layout {
     flex-direction: column;
-    height: calc(100dvh - 44px);
+    height: 100dvh;
     min-height: 0;
     padding: var(--space-xs);
     gap: var(--space-xs);
