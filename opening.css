@@ -1219,10 +1219,12 @@ body { overflow: hidden; }
 
   .instruction-dialog {
     order: 3;
-    max-height: 18dvh;
-    min-height: 0;
+    height: 72px;
+    min-height: 72px;
+    max-height: 72px;
     overflow: hidden;
     padding: 0 var(--space-xs);
+    align-items: flex-end;
   }
 
   .coach-avatar {
@@ -1230,7 +1232,8 @@ body { overflow: hidden; }
   }
 
   .speech-bubble {
-    max-height: 18dvh;
+    width: 100%;
+    max-height: 100%;
     overflow-y: auto;
     padding: var(--space-xs) var(--space-sm);
     border-color: var(--color-rule-light);
@@ -1257,7 +1260,7 @@ body { overflow: hidden; }
   }
 
   .eval-bar {
-    width: min(100%, calc(100dvh - 292px), calc(100vw - 24px));
+    width: min(100%, calc(100dvh - 300px), calc(100vw - 24px));
     max-width: calc(100vw - 24px);
     height: 14px;
     border-radius: var(--radius-sm);
@@ -1286,8 +1289,8 @@ body { overflow: hidden; }
   }
 
   #board {
-    width: min(calc(100vw - 24px), calc(100dvh - 292px));
-    height: min(calc(100vw - 24px), calc(100dvh - 292px));
+    width: min(calc(100vw - 24px), calc(100dvh - 300px));
+    height: min(calc(100vw - 24px), calc(100dvh - 300px));
     min-width: 260px;
     min-height: 260px;
   }
@@ -1404,7 +1407,12 @@ body { overflow: hidden; }
 
   .instruction-dialog,
   .speech-bubble {
-    max-height: 14dvh;
+    max-height: 56px;
+  }
+
+  .instruction-dialog {
+    height: 56px;
+    min-height: 56px;
   }
 
   #board {
