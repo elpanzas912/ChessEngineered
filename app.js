@@ -77,6 +77,20 @@ function initApp() {
     }
     const resetBtn = document.getElementById('btnReset');
     if (resetBtn) resetBtn.addEventListener('click', () => trainer && trainer.resetLine());
+    const completeRestartBtn = document.getElementById('btnCompleteRestart');
+    if (completeRestartBtn) {
+        completeRestartBtn.addEventListener('click', () => {
+            document.body.classList.remove('line-complete-mobile');
+            trainer && trainer.resetLine();
+        });
+    }
+    const completeNextBtn = document.getElementById('btnCompleteNext');
+    if (completeNextBtn) {
+        completeNextBtn.addEventListener('click', () => {
+            document.body.classList.remove('line-complete-mobile');
+            trainer && trainer.nextLine();
+        });
+    }
     document.getElementById('btnHint').addEventListener('click', () => trainer && trainer.showHint());
 
     document.addEventListener('keydown', (e) => {
@@ -151,6 +165,7 @@ function toggleMode() {
 window.nextLineAfterComplete = function () {
     const overlay = document.getElementById('completionOverlay');
     if (overlay) overlay.classList.remove('open');
+    document.body.classList.remove('line-complete-mobile');
     if (trainer) trainer.nextLine();
 };
 

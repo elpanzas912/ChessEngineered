@@ -798,6 +798,7 @@ body { overflow: hidden; }
   user-select: none;
 }
 .mobile-mode-toggle { display: none; }
+.mobile-complete-controls { display: none; }
 
 /* ── Completion Overlay ── */
 .completion-overlay {
@@ -1413,6 +1414,36 @@ body { overflow: hidden; }
 
   .mobile-mode-toggle {
     display: inline-flex;
+  }
+
+  .mobile-complete-controls {
+    display: none;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-xs);
+  }
+
+  body.line-complete-mobile .trainer-toolbar > .toolbar-group {
+    display: none;
+  }
+
+  body.line-complete-mobile .mobile-complete-controls {
+    display: flex;
+  }
+
+  .complete-next-line {
+    flex: 1 1 auto;
+    min-width: 0;
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
+    font-weight: 700;
+  }
+
+  .complete-next-line:hover {
+    background: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
   }
 
   .feedback {

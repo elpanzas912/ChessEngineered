@@ -132,6 +132,7 @@ export class Trainer {
     loadLine(pgn) {
         const overlay = document.getElementById('completionOverlay');
         if (overlay) overlay.classList.remove('open');
+        document.body.classList.remove('line-complete-mobile');
 
         this._playing = false;
         clearHintSquare();
@@ -796,9 +797,19 @@ export class Trainer {
             if (instEl) instEl.textContent = 'Line complete!';
             const bubbleText = document.querySelector('.instruction-text');
             if (bubbleText) bubbleText.textContent = 'Line complete!';
-            this.playCompletionConfetti();
+            const learnedCount = getLearnedLines(this.slug).length;
+            const totalLines = this.opening.lines?.length || 0;
+            const nextLabel = document.getElementById('completeNextLabel');
+            if (nextLabel) {
+                nextLabel.textContent = totalLines > 0
+                    ? `Next Line (${learnedCount}/${totalLines})`
+                    : 'Next Line';
+            }
+            document.body.classList.add('line-complete-mobile');
             setTimeout(() => {
-                this.nextLine();
+                if (!window.matchMedia('(max-width: 800px)').matches) {
+                    this.nextLine();
+                }
             }, 350);
             return;
         }
@@ -809,6 +820,20 @@ export class Trainer {
         if (bubbleText) bubbleText.textContent = 'Line complete! Great job!';
 
         playCompletionSound();
+        const learnedCount = getLearnedLines(this.slug).length;
+        const totalLines = this.opening.lines?.length || 0;
+        const nextLabel = document.getElementById('completeNextLabel');
+        if (nextLabel) {
+            nextLabel.textContent = totalLines > 0
+                ? `Next Line (${learnedCount}/${totalLines})`
+                : 'Next Line';
+        }
+
+        if (window.matchMedia('(max-width: 800px)').matches) {
+            document.body.classList.add('line-complete-mobile');
+            return;
+        }
+
         this.playCompletionConfetti();
 
         setTimeout(() => {
@@ -816,8 +841,6 @@ export class Trainer {
             const sub = document.getElementById('completionSub');
             if (overlay && sub) {
                 const lineName = this.lineName || 'Unknown Line';
-                const learnedCount = getLearnedLines(this.slug).length;
-                const totalLines = this.opening.lines?.length || 0;
                 const progressMsg = totalLines > 0 ? `(${learnedCount}/${totalLines} discovered)` : '';
                 sub.textContent = `You completed "${lineName}"! ${isPerfect ? 'Perfect run! ' : ''}${progressMsg}`;
                 overlay.classList.add('open');

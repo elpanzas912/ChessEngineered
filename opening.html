@@ -281,7 +281,7 @@
 
             <!-- Bottom Toolbar -->
             <div class="trainer-toolbar">
-                <div class="toolbar-group">
+                <div class="toolbar-group toolbar-default-left">
                     <button class="toolbar-btn icon-only" id="btnSettings" aria-label="Settings" onclick="alert('ChessPeps v1.4.0')">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
@@ -301,7 +301,7 @@
                 <div class="toolbar-group">
                     <button class="toolbar-btn mobile-mode-toggle" type="button" aria-label="Change mode" onclick="document.body.classList.toggle('show-mobile-modes')">Mode</button>
                 </div>
-                <div class="toolbar-group nav-group">
+                <div class="toolbar-group nav-group toolbar-default-right">
                     <button class="toolbar-btn icon-only" id="btnPrev" aria-label="Previous move">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="m15 18-6-6 6-6"/>
@@ -312,6 +312,22 @@
                             <path d="m9 18 6-6-6-6"/>
                         </svg>
                     </button>
+                </div>
+                <div class="mobile-complete-controls" id="mobileCompleteControls">
+                    <button class="toolbar-btn icon-only" type="button" id="btnCompleteRestart" aria-label="Restart line">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 3a9 9 0 1 1-5.657 2"/>
+                            <path d="M3 4.5h4v4"/>
+                        </svg>
+                    </button>
+                    <button class="toolbar-btn complete-next-line" type="button" id="btnCompleteNext">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                        </svg>
+                        <span id="completeNextLabel">Next Line</span>
+                    </button>
+                    <button class="toolbar-btn mobile-mode-toggle" type="button" aria-label="Change mode" onclick="document.body.classList.toggle('show-mobile-modes')">Mode</button>
                 </div>
             </div>
         </div>
@@ -389,7 +405,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-    <script type="module" src="app.js?v=30"></script>
+    <script type="module" src="app.js?v=31"></script>
 
     <!-- Auth Modal Controls (non-module, always works) -->
     <script>
