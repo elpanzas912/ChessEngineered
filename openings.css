@@ -809,7 +809,7 @@ main {
 .card-progress-wrap {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: var(--space-2xs);
   margin-top: var(--space-md);
   width: 100%;
 }
@@ -834,6 +834,10 @@ main {
   background: var(--color-accent);
   border-radius: var(--radius-pill);
   transition: width var(--dur-medium) var(--ease-out);
+}
+
+.progress-fill-practice {
+  background: var(--color-warning);
 }
 
 .card-cta {
@@ -996,7 +1000,7 @@ main {
   }
   .card-progress-wrap {
     width: 100%;
-    gap: var(--space-xs);
+    gap: var(--space-2xs);
     margin-top: var(--space-sm);
     min-width: 0;
   }
