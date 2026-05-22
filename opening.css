@@ -1298,7 +1298,7 @@ body { overflow: hidden; }
   }
 
   .board-with-eval {
-    order: 4;
+    order: 5;
     min-height: 0;
     display: flex;
     flex: 0 0 auto;
@@ -1461,11 +1461,112 @@ body { overflow: hidden; }
   }
 
   .mode-panels-container {
+    order: 4;
+    display: block;
+    flex: 0 0 auto;
+    min-height: 0;
+    padding: 0 var(--space-xs);
+  }
+
+  .drill-panel,
+  .time-panel,
+  .puzzle-panel {
+    gap: var(--space-xs);
+    justify-content: flex-start;
+  }
+
+  .drill-panel.active,
+  .time-panel.active,
+  .puzzle-panel.active {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+    width: 100%;
+    padding: 0;
+  }
+
+  .drill-scoreboard,
+  .time-scoreboard {
+    grid-column: 1 / -1;
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  .drill-score-label,
+  .timer-label,
+  .puzzle-rating-label,
+  .puzzle-streak-label {
+    font-size: 10px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .drill-score-value {
+    font-size: var(--text-lg);
+  }
+
+  .drill-leaderboard,
+  .time-leaderboard,
+  .btn-leave-drill,
+  .time-controls {
+    display: none;
+  }
+
+  .time-timer {
+    grid-column: 1;
+    padding: var(--space-xs);
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius-md);
+    background: var(--color-paper);
+  }
+
+  .time-timer .timer-secs {
+    font-size: var(--text-xl);
+  }
+
+  .time-timer .timer-cs {
+    font-size: var(--text-md);
+  }
+
+  .time-panel.active .time-scoreboard {
+    grid-column: 2;
+    padding: var(--space-xs);
+  }
+
+  .puzzle-panel.active {
+    grid-template-columns: 0.9fr 1fr 1fr;
+    align-items: stretch;
+  }
+
+  .puzzle-rating-display,
+  .puzzle-streak {
+    min-width: 0;
+    padding: var(--space-xs);
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius-md);
+    background: var(--color-paper);
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 2px;
+  }
+
+  .puzzle-rating-value,
+  .puzzle-streak-value {
+    font-size: var(--text-lg);
+    line-height: 1.1;
+  }
+
+  .puzzle-streak {
+    margin-top: 0 !important;
+  }
+
+  .puzzle-streak-icon,
+  .puzzle-divider {
     display: none;
   }
 
   .trainer-toolbar {
-    order: 5;
+    order: 6;
     height: 40px;
     padding: 0;
     border-top: 0;
