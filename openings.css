@@ -972,15 +972,27 @@ main {
   .search-wrap { margin-left: 0; margin-top: var(--space-xs); width: 100%; }
   .hero { padding: 100px var(--space-md) 60px; }
   .hero-title { font-size: var(--text-3xl); }
+  .card {
+    height: 188px;
+  }
+  .card-thumb {
+    width: 128px;
+  }
+  .card-body {
+    padding: var(--space-md) var(--space-md) var(--space-sm);
+    justify-content: flex-start;
+    gap: var(--space-xs);
+  }
   .card-foot {
     flex-direction: column;
     align-items: flex-end;
     gap: var(--space-xs);
-    margin-top: var(--space-sm);
+    margin-top: auto;
   }
   .card-desc {
     -webkit-line-clamp: 2;
-    margin-bottom: var(--space-xs);
+    min-height: 40px;
+    margin-bottom: 0;
   }
   .card-progress-wrap {
     width: 100%;
