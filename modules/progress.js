@@ -1,5 +1,67 @@
 window.userProgress = window.userProgress || {};
 
+const NON_OPENING_PROGRESS_KEYS = new Set(['puzzleELO', 'puzzleStreak', 'dailyStreak']);
+
+function getLocalDateKey(date = new Date()) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function daysBetween(dateA, dateB) {
+    const [ay, am, ad] = dateA.split('-').map(Number);
+    const [by, bm, bd] = dateB.split('-').map(Number);
+    if (!ay || !am || !ad || !by || !bm || !bd) return null;
+    const a = Date.UTC(ay, am - 1, ad);
+    const b = Date.UTC(by, bm - 1, bd);
+    return Math.round((b - a) / 86400000);
+}
+
+export function normalizeDailyStreak(value) {
+    const count = Math.max(0, Math.round(Number(value?.count) || 0));
+    const lastActiveDate = typeof value?.lastActiveDate === 'string' ? value.lastActiveDate : null;
+    const activityDates = value?.activityDates && typeof value.activityDates === 'object' ? value.activityDates : {};
+    return { count, lastActiveDate, activityDates };
+}
+
+export function getDailyStreak() {
+    if (!window.userProgress) window.userProgress = {};
+    const streak = normalizeDailyStreak(window.userProgress.dailyStreak);
+    window.userProgress.dailyStreak = streak;
+    return streak;
+}
+
+export function recordDailyActivity() {
+    if (!window.userProgress) window.userProgress = {};
+    const today = getLocalDateKey();
+    const current = getDailyStreak();
+
+    if (current.lastActiveDate === today) {
+        current.activityDates[today] = (current.activityDates[today] || 0) + 1;
+        window.userProgress.dailyStreak = current;
+        saveLocalProgress();
+        syncToCloud();
+        return current;
+    }
+
+    const gap = current.lastActiveDate ? daysBetween(current.lastActiveDate, today) : null;
+    const nextCount = gap === 1 ? current.count + 1 : 1;
+    const next = {
+        count: nextCount,
+        lastActiveDate: today,
+        activityDates: {
+            ...current.activityDates,
+            [today]: (current.activityDates[today] || 0) + 1
+        }
+    };
+
+    window.userProgress.dailyStreak = next;
+    saveLocalProgress();
+    syncToCloud();
+    return next;
+}
+
 export function loadLocalProgress() {
     try {
         const stored = localStorage.getItem('chesspeps_progress');
@@ -247,7 +309,16 @@ export async function loadCloudProgressNormalized(userId) {
 
         if (data) {
             const local = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
-            const merged = mergeProgress(local, data);
+            let cloud = data;
+            const profile = await supabase
+                .from('profiles')
+                .select('user_progress')
+                .eq('id', userId)
+                .single();
+            if (profile.data?.user_progress) {
+                cloud = mergeProgress(profile.data.user_progress, data);
+            }
+            const merged = mergeProgress(local, cloud);
             window.userProgress = merged;
             localStorage.setItem('chesspeps_progress', JSON.stringify(merged));
         }
@@ -279,7 +350,15 @@ async function loadCloudProgressFallback(userId) {
 
 function mergeProgress(local, cloud) {
     const merged = { ...cloud };
+    merged.dailyStreak = mergeDailyStreak(local?.dailyStreak, cloud?.dailyStreak);
+    if (local?.puzzleStreak !== undefined) {
+        merged.puzzleStreak = Math.max(
+            normalizePuzzleCount(local.puzzleStreak, 0),
+            normalizePuzzleCount(cloud?.puzzleStreak, 0)
+        );
+    }
     for (const slug in local) {
+        if (NON_OPENING_PROGRESS_KEYS.has(slug)) continue;
         if (!merged[slug]) merged[slug] = local[slug];
         else {
             const localLearned = local[slug].learnedLines || [];
@@ -296,6 +375,26 @@ function mergeProgress(local, cloud) {
         }
     }
     return merged;
+}
+
+function mergeDailyStreak(local, cloud) {
+    const localStreak = normalizeDailyStreak(local);
+    const cloudStreak = normalizeDailyStreak(cloud);
+    const activityDates = { ...cloudStreak.activityDates };
+    for (const [date, count] of Object.entries(localStreak.activityDates)) {
+        activityDates[date] = Math.max(Number(activityDates[date]) || 0, Number(count) || 0);
+    }
+
+    const lastActiveDate = [localStreak.lastActiveDate, cloudStreak.lastActiveDate]
+        .filter(Boolean)
+        .sort()
+        .pop() || null;
+
+    return {
+        count: Math.max(localStreak.count, cloudStreak.count),
+        lastActiveDate,
+        activityDates
+    };
 }
 
 export function normalizePuzzleCount(value, fallback = 0) {

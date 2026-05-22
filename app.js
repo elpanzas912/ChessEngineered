@@ -1,10 +1,10 @@
 import { initBoard, moveInputHandler } from './modules/board.js?v=32';
-import { loadLocalProgress, syncToCloud } from './modules/progress.js';
-import { Trainer } from './modules/trainer.js?v=38';
+import { loadLocalProgress, syncToCloud } from './modules/progress.js?v=2';
+import { Trainer } from './modules/trainer.js?v=39';
 import { stats } from './modules/stats.js';
-import { renderLinesList, renderLineDropdown, updateLineHeader, updateProgress, updateStats, updateModeStats, showFeedback } from './modules/ui.js?v=35';
+import { renderLinesList, renderLineDropdown, updateLineHeader, updateProgress, updateStats, updateModeStats, showFeedback } from './modules/ui.js?v=36';
 import { updateEvalBar } from './modules/evaluator.js';
-import { getLearnedLines, getPuzzleELO, getPuzzleStreak } from './modules/progress.js';
+import { getLearnedLines, getPuzzleELO, getPuzzleStreak } from './modules/progress.js?v=2';
 
 let db = {};
 let game = null;

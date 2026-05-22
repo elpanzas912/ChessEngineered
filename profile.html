@@ -242,6 +242,8 @@
                 document.getElementById('upgradeBtn').style.display = 'inline-flex';
             }
 
+            await loadCloudProgress(user.id);
+
             // Load stats
             loadStats();
             loadHeatmap();
@@ -259,13 +261,7 @@
                 linesLearned += progress[slug]?.learnedLines?.length || 0;
             }
 
-            // Streak (mock based on usage)
-            let streak = 0;
-            const today = new Date().toDateString();
-            const lastActive = localStorage.getItem('chesspeps_last_active');
-            if (lastActive === today) {
-                streak = parseInt(localStorage.getItem('chesspeps_streak') || '0');
-            }
+            const streak = Math.max(0, Math.round(Number(progress.dailyStreak?.count) || 0));
 
             // Time (mock)
             const minutes = Object.values(usage).reduce((sum, u) => sum + (u.count || 0) * 5, 0);
@@ -277,9 +273,24 @@
             document.getElementById('statTime').textContent = hours + 'h';
         }
 
+        async function loadCloudProgress(userId) {
+            if (!supabaseClient) return;
+            try {
+                const { data } = await supabaseClient
+                    .from('profiles')
+                    .select('user_progress')
+                    .eq('id', userId)
+                    .single();
+                if (data?.user_progress) {
+                    localStorage.setItem('chesspeps_progress', JSON.stringify(data.user_progress));
+                }
+            } catch (e) { /* ignore */ }
+        }
+
         function loadHeatmap() {
             const container = document.getElementById('heatmap');
-            const usage = JSON.parse(localStorage.getItem('chesspeps_usage') || '{}');
+            const progress = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+            const activityDates = progress.dailyStreak?.activityDates || {};
 
             // Generate last 52 weeks
             const weeks = 52;
@@ -295,19 +306,14 @@
                     date.setDate(date.getDate() - (weeks - w) * 7 + d - 6);
                     const dateStr = date.toISOString().split('T')[0];
 
-                    // Calculate intensity based on usage
+                    const count = Number(activityDates[dateStr]) || 0;
                     let intensity = 0;
-                    for (const slug in usage) {
-                        // Mock: random intensity for demo
-                        const dayHash = dateStr.split('-').join('') + slug;
-                        const hash = Array.from(dayHash).reduce((a, c) => a + c.charCodeAt(0), 0);
-                        if (hash % 7 === 0) intensity = Math.max(intensity, 1);
-                        if (hash % 13 === 0) intensity = Math.max(intensity, 2);
-                        if (hash % 23 === 0) intensity = Math.max(intensity, 3);
-                        if (hash % 41 === 0) intensity = Math.max(intensity, 4);
-                    }
+                    if (count > 0) intensity = 1;
+                    if (count >= 2) intensity = 2;
+                    if (count >= 4) intensity = 3;
+                    if (count >= 7) intensity = 4;
 
-                    html += `<div class="heatmap-cell level-${intensity}" title="${date.toDateString()}"></div>`;
+                    html += `<div class="heatmap-cell level-${intensity}" title="${date.toDateString()} · ${count} activities"></div>`;
                 }
             }
 

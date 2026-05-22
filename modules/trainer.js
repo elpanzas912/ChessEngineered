@@ -1,8 +1,8 @@
 import { COLOR } from '../lib/cm-chessboard-src/Chessboard.js';
 import { playMoveSound, playCompletionSound } from './audio.js';
-import { updateLineProgress, syncToCloud, markLineAsLearned, getLineProgress, getLearnedLines, getPuzzleELO, updatePuzzleELO, findPuzzleInELORange, saveLocalProgress, savePuzzleStreak, getPuzzleStreak } from './progress.js';
+import { updateLineProgress, syncToCloud, markLineAsLearned, getLineProgress, getLearnedLines, getPuzzleELO, updatePuzzleELO, findPuzzleInELORange, saveLocalProgress, savePuzzleStreak, getPuzzleStreak, recordDailyActivity } from './progress.js?v=2';
 import { highlightHintSquare, clearHintSquare, highlightLastMove, clearLastMove, showCorrectCheckmark, clearCorrectCheckmark, showIncorrectCross, clearIncorrectCross, moveInputHandler } from './board.js?v=32';
-import { renderMoveHistory, updateLineHeader, updateProgress, showFeedback, updateModeStats, renderLinesList, renderLineDropdown, updateStats } from './ui.js?v=35';
+import { renderMoveHistory, updateLineHeader, updateProgress, showFeedback, updateModeStats, renderLinesList, renderLineDropdown, updateStats } from './ui.js?v=36';
 import { updateEvalBar } from './evaluator.js';
 import { stats } from './stats.js';
 
@@ -535,6 +535,7 @@ export class Trainer {
     handlePuzzleSuccess() {
         this.completed = true;
         this.puzzleStreak++;
+        recordDailyActivity();
         savePuzzleStreak(this.puzzleStreak);
         const puzzleRating = this.currentPuzzle?.Rating || 1500;
         const result = updatePuzzleELO(puzzleRating, 1);
@@ -774,6 +775,7 @@ export class Trainer {
 
         if (this.mode === 'drill') {
             this.drillScore++;
+            recordDailyActivity();
             if (typeof window.updateDrillUI === 'function') window.updateDrillUI();
             setTimeout(() => {
                 this.nextLine();
@@ -783,6 +785,7 @@ export class Trainer {
 
         if (this.mode === 'time') {
             this.timeScore = (this.timeScore || 0) + 1;
+            recordDailyActivity();
             if (typeof window.updateTimeUI === 'function') window.updateTimeUI();
             setTimeout(() => {
                 this.nextLine();
@@ -806,6 +809,7 @@ export class Trainer {
             lastAttemptTimestamp: Date.now(),
             confidence: Math.min(10, (existing.confidence || 0) + (isPerfect ? 2 : 1))
         });
+        recordDailyActivity();
 
         if (this.mode === 'learn') {
             markLineAsLearned(this.slug, this.linePgn);

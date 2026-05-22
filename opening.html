@@ -405,7 +405,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-    <script type="module" src="app.js?v=37"></script>
+    <script type="module" src="app.js?v=38"></script>
 
     <!-- Auth Modal Controls (non-module, always works) -->
     <script>
@@ -799,7 +799,16 @@
                 }
 
                 const local = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
-                const merged = hasOpeningProgress(data) ? mergeProgress(local, data) : data;
+                let cloud = data;
+                const profile = await supabaseClient
+                    .from('profiles')
+                    .select('user_progress')
+                    .eq('id', userId)
+                    .single();
+                if (profile.data?.user_progress) {
+                    cloud = mergeProgress(profile.data.user_progress, data);
+                }
+                const merged = hasOpeningProgress(cloud) ? mergeProgress(local, cloud) : cloud;
                 window.userProgress = merged;
                 localStorage.setItem('chesspeps_progress', JSON.stringify(merged));
                 await supabaseClient.from('profiles').update({ user_progress: merged, updated_at: new Date().toISOString() }).eq('id', userId);
@@ -808,13 +817,18 @@
 
         function hasOpeningProgress(progress) {
             return Object.entries(progress || {}).some(([slug, value]) => {
-                return slug !== 'puzzleELO' && value && typeof value === 'object';
+                return !['puzzleELO', 'puzzleStreak', 'dailyStreak'].includes(slug) && value && typeof value === 'object';
             });
         }
 
         function mergeProgress(local, cloud) {
             const merged = { ...cloud };
+            merged.dailyStreak = mergeDailyStreak(local?.dailyStreak, cloud?.dailyStreak);
+            if (local?.puzzleStreak !== undefined) {
+                merged.puzzleStreak = Math.max(Number(local.puzzleStreak) || 0, Number(cloud?.puzzleStreak) || 0);
+            }
             for (const slug in local) {
+                if (['puzzleELO', 'puzzleStreak', 'dailyStreak'].includes(slug)) continue;
                 if (!merged[slug]) merged[slug] = local[slug];
                 else {
                     const localLearned = local[slug].learnedLines || [];
@@ -831,6 +845,25 @@
                 }
             }
             return merged;
+        }
+
+        function mergeDailyStreak(local, cloud) {
+            const normalize = (value) => ({
+                count: Math.max(0, Math.round(Number(value?.count) || 0)),
+                lastActiveDate: typeof value?.lastActiveDate === 'string' ? value.lastActiveDate : null,
+                activityDates: value?.activityDates && typeof value.activityDates === 'object' ? value.activityDates : {}
+            });
+            const a = normalize(local);
+            const b = normalize(cloud);
+            const activityDates = { ...b.activityDates };
+            Object.entries(a.activityDates).forEach(([date, count]) => {
+                activityDates[date] = Math.max(Number(activityDates[date]) || 0, Number(count) || 0);
+            });
+            return {
+                count: Math.max(a.count, b.count),
+                lastActiveDate: [a.lastActiveDate, b.lastActiveDate].filter(Boolean).sort().pop() || null,
+                activityDates
+            };
         }
 
         window.handleAuth = handleAuth;

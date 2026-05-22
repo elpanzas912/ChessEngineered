@@ -334,11 +334,51 @@ main {
 .search-input::placeholder { color: var(--color-muted); }
 .search-input:focus { border-color: var(--color-accent); }
 .toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
   font-size: var(--text-xs);
   color: var(--color-muted);
   letter-spacing: 0.04em;
 }
 .toolbar-right strong { color: var(--color-ink-2); font-weight: 500; }
+
+.daily-streak-card {
+  height: 36px;
+  min-width: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 2px var(--space-xs);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  cursor: default;
+}
+.daily-streak-flame {
+  width: 24px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.daily-streak-flame svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.daily-streak-count {
+  font-size: var(--text-xl);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
 
 /* ── Section Label ── */
 .section-label {
