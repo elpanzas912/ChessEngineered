@@ -821,14 +821,8 @@ export class Trainer {
             if (instEl) instEl.textContent = 'Line complete!';
             const bubbleText = document.querySelector('.instruction-text');
             if (bubbleText) bubbleText.textContent = 'Line complete!';
-            const learnedCount = getLearnedLines(this.slug).length;
-            const totalLines = this.opening.lines?.length || 0;
             const nextLabel = document.getElementById('completeNextLabel');
-            if (nextLabel) {
-                nextLabel.textContent = totalLines > 0
-                    ? `Next Line (${learnedCount}/${totalLines})`
-                    : 'Next Line';
-            }
+            if (nextLabel) nextLabel.textContent = 'Next Line';
             this.playCompletionConfetti();
             document.body.classList.add('line-complete-mobile');
             setTimeout(() => {
