@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="lib/cm-chessboard-assets/extensions/markers/markers.css">
     <link rel="stylesheet" href="tokens.css">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="opening.css?v=3">
+    <link rel="stylesheet" href="opening.css?v=4">
 </head>
 <body>
     <!-- Access Check -->
@@ -405,7 +405,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-    <script type="module" src="app.js?v=38"></script>
+    <script type="module" src="app.js?v=39"></script>
 
     <!-- Auth Modal Controls (non-module, always works) -->
     <script>
@@ -851,10 +851,12 @@
             const normalize = (value) => ({
                 count: Math.max(0, Math.round(Number(value?.count) || 0)),
                 lastActiveDate: typeof value?.lastActiveDate === 'string' ? value.lastActiveDate : null,
-                activityDates: value?.activityDates && typeof value.activityDates === 'object' ? value.activityDates : {}
+                activityDates: value?.activityDates && typeof value.activityDates === 'object' ? value.activityDates : {},
+                resetAt: typeof value?.resetAt === 'string' ? value.resetAt : null
             });
             const a = normalize(local);
             const b = normalize(cloud);
+            if (b.resetAt && (!a.resetAt || b.resetAt > a.resetAt)) return b;
             const activityDates = { ...b.activityDates };
             Object.entries(a.activityDates).forEach(([date, count]) => {
                 activityDates[date] = Math.max(Number(activityDates[date]) || 0, Number(count) || 0);

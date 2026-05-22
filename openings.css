@@ -358,6 +358,12 @@ main {
   font-family: var(--font-body);
   cursor: default;
 }
+.daily-streak-card.daily-streak-earned {
+  animation: dailyStreakCardEarned 1200ms var(--ease-out) both;
+}
+.daily-streak-card.daily-streak-earned .daily-streak-flame {
+  animation: dailyStreakFlameEarned 900ms var(--ease-out) both;
+}
 .daily-streak-flame {
   width: 24px;
   height: 28px;
@@ -378,6 +384,18 @@ main {
   letter-spacing: 0;
   color: var(--color-ink);
   font-variant-numeric: tabular-nums;
+}
+
+@keyframes dailyStreakCardEarned {
+  0% { transform: scale(1); border-color: transparent; background: transparent; }
+  24% { transform: scale(1.12); border-color: oklch(70% 0.15 80 / 0.45); background: oklch(70% 0.15 80 / 0.08); }
+  62% { transform: scale(0.98); }
+  100% { transform: scale(1); border-color: transparent; background: transparent; }
+}
+@keyframes dailyStreakFlameEarned {
+  0% { transform: translateY(0) scale(1); }
+  28% { transform: translateY(-3px) scale(1.22); }
+  100% { transform: translateY(0) scale(1); }
 }
 
 /* ── Section Label ── */

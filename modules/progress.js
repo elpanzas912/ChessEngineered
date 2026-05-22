@@ -18,11 +18,27 @@ function daysBetween(dateA, dateB) {
     return Math.round((b - a) / 86400000);
 }
 
+function announceDailyStreak(streak) {
+    try {
+        const payload = {
+            date: streak.lastActiveDate,
+            count: streak.count,
+            seen: false,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('chesspeps_daily_streak_earned', JSON.stringify(payload));
+        if (typeof window.dispatchEvent === 'function' && typeof CustomEvent === 'function') {
+            window.dispatchEvent(new CustomEvent('chesspeps:daily-streak-earned', { detail: payload }));
+        }
+    } catch (e) {}
+}
+
 export function normalizeDailyStreak(value) {
     const count = Math.max(0, Math.round(Number(value?.count) || 0));
     const lastActiveDate = typeof value?.lastActiveDate === 'string' ? value.lastActiveDate : null;
     const activityDates = value?.activityDates && typeof value.activityDates === 'object' ? value.activityDates : {};
-    return { count, lastActiveDate, activityDates };
+    const resetAt = typeof value?.resetAt === 'string' ? value.resetAt : null;
+    return { count, lastActiveDate, activityDates, resetAt };
 }
 
 export function getDailyStreak() {
@@ -59,6 +75,7 @@ export function recordDailyActivity() {
     window.userProgress.dailyStreak = next;
     saveLocalProgress();
     syncToCloud();
+    announceDailyStreak(next);
     return next;
 }
 
@@ -380,6 +397,9 @@ function mergeProgress(local, cloud) {
 function mergeDailyStreak(local, cloud) {
     const localStreak = normalizeDailyStreak(local);
     const cloudStreak = normalizeDailyStreak(cloud);
+    if (cloudStreak.resetAt && (!localStreak.resetAt || cloudStreak.resetAt > localStreak.resetAt)) {
+        return cloudStreak;
+    }
     const activityDates = { ...cloudStreak.activityDates };
     for (const [date, count] of Object.entries(localStreak.activityDates)) {
         activityDates[date] = Math.max(Number(activityDates[date]) || 0, Number(count) || 0);

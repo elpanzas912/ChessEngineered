@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chesspeps — Repertoire</title>
     <link rel="stylesheet" href="tokens.css">
-    <link rel="stylesheet" href="openings.css?v=4">
+    <link rel="stylesheet" href="openings.css?v=5">
 </head>
 <body>
 
@@ -246,6 +246,14 @@
             card.title = streak.lastActiveDate
                 ? `${streak.count} day streak · Last active ${streak.lastActiveDate}`
                 : 'No daily streak yet';
+            try {
+                const earned = JSON.parse(localStorage.getItem('chesspeps_daily_streak_earned') || 'null');
+                if (earned && !earned.seen && earned.date === streak.lastActiveDate) {
+                    card.classList.add('daily-streak-earned');
+                    localStorage.setItem('chesspeps_daily_streak_earned', JSON.stringify({ ...earned, seen: true }));
+                    window.setTimeout(() => card.classList.remove('daily-streak-earned'), 1600);
+                }
+            } catch (e) {}
         }
 
         function renderCourses(openings) {

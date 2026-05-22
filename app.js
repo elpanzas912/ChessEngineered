@@ -1,10 +1,10 @@
 import { initBoard, moveInputHandler } from './modules/board.js?v=32';
-import { loadLocalProgress, syncToCloud } from './modules/progress.js?v=2';
-import { Trainer } from './modules/trainer.js?v=39';
+import { loadLocalProgress, syncToCloud } from './modules/progress.js?v=3';
+import { Trainer } from './modules/trainer.js?v=40';
 import { stats } from './modules/stats.js';
 import { renderLinesList, renderLineDropdown, updateLineHeader, updateProgress, updateStats, updateModeStats, showFeedback } from './modules/ui.js?v=36';
 import { updateEvalBar } from './modules/evaluator.js';
-import { getLearnedLines, getPuzzleELO, getPuzzleStreak } from './modules/progress.js?v=2';
+import { getLearnedLines, getPuzzleELO, getPuzzleStreak } from './modules/progress.js?v=3';
 
 let db = {};
 let game = null;
@@ -18,6 +18,35 @@ window.trainer = trainer;
 window.stats = stats;
 window.getPuzzleELO = getPuzzleELO;
 window.getPuzzleStreak = getPuzzleStreak;
+
+function installDailyStreakToast() {
+    window.addEventListener('chesspeps:daily-streak-earned', (event) => {
+        const count = Number(event.detail?.count) || 1;
+        const existing = document.querySelector('.daily-streak-toast');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.className = 'daily-streak-toast';
+        toast.setAttribute('role', 'status');
+        toast.innerHTML = `
+            <span class="daily-streak-toast-flame" aria-hidden="true">
+                <svg viewBox="0 0 70 85" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 50.5C4 67.2 17.9 80.8 35 80.8S66 67.2 66 50.5c0-7.1-2.5-13.5-6.6-18.7L39.5 6.6a5.74 5.74 0 0 0-9 0L19.2 20.9l-6.4-4A5.75 5.75 0 0 0 4 21.7v28.8Z" fill="#FF9600"/>
+                    <path d="M24.6 47.6c.1-.1.1-.1.1-.2l8.4-10.5a2.47 2.47 0 0 1 3.8 0l8.4 10.5.1.2a12.66 12.66 0 0 1 2.8 8c0 7.1-5.9 12.9-13.2 12.9s-13.2-5.8-13.2-12.9c0-3 1-5.8 2.8-8Z" fill="#FFC800"/>
+                </svg>
+            </span>
+            <span class="daily-streak-toast-copy">
+                <strong>${count}</strong>
+                <span>day streak</span>
+            </span>
+        `;
+        document.body.appendChild(toast);
+        window.setTimeout(() => toast.classList.add('leaving'), 2100);
+        window.setTimeout(() => toast.remove(), 2600);
+    });
+}
+
+installDailyStreakToast();
 
 // ── Load Database ──
 fetch('data/openings.json')
