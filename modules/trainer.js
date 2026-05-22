@@ -712,22 +712,25 @@ export class Trainer {
     updateInstruction() {
         const el = document.getElementById('instruction');
         const bubbleText = document.querySelector('.instruction-text');
-        const desc = this.findDescription();
-        const short = this.findShortDescription();
 
         const side = window.game.turn();
         const isUserTurn = side === this.opening.playerSide;
         let text;
 
-        if (this.mode === 'drill') {
+        if (this.mode === 'practice') {
+            text = isUserTurn ? "What's the best move?" : `${side === 'w' ? 'White' : 'Black'} to move`;
+        } else if (this.mode === 'drill') {
             text = `Streak: ${this.drillScore} — Get as many openings correct in a row as you can!`;
         } else if (this.mode === 'puzzle') {
             text = `Streak: ${this.puzzleStreak} — Solve the puzzle! Find the best move.`;
         } else if (isUserTurn) {
+            const desc = this.findDescription();
+            const short = this.findShortDescription();
             if (desc) text = desc;
             else if (short) text = short;
             else text = "Your turn! Make the best move.";
         } else {
+            const desc = this.findDescription();
             if (desc) text = desc;
             else text = this.completed ? 'Line complete!' : "Think about the position...";
         }
