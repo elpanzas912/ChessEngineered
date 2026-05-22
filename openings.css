@@ -973,10 +973,12 @@ main {
   .hero { padding: 100px var(--space-md) 60px; }
   .hero-title { font-size: var(--text-3xl); }
   .card-foot {
+    flex-direction: column;
     align-items: flex-end;
     gap: var(--space-sm);
   }
   .card-progress-wrap {
+    width: 100%;
     gap: var(--space-xs);
     margin-right: 0;
     min-width: 0;
@@ -986,6 +988,7 @@ main {
   }
   .progress-track {
     height: 8px;
-    min-width: 112px;
+    width: 100%;
+    min-width: 0;
   }
 }
