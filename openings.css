@@ -599,11 +599,12 @@ main {
 .card-thumb {
   flex-shrink: 0;
   width: 128px;
+  aspect-ratio: 1 / 1;
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-md);
   background: var(--color-paper);
-  align-self: stretch;
+  align-self: center;
 }
 .card-thumb img {
   width: 100%;
