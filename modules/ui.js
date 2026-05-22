@@ -154,17 +154,14 @@ export function updateStats() {
     const learned = currentSlug ? getLearnedLines(currentSlug) : [];
     const lineProgress = currentSlug ? (window.userProgress[currentSlug]?.lines || {}) : {};
     const learnedInOpening = completedKnownLines(lineProgress, currentLines, learned);
-    const practiceCount = Object.entries(lineProgress).reduce((total, [pgn, line]) => {
-        if (!currentLines.includes(pgn)) return total;
-        return total + (Number(line?.completions) || 0);
-    }, 0);
+    const practicedLines = currentLines.filter(pgn => (Number(lineProgress[pgn]?.completions) || 0) > 0);
 
     if (statLines) statLines.textContent = stats.linesDone;
     if (statMoves) statMoves.textContent = stats.movesMade;
     const acc = stats.attempts > 0 ? Math.round((stats.correct / stats.attempts) * 100) + '%' : '-';
     if (statAcc) statAcc.textContent = acc;
     if (learnStats) learnStats.textContent = `${learnedInOpening.length}/${currentLines.length} lines discovered`;
-    if (practiceStats) practiceStats.textContent = `${practiceCount} practices completed`;
+    if (practiceStats) practiceStats.textContent = `${practicedLines.length}/${currentLines.length} lines practiced`;
 }
 
 export function updateModeStats() {
@@ -173,10 +170,7 @@ export function updateModeStats() {
     const learned = getLearnedLines(window.trainer.slug);
     const lineProgress = window.userProgress[window.trainer.slug]?.lines || {};
     const learnedInOpening = completedKnownLines(lineProgress, lines, learned);
-    const practiceCount = Object.entries(lineProgress).reduce((total, [pgn, line]) => {
-        if (!lines.includes(pgn)) return total;
-        return total + (Number(line?.completions) || 0);
-    }, 0);
+    const practicedLines = lines.filter(pgn => (Number(lineProgress[pgn]?.completions) || 0) > 0);
 
     const learnStats = document.getElementById('learnStats');
     const practiceStats = document.getElementById('practiceStats');
@@ -185,7 +179,7 @@ export function updateModeStats() {
         learnStats.textContent = `${learnedInOpening.length}/${lines.length} lines discovered`;
     }
     if (practiceStats) {
-        practiceStats.textContent = `${practiceCount} practices completed`;
+        practiceStats.textContent = `${practicedLines.length}/${lines.length} lines practiced`;
     }
 
     const practiceBtn = document.getElementById('modePractice');
