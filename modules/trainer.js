@@ -2,7 +2,7 @@ import { COLOR } from '../lib/cm-chessboard-src/Chessboard.js';
 import { playMoveSound, playCompletionSound } from './audio.js';
 import { updateLineProgress, syncToCloud, markLineAsLearned, getLineProgress, getLearnedLines, getPuzzleELO, updatePuzzleELO, findPuzzleInELORange, saveLocalProgress, savePuzzleStreak, getPuzzleStreak, recordDailyActivity } from './progress.js?v=3';
 import { highlightHintSquare, clearHintSquare, highlightLastMove, clearLastMove, showCorrectCheckmark, clearCorrectCheckmark, showIncorrectCross, clearIncorrectCross, moveInputHandler } from './board.js?v=32';
-import { renderMoveHistory, updateLineHeader, updateProgress, showFeedback, updateModeStats, renderLinesList, renderLineDropdown, updateStats } from './ui.js?v=37';
+import { renderMoveHistory, updateLineHeader, updateProgress, showFeedback, updateModeStats, renderLinesList, renderLineDropdown, updateStats } from './ui.js?v=38';
 import { updateEvalBar } from './evaluator.js';
 import { stats } from './stats.js';
 
@@ -803,12 +803,17 @@ export class Trainer {
 
         const existing = getLineProgress(this.slug, this.linePgn);
         const isPerfect = this.wrongAttempts === 0;
-        updateLineProgress(this.slug, this.linePgn, {
+        const lineProgressUpdate = {
             completions: (existing.completions || 0) + 1,
             perfectAttempts: (existing.perfectAttempts || 0) + (isPerfect ? 1 : 0),
             lastAttemptTimestamp: Date.now(),
             confidence: Math.min(10, (existing.confidence || 0) + (isPerfect ? 2 : 1))
-        });
+        };
+        if (this.mode === 'practice') {
+            lineProgressUpdate.practiceCompletions = (existing.practiceCompletions || 0) + 1;
+            lineProgressUpdate.practicePerfectAttempts = (existing.practicePerfectAttempts || 0) + (isPerfect ? 1 : 0);
+        }
+        updateLineProgress(this.slug, this.linePgn, lineProgressUpdate);
         recordDailyActivity();
 
         if (this.mode === 'learn') {

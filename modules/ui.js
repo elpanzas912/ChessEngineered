@@ -154,14 +154,15 @@ export function updateStats() {
     const learned = currentSlug ? getLearnedLines(currentSlug) : [];
     const lineProgress = currentSlug ? (window.userProgress[currentSlug]?.lines || {}) : {};
     const learnedInOpening = completedKnownLines(lineProgress, currentLines, learned);
-    const practicedLines = currentLines.filter(pgn => (Number(lineProgress[pgn]?.completions) || 0) > 0);
+    const practiceAvailableLines = learnedInOpening;
+    const perfectedLines = practiceAvailableLines.filter(pgn => (Number(lineProgress[pgn]?.practicePerfectAttempts) || 0) > 0);
 
     if (statLines) statLines.textContent = stats.linesDone;
     if (statMoves) statMoves.textContent = stats.movesMade;
     const acc = stats.attempts > 0 ? Math.round((stats.correct / stats.attempts) * 100) + '%' : '-';
     if (statAcc) statAcc.textContent = acc;
     if (learnStats) learnStats.textContent = `${learnedInOpening.length}/${currentLines.length} lines discovered`;
-    if (practiceStats) practiceStats.textContent = `${practicedLines.length}/${currentLines.length} lines practiced`;
+    if (practiceStats) practiceStats.textContent = `${perfectedLines.length}/${practiceAvailableLines.length} lines perfected`;
 }
 
 export function updateModeStats() {
@@ -170,7 +171,8 @@ export function updateModeStats() {
     const learned = getLearnedLines(window.trainer.slug);
     const lineProgress = window.userProgress[window.trainer.slug]?.lines || {};
     const learnedInOpening = completedKnownLines(lineProgress, lines, learned);
-    const practicedLines = lines.filter(pgn => (Number(lineProgress[pgn]?.completions) || 0) > 0);
+    const practiceAvailableLines = learnedInOpening;
+    const perfectedLines = practiceAvailableLines.filter(pgn => (Number(lineProgress[pgn]?.practicePerfectAttempts) || 0) > 0);
 
     const learnStats = document.getElementById('learnStats');
     const practiceStats = document.getElementById('practiceStats');
@@ -179,7 +181,7 @@ export function updateModeStats() {
         learnStats.textContent = `${learnedInOpening.length}/${lines.length} lines discovered`;
     }
     if (practiceStats) {
-        practiceStats.textContent = `${practicedLines.length}/${lines.length} lines practiced`;
+        practiceStats.textContent = `${perfectedLines.length}/${practiceAvailableLines.length} lines perfected`;
     }
 
     const practiceBtn = document.getElementById('modePractice');
@@ -264,10 +266,12 @@ function esc(text) {
 
 function completedKnownLines(lineProgress, knownLines, learnedFallback = []) {
     const known = new Set(knownLines);
+    const learned = [...new Set(learnedFallback || [])].filter(pgn => known.has(pgn));
+    if (learned.length > 0) return learned;
+
     const completed = Object.entries(lineProgress || {})
         .filter(([pgn, line]) => known.has(pgn) && (Number(line?.completions) || 0) > 0)
         .map(([pgn]) => pgn);
 
-    if (completed.length > 0) return [...new Set(completed)];
-    return [...new Set(learnedFallback || [])].filter(pgn => known.has(pgn));
+    return [...new Set(completed)];
 }
