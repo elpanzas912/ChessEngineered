@@ -378,7 +378,7 @@
 
         async function getOpeningsCatalog() {
             if (!openingsCatalogPromise) {
-                openingsCatalogPromise = fetch('data/openings.json')
+                openingsCatalogPromise = fetch('data/openings-catalog.json')
                     .then(r => r.ok ? r.json() : { openings: {} })
                     .then(data => data.openings || {})
                     .catch(() => ({}));

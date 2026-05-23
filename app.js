@@ -7,6 +7,7 @@ import { updateEvalBar } from './modules/evaluator.js';
 import { getLearnedLines, getPuzzleELO, getPuzzleStreak } from './modules/progress.js?v=6';
 
 let db = {};
+let catalog = {};
 let game = null;
 let board = null;
 let trainer = null;
@@ -95,33 +96,68 @@ function installTrainingTimeTracker() {
 
 installTrainingTimeTracker();
 
-// ── Load Database ──
-fetch('data/openings.json')
+// ── Load Catalog ──
+fetch('data/openings-catalog.json')
     .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
     })
     .then(data => {
-        Object.assign(db, data.openings || {});
+        catalog = data.openings || {};
         populateSelector();
         initApp();
     })
     .catch(err => {
-        const fb = document.getElementById('feedback');
-        if (fb) {
-            fb.textContent = 'Error loading database: ' + err.message;
-            fb.className = 'feedback error';
+        showLoadError('Error loading opening catalog: ' + err.message);
+    });
+
+function showLoadError(message) {
+    const fb = document.getElementById('feedback');
+    if (fb) {
+        fb.textContent = message;
+        fb.className = 'feedback error';
+    }
+}
+
+async function getOpeningAccessToken() {
+    if (!window.auth?.getSession) return null;
+    const { data } = await window.auth.getSession();
+    return data?.session?.access_token || null;
+}
+
+async function fetchProtectedOpening(slug) {
+    if (db[slug]?.lines?.length) return db[slug];
+
+    const token = await getOpeningAccessToken();
+    if (!token) {
+        throw new Error('Log in to access this opening.');
+    }
+
+    const res = await fetch(`${window.SUPABASE_URL}/functions/v1/get-opening?slug=${encodeURIComponent(slug)}`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            apikey: window.SUPABASE_KEY || ''
         }
     });
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) {
+        const message = payload.error || `HTTP ${res.status}`;
+        const error = new Error(message);
+        error.status = res.status;
+        throw error;
+    }
+    db[slug] = payload.opening;
+    return db[slug];
+}
 
 function populateSelector() {
     const sel = document.getElementById('openingSelect');
     if (!sel) return;
-    const slugs = Object.keys(db).sort();
+    const slugs = Object.keys(catalog).sort();
     for (const slug of slugs) {
         const opt = document.createElement('option');
         opt.value = slug;
-        opt.textContent = db[slug].displayName || slug;
+        opt.textContent = catalog[slug].displayName || slug;
         sel.appendChild(opt);
     }
 }
@@ -206,23 +242,43 @@ function initApp() {
     // Auto-load from URL if slug present
     const params = new URLSearchParams(window.location.search);
     const slug = params.get('slug');
-    if (slug && db[slug]) {
-        trainer = new Trainer();
+    if (slug && catalog[slug]) {
+        loadOpeningBySlug(slug);
+    }
+}
+
+async function loadOpeningBySlug(slug) {
+    try {
+        const opening = await fetchProtectedOpening(slug);
+        trainer = trainer || new Trainer();
         window.trainer = trainer;
         trainer.loadOpening(slug);
         window.trainingTimeTracker?.start(trainer.mode);
         const nameEl = document.getElementById('openingName');
-        if (nameEl) nameEl.textContent = db[slug].displayName;
+        if (nameEl) nameEl.textContent = opening.displayName;
+        const selectEl = document.getElementById('openingSelect');
+        if (selectEl) selectEl.value = slug;
+    } catch (err) {
+        const message = err.status === 403
+            ? 'This opening is locked. Upgrade to access it.'
+            : err.message;
+        showLoadError(message);
+        if (err.status === 401 && typeof window.openAuthModal === 'function') {
+            window.openAuthModal();
+        }
+        if (err.status === 403) {
+            const overlay = document.getElementById('paywallOverlay');
+            const layout = document.querySelector('.trainer-layout');
+            if (overlay) overlay.style.display = 'flex';
+            if (layout) layout.style.display = 'none';
+        }
     }
 }
 
-function onOpeningChange(e) {
+async function onOpeningChange(e) {
     const slug = e.target.value;
     if (!slug) return;
-    if (!trainer) trainer = new Trainer();
-    window.trainer = trainer;
-    trainer.loadOpening(slug);
-    window.trainingTimeTracker?.start(trainer.mode);
+    await loadOpeningBySlug(slug);
     updateStats();
 }
 

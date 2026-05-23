@@ -1,4 +1,4 @@
-{
+export const OPENING_DATABASE = {
   "openings": {
     "alapin-sicilian": {
       "id": "1bc55fb5-2257-497b-b87e-9a9a9eae185d",
@@ -5160,4 +5160,4 @@
     }
   },
   "failures": []
-}
+} as const;

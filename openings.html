@@ -187,13 +187,14 @@
         let supabaseClient = window.supabaseClient || null;
         let auth = window.auth || null;
         let hasActiveSubscription = false;
+        let serverFreeOpening = null;
 
         if (!supabaseClient) {
             document.getElementById('authError').textContent = 'Connection error. Please refresh.';
         }
 
-        // Fetch openings
-        fetch('data/openings.json')
+        // Fetch public opening catalog. Full lines are loaded through the protected Edge Function.
+        fetch('data/openings-catalog.json')
             .then(r => r.json())
             .then(data => {
                 allOpenings = data.openings || {};
@@ -203,8 +204,6 @@
 
         // Check subscription status and render
         async function checkSubscriptionAndRender() {
-            const freeOpening = localStorage.getItem('chesspeps_free_opening');
-
             if (auth) {
                 const { data: { user } } = await auth.getUser();
                 if (user) {
@@ -222,11 +221,24 @@
                         } catch (e) {
                             hasActiveSubscription = false;
                         }
+
+                        try {
+                            const { data: profile } = await supabaseClient
+                                .from('profiles')
+                                .select('free_opening_slug')
+                                .eq('id', user.id)
+                                .single();
+                            if (profile?.free_opening_slug) {
+                                serverFreeOpening = profile.free_opening_slug;
+                                localStorage.setItem('chesspeps_free_opening', serverFreeOpening);
+                            }
+                        } catch (e) { /* ignore */ }
                     }
                 }
             }
 
             // Show free tier banner if no subscription and no free opening picked
+            const freeOpening = serverFreeOpening || localStorage.getItem('chesspeps_free_opening');
             const banner = document.getElementById('freeTierBanner');
             if (banner && !hasActiveSubscription && !freeOpening) {
                 banner.style.display = 'block';
@@ -347,7 +359,7 @@
 
             let entries = Object.entries(openings);
             const usage = getUsageData();
-            const freeOpening = localStorage.getItem('chesspeps_free_opening');
+            const freeOpening = serverFreeOpening || localStorage.getItem('chesspeps_free_opening');
 
             // Sort by: last used first, then by usage count (most used first)
             entries.sort((a, b) => {
@@ -383,7 +395,7 @@
                 });
             }
 
-            const totalLines = entries.reduce((sum, [, o]) => sum + (o.lines?.length || 0), 0);
+            const totalLines = entries.reduce((sum, [, o]) => sum + (Number(o.lineCount) || 0), 0);
             document.getElementById('countOpenings').textContent = entries.length;
             document.getElementById('countLines').textContent = totalLines;
 
@@ -406,8 +418,8 @@
 
                 const side = o.playerSide === 'w' ? 'white' : 'black';
                 const sideLabel = o.playerSide === 'w' ? 'White' : 'Black';
-                const lineCount = o.lines?.length || 0;
-                const desc = o.descriptions ? Object.values(o.descriptions)[0] : '';
+                const lineCount = Number(o.lineCount) || 0;
+                const desc = o.description || '';
                 const shortDesc = desc ? desc.substring(0, 120) + (desc.length > 120 ? '...' : '') : 'Practice this opening with interactive training.';
 
                 // Calculate progress
@@ -417,7 +429,9 @@
                     const progress = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
                     learnedCount = progress[slug]?.learnedLines?.length || 0;
                     const lineProgress = progress[slug]?.lines || {};
-                    practicePerfectedCount = (o.lines || []).filter(pgn => (Number(lineProgress[pgn]?.practicePerfectAttempts) || 0) > 0).length;
+                    practicePerfectedCount = Object.values(lineProgress)
+                        .filter(line => (Number(line?.practicePerfectAttempts) || 0) > 0)
+                        .length;
                 } catch (e) { /* ignore */ }
                 const pct = lineCount > 0 ? Math.round((learnedCount / lineCount) * 100) : 0;
                 const practicePct = lineCount > 0 ? Math.round((practicePerfectedCount / lineCount) * 100) : 0;
@@ -472,6 +486,7 @@
                     e.preventDefault();
                     if (isFreePickable) {
                         // Save as free opening and navigate
+                        serverFreeOpening = slug;
                         localStorage.setItem('chesspeps_free_opening', slug);
                         trackOpeningUsage(slug);
                         location.href = `opening.html?slug=${slug}`;
