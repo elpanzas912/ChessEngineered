@@ -6,7 +6,7 @@
     <title>Profile — ChessPeps</title>
     <link rel="stylesheet" href="lib/cm-chessboard-assets/chessboard.css">
     <link rel="stylesheet" href="tokens.css">
-    <link rel="stylesheet" href="profile.css?v=4">
+    <link rel="stylesheet" href="profile.css?v=5">
 </head>
 <body>
 
@@ -71,6 +71,35 @@
             <div class="stat-box">
                 <span class="stat-value" id="statTime">0h</span>
                 <span class="stat-label">Time trained</span>
+            </div>
+        </div>
+
+        <div class="profile-card training-time-card">
+            <h2 class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Training time
+            </h2>
+            <div class="training-time-list">
+                <div class="training-time-row">
+                    <span>Learn</span>
+                    <strong id="timeLearn">0m</strong>
+                </div>
+                <div class="training-time-row">
+                    <span>Practice</span>
+                    <strong id="timePractice">0m</strong>
+                </div>
+                <div class="training-time-row">
+                    <span>Drill</span>
+                    <strong id="timeDrill">0m</strong>
+                </div>
+                <div class="training-time-row">
+                    <span>Time Trials</span>
+                    <strong id="timeTrial">0m</strong>
+                </div>
+                <div class="training-time-row">
+                    <span>Puzzles</span>
+                    <strong id="timePuzzle">0m</strong>
+                </div>
             </div>
         </div>
 
@@ -285,14 +314,36 @@
 
             const streak = Math.max(0, Math.round(Number(progress.dailyStreak?.count) || 0));
 
-            // Time (mock)
-            const minutes = Object.values(usage).reduce((sum, u) => sum + (u.count || 0) * 5, 0);
-            const hours = Math.floor(minutes / 60);
+            const trainingTime = normalizeTrainingTime(progress.trainingTime);
+            const totalTime = Object.values(trainingTime).reduce((sum, value) => sum + value, 0);
 
             document.getElementById('statOpenings').textContent = openingsPracticed;
             document.getElementById('statLines').textContent = linesLearned;
             document.getElementById('statStreak').textContent = streak;
-            document.getElementById('statTime').textContent = hours + 'h';
+            document.getElementById('statTime').textContent = formatDuration(totalTime);
+            document.getElementById('timeLearn').textContent = formatDuration(trainingTime.learn);
+            document.getElementById('timePractice').textContent = formatDuration(trainingTime.practice);
+            document.getElementById('timeDrill').textContent = formatDuration(trainingTime.drill);
+            document.getElementById('timeTrial').textContent = formatDuration(trainingTime.time);
+            document.getElementById('timePuzzle').textContent = formatDuration(trainingTime.puzzle);
+        }
+
+        function normalizeTrainingTime(value) {
+            const source = value && typeof value === 'object' ? value : {};
+            return ['learn', 'practice', 'drill', 'time', 'puzzle'].reduce((acc, mode) => {
+                acc[mode] = Math.max(0, Math.round(Number(source[mode]) || 0));
+                return acc;
+            }, {});
+        }
+
+        function formatDuration(milliseconds) {
+            const safeMilliseconds = Math.max(0, Number(milliseconds) || 0);
+            if (safeMilliseconds > 0 && safeMilliseconds < 60000) return '<1m';
+            const totalMinutes = Math.floor(safeMilliseconds / 60000);
+            if (totalMinutes < 60) return totalMinutes + 'm';
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
         }
 
         async function loadCloudProgress(userId) {
@@ -312,8 +363,9 @@
 
         function mergeProgress(local, cloud) {
             const merged = { ...(cloud || {}) };
+            merged.trainingTime = mergeTrainingTime(local?.trainingTime, cloud?.trainingTime);
             for (const slug in local || {}) {
-                if (['puzzleELO', 'puzzleStreak', 'dailyStreak'].includes(slug)) {
+                if (['puzzleELO', 'puzzleStreak', 'dailyStreak', 'trainingTime'].includes(slug)) {
                     if (merged[slug] === undefined) merged[slug] = local[slug];
                     continue;
                 }
@@ -332,6 +384,15 @@
                 merged[slug].lines = cloudLines;
             }
             return merged;
+        }
+
+        function mergeTrainingTime(local, cloud) {
+            const localTime = normalizeTrainingTime(local);
+            const cloudTime = normalizeTrainingTime(cloud);
+            return ['learn', 'practice', 'drill', 'time', 'puzzle'].reduce((acc, mode) => {
+                acc[mode] = Math.max(localTime[mode], cloudTime[mode]);
+                return acc;
+            }, {});
         }
 
         function mergeLineProgress(localLine = {}, cloudLine = {}) {

@@ -1,8 +1,8 @@
 import { COLOR } from '../lib/cm-chessboard-src/Chessboard.js';
 import { playMoveSound, playCompletionSound } from './audio.js';
-import { updateLineProgress, syncToCloud, markLineAsLearned, getLineProgress, getLearnedLines, getPuzzleELO, updatePuzzleELO, findPuzzleInELORange, saveLocalProgress, savePuzzleStreak, getPuzzleStreak, recordDailyActivity } from './progress.js?v=4';
+import { updateLineProgress, syncToCloud, markLineAsLearned, getLineProgress, getLearnedLines, getPuzzleELO, updatePuzzleELO, findPuzzleInELORange, saveLocalProgress, savePuzzleStreak, getPuzzleStreak, recordDailyActivity } from './progress.js?v=5';
 import { highlightHintSquare, clearHintSquare, highlightLastMove, clearLastMove, showCorrectCheckmark, clearCorrectCheckmark, showIncorrectCross, clearIncorrectCross, moveInputHandler } from './board.js?v=38';
-import { renderMoveHistory, updateLineHeader, updateProgress, showFeedback, updateModeStats, renderLinesList, renderLineDropdown, updateStats } from './ui.js?v=39';
+import { renderMoveHistory, updateLineHeader, updateProgress, showFeedback, updateModeStats, renderLinesList, renderLineDropdown, updateStats } from './ui.js?v=40';
 import { updateEvalBar } from './evaluator.js';
 import { stats } from './stats.js';
 
@@ -16,7 +16,7 @@ export class Trainer {
         this.lineName = '';
         this.moves = [];
         this.moveIndex = 0;
-        this.mode = 'learn';
+        this._mode = 'learn';
         this.completed = false;
         this.hintShown = false;
         this.wrongAttempts = 0;
@@ -34,6 +34,17 @@ export class Trainer {
         this.isTransitioning = false;
         this.currentPuzzleStep = 0;
         this.puzzlePlayerColor = null;
+    }
+
+    get mode() {
+        return this._mode || 'learn';
+    }
+
+    set mode(nextMode) {
+        const normalizedMode = nextMode || 'learn';
+        if (this._mode === normalizedMode) return;
+        this._mode = normalizedMode;
+        window.trainingTimeTracker?.switchMode(normalizedMode);
     }
 
     loadOpening(slug) {

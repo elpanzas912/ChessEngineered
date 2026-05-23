@@ -1,4 +1,4 @@
-import { getLearnedLines } from './progress.js?v=4';
+import { getLearnedLines } from './progress.js?v=5';
 import { stats } from './stats.js';
 
 export { stats };

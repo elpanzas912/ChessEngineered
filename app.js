@@ -1,10 +1,10 @@
 import { initBoard, moveInputHandler } from './modules/board.js?v=38';
-import { loadLocalProgress, syncToCloud } from './modules/progress.js?v=4';
-import { Trainer } from './modules/trainer.js?v=43';
+import { loadLocalProgress, syncToCloud, recordTrainingTime } from './modules/progress.js?v=5';
+import { Trainer } from './modules/trainer.js?v=44';
 import { stats } from './modules/stats.js';
-import { renderLinesList, renderLineDropdown, updateLineHeader, updateProgress, updateStats, updateModeStats, showFeedback } from './modules/ui.js?v=39';
+import { renderLinesList, renderLineDropdown, updateLineHeader, updateProgress, updateStats, updateModeStats, showFeedback } from './modules/ui.js?v=40';
 import { updateEvalBar } from './modules/evaluator.js';
-import { getLearnedLines, getPuzzleELO, getPuzzleStreak } from './modules/progress.js?v=4';
+import { getLearnedLines, getPuzzleELO, getPuzzleStreak } from './modules/progress.js?v=5';
 
 let db = {};
 let game = null;
@@ -47,6 +47,53 @@ function installDailyStreakToast() {
 }
 
 installDailyStreakToast();
+
+function installTrainingTimeTracker() {
+    const trackedModes = new Set(['learn', 'practice', 'drill', 'time', 'puzzle']);
+    let activeMode = null;
+    let startedAt = 0;
+
+    function normalizedMode(mode) {
+        return trackedModes.has(mode) ? mode : null;
+    }
+
+    function canTrack() {
+        return Boolean(window.trainer) && document.visibilityState !== 'hidden';
+    }
+
+    function stop() {
+        if (activeMode && startedAt) {
+            recordTrainingTime(activeMode, Date.now() - startedAt);
+        }
+        activeMode = null;
+        startedAt = 0;
+    }
+
+    function start(mode) {
+        stop();
+        const nextMode = normalizedMode(mode);
+        if (!nextMode || !canTrack()) return;
+        activeMode = nextMode;
+        startedAt = Date.now();
+    }
+
+    function switchMode(mode) {
+        start(mode);
+    }
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+            stop();
+        } else if (window.trainer) {
+            start(window.trainer.mode);
+        }
+    });
+
+    window.addEventListener('beforeunload', stop);
+    window.trainingTimeTracker = { start, stop, switchMode };
+}
+
+installTrainingTimeTracker();
 
 // ── Load Database ──
 fetch('data/openings.json')
@@ -163,6 +210,7 @@ function initApp() {
         trainer = new Trainer();
         window.trainer = trainer;
         trainer.loadOpening(slug);
+        window.trainingTimeTracker?.start(trainer.mode);
         const nameEl = document.getElementById('openingName');
         if (nameEl) nameEl.textContent = db[slug].displayName;
     }
@@ -174,6 +222,7 @@ function onOpeningChange(e) {
     if (!trainer) trainer = new Trainer();
     window.trainer = trainer;
     trainer.loadOpening(slug);
+    window.trainingTimeTracker?.start(trainer.mode);
     updateStats();
 }
 

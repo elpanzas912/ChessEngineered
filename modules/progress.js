@@ -1,6 +1,7 @@
 window.userProgress = window.userProgress || {};
 
-const NON_OPENING_PROGRESS_KEYS = new Set(['puzzleELO', 'puzzleStreak', 'dailyStreak']);
+const NON_OPENING_PROGRESS_KEYS = new Set(['puzzleELO', 'puzzleStreak', 'dailyStreak', 'trainingTime']);
+const TRAINING_TIME_MODES = ['learn', 'practice', 'drill', 'time', 'puzzle'];
 
 function getLocalDateKey(date = new Date()) {
     const year = date.getFullYear();
@@ -96,6 +97,32 @@ export function loadLocalProgress() {
 
 export function saveLocalProgress() {
     localStorage.setItem('chesspeps_progress', JSON.stringify(window.userProgress));
+}
+
+export function normalizeTrainingTime(value) {
+    const source = value && typeof value === 'object' ? value : {};
+    return TRAINING_TIME_MODES.reduce((acc, mode) => {
+        acc[mode] = Math.max(0, Math.round(Number(source[mode]) || 0));
+        return acc;
+    }, {});
+}
+
+export function getTrainingTime() {
+    if (!window.userProgress) window.userProgress = {};
+    const trainingTime = normalizeTrainingTime(window.userProgress.trainingTime);
+    window.userProgress.trainingTime = trainingTime;
+    return trainingTime;
+}
+
+export function recordTrainingTime(mode, milliseconds) {
+    if (!TRAINING_TIME_MODES.includes(mode)) return;
+    const elapsed = Math.max(0, Math.round(Number(milliseconds) || 0));
+    if (elapsed < 1000) return;
+    const trainingTime = getTrainingTime();
+    trainingTime[mode] += elapsed;
+    window.userProgress.trainingTime = trainingTime;
+    saveLocalProgress();
+    syncToCloud();
 }
 
 export function getLineProgress(slug, linePgn) {
@@ -368,6 +395,7 @@ async function loadCloudProgressFallback(userId) {
 function mergeProgress(local, cloud) {
     const merged = { ...cloud };
     merged.dailyStreak = mergeDailyStreak(local?.dailyStreak, cloud?.dailyStreak);
+    merged.trainingTime = mergeTrainingTime(local?.trainingTime, cloud?.trainingTime);
     if (local?.puzzleStreak !== undefined) {
         merged.puzzleStreak = Math.max(
             normalizePuzzleCount(local.puzzleStreak, 0),
@@ -390,6 +418,15 @@ function mergeProgress(local, cloud) {
         }
     }
     return merged;
+}
+
+function mergeTrainingTime(local, cloud) {
+    const localTime = normalizeTrainingTime(local);
+    const cloudTime = normalizeTrainingTime(cloud);
+    return TRAINING_TIME_MODES.reduce((acc, mode) => {
+        acc[mode] = Math.max(localTime[mode], cloudTime[mode]);
+        return acc;
+    }, {});
 }
 
 function mergeLineProgress(localLine = {}, cloudLine = {}) {
