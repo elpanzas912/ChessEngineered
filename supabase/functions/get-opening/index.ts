@@ -1,6 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { OPENING_DATABASE } from './openings-data.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,6 +20,24 @@ function activeSubscription(subscription: { status?: string; current_period_end?
     ? new Date(subscription.current_period_end) > new Date()
     : false;
   return activeStatus && activePeriod;
+}
+
+let databasePromise: Promise<Record<string, unknown>> | null = null;
+
+async function getOpeningDatabase(supabaseAdmin: ReturnType<typeof createClient>) {
+  if (!databasePromise) {
+    databasePromise = supabaseAdmin.storage
+      .from('private-opening-data')
+      .download('openings.json')
+      .then(async ({ data, error }) => {
+        if (error || !data) {
+          throw new Error(error?.message || 'Opening database unavailable');
+        }
+        const payload = JSON.parse(await data.text());
+        return payload.openings || {};
+      });
+  }
+  return databasePromise;
 }
 
 serve(async (req) => {
@@ -44,11 +61,6 @@ serve(async (req) => {
       return jsonResponse({ error: 'Invalid opening' }, 400);
     }
 
-    const opening = (OPENING_DATABASE.openings as Record<string, unknown>)?.[slug];
-    if (!opening) {
-      return jsonResponse({ error: 'Opening not found' }, 404);
-    }
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
@@ -63,6 +75,12 @@ serve(async (req) => {
     }
 
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+    const database = await getOpeningDatabase(supabaseAdmin);
+    const opening = database[slug];
+    if (!opening) {
+      return jsonResponse({ error: 'Opening not found' }, 404);
+    }
+
     const { data: subscription } = await supabaseAdmin
       .from('subscriptions')
       .select('status, current_period_end')

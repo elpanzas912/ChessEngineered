@@ -10,6 +10,7 @@ yarn.lock
 
 # Supabase
 supabase/.temp/
+supabase/.private/
 supabase/config.toml
 
 # OS
