@@ -247,6 +247,87 @@
 }
 
 /* ── Settings ── */
+.board-appearance {
+  border-top: 1px solid var(--color-rule);
+  padding-top: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+.settings-section-title {
+  margin: 0 0 var(--space-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-muted);
+}
+.appearance-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  min-height: 44px;
+  padding: var(--space-xs) 0;
+}
+.appearance-row + .appearance-row {
+  border-top: 1px solid oklch(100% 0 0 / 0.04);
+}
+.appearance-label {
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+}
+.appearance-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.appearance-select-wrap svg {
+  position: absolute;
+  right: 9px;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  opacity: 0.45;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  color: var(--color-muted);
+}
+.appearance-select {
+  appearance: none;
+  min-width: 112px;
+  padding: 6px 28px 6px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+  text-align: right;
+  cursor: pointer;
+  transition: background var(--dur-short), color var(--dur-short);
+}
+.appearance-select:hover,
+.appearance-select:focus {
+  background: var(--color-paper-3);
+  color: var(--color-ink-2);
+  outline: none;
+}
+.appearance-select option {
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+}
+.board-preview-wrap {
+  width: min(280px, 100%);
+  margin: var(--space-lg) auto 0;
+}
+.board-preview {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+}
+.board-preview .cm-chessboard {
+  display: block;
+}
+
 .settings-list {
   display: flex;
   flex-direction: column;

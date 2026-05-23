@@ -4,13 +4,29 @@ import { RightClickAnnotator } from '../lib/cm-chessboard-src/extensions/right-c
 
 let pendingIncorrectMove = null;
 
+const BOARD_THEMES = new Set(['default', 'green', 'blue', 'chessboard-js', 'black-and-white']);
+const PIECE_SETS = new Set(['staunty', 'standard']);
+
+function getBoardAppearance() {
+    let storedTheme = localStorage.getItem('chesspeps_board_theme') || localStorage.getItem('chesspeps_boardTheme') || 'green';
+    if (storedTheme === 'brown') storedTheme = 'chessboard-js';
+    const storedPieces = localStorage.getItem('chesspeps_piece_set') || 'staunty';
+    const cssClass = BOARD_THEMES.has(storedTheme) ? storedTheme : 'green';
+    const pieceSet = PIECE_SETS.has(storedPieces) ? storedPieces : 'staunty';
+    return {
+        cssClass,
+        piecesFile: `pieces/${pieceSet}.svg`
+    };
+}
+
 export function initBoard(element) {
+    const appearance = getBoardAppearance();
     const board = new Chessboard(element, {
         assetsUrl: "../lib/cm-chessboard-assets/",
         position: FEN.start,
         style: {
-            pieces: { file: "pieces/staunty.svg", tileSize: 40 },
-            cssClass: "default",
+            pieces: { file: appearance.piecesFile, tileSize: 40 },
+            cssClass: appearance.cssClass,
             borderType: BORDER_TYPE.none,
             animationDuration: 250
         },

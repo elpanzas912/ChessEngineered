@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile — ChessPeps</title>
+    <link rel="stylesheet" href="lib/cm-chessboard-assets/chessboard.css">
     <link rel="stylesheet" href="tokens.css">
-    <link rel="stylesheet" href="profile.css">
+    <link rel="stylesheet" href="profile.css?v=2">
 </head>
 <body>
 
@@ -106,19 +107,37 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
                 Settings
             </h2>
-            <div class="settings-list">
-                <div class="setting-row">
-                    <div class="setting-info">
-                        <span class="setting-label">Board color</span>
-                        <span class="setting-desc">Choose your preferred board theme</span>
-                    </div>
-                    <select class="setting-select" id="boardTheme" onchange="saveSetting('boardTheme', this.value)">
-                        <option value="default">Classic</option>
-                        <option value="green">Green</option>
-                        <option value="blue">Blue</option>
-                        <option value="brown">Brown</option>
-                    </select>
+            <section class="board-appearance">
+                <h3 class="settings-section-title">Board Appearance</h3>
+                <div class="appearance-row">
+                    <span class="appearance-label">Board Color</span>
+                    <label class="appearance-select-wrap">
+                        <select class="appearance-select" id="boardTheme" onchange="saveBoardAppearance('boardTheme', this.value)">
+                            <option value="green">Green</option>
+                            <option value="blue">Blue</option>
+                            <option value="chessboard-js">Brown</option>
+                            <option value="default">Classic</option>
+                            <option value="black-and-white">Black & White</option>
+                        </select>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                    </label>
                 </div>
+                <div class="appearance-row">
+                    <span class="appearance-label">Piece Set</span>
+                    <label class="appearance-select-wrap">
+                        <select class="appearance-select" id="pieceSet" onchange="saveBoardAppearance('pieceSet', this.value)">
+                            <option value="staunty">Staunty</option>
+                            <option value="standard">Standard</option>
+                        </select>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                    </label>
+                </div>
+                <div class="board-preview-wrap">
+                    <div class="board-preview" id="boardAppearancePreview" aria-label="Board appearance preview"></div>
+                </div>
+            </section>
+
+            <div class="settings-list">
                 <div class="setting-row">
                     <div class="setting-info">
                         <span class="setting-label">Sound effects</span>
@@ -282,9 +301,51 @@
                     .eq('id', userId)
                     .single();
                 if (data?.user_progress) {
-                    localStorage.setItem('chesspeps_progress', JSON.stringify(data.user_progress));
+                    const local = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+                    localStorage.setItem('chesspeps_progress', JSON.stringify(mergeProgress(local, data.user_progress)));
                 }
             } catch (e) { /* ignore */ }
+        }
+
+        function mergeProgress(local, cloud) {
+            const merged = { ...(cloud || {}) };
+            for (const slug in local || {}) {
+                if (['puzzleELO', 'puzzleStreak', 'dailyStreak'].includes(slug)) {
+                    if (merged[slug] === undefined) merged[slug] = local[slug];
+                    continue;
+                }
+                if (!merged[slug]) {
+                    merged[slug] = local[slug];
+                    continue;
+                }
+                const localLearned = local[slug].learnedLines || [];
+                const cloudLearned = merged[slug].learnedLines || [];
+                merged[slug].learnedLines = [...new Set([...cloudLearned, ...localLearned])];
+                const localLines = local[slug].lines || {};
+                const cloudLines = merged[slug].lines || {};
+                for (const pgn in localLines) {
+                    cloudLines[pgn] = mergeLineProgress(localLines[pgn], cloudLines[pgn]);
+                }
+                merged[slug].lines = cloudLines;
+            }
+            return merged;
+        }
+
+        function mergeLineProgress(localLine = {}, cloudLine = {}) {
+            const localTimestamp = Number(localLine?.lastAttemptTimestamp) || 0;
+            const cloudTimestamp = Number(cloudLine?.lastAttemptTimestamp) || 0;
+            const newer = localTimestamp >= cloudTimestamp ? localLine : cloudLine;
+            return {
+                ...cloudLine,
+                ...localLine,
+                ...newer,
+                completions: Math.max(Number(localLine?.completions) || 0, Number(cloudLine?.completions) || 0),
+                perfectAttempts: Math.max(Number(localLine?.perfectAttempts) || 0, Number(cloudLine?.perfectAttempts) || 0),
+                practiceCompletions: Math.max(Number(localLine?.practiceCompletions) || 0, Number(cloudLine?.practiceCompletions) || 0),
+                practicePerfectAttempts: Math.max(Number(localLine?.practicePerfectAttempts) || 0, Number(cloudLine?.practicePerfectAttempts) || 0),
+                confidence: Math.max(Number(localLine?.confidence) || 0, Number(cloudLine?.confidence) || 0),
+                lastAttemptTimestamp: Math.max(localTimestamp, cloudTimestamp) || null
+            };
         }
 
         function loadHeatmap() {
@@ -348,13 +409,23 @@
         }
 
         function loadSettings() {
-            const boardTheme = localStorage.getItem('chesspeps_board_theme') || 'default';
+            let boardTheme = localStorage.getItem('chesspeps_board_theme') || localStorage.getItem('chesspeps_boardTheme') || 'green';
+            if (boardTheme === 'brown') boardTheme = 'chessboard-js';
+            const pieceSet = localStorage.getItem('chesspeps_piece_set') || 'staunty';
             const soundEnabled = localStorage.getItem('chesspeps_sound') !== 'false';
             const hintsEnabled = localStorage.getItem('chesspeps_hints') !== 'false';
 
             document.getElementById('boardTheme').value = boardTheme;
+            document.getElementById('pieceSet').value = pieceSet;
             document.getElementById('soundToggle').checked = soundEnabled;
             document.getElementById('hintsToggle').checked = hintsEnabled;
+            window.dispatchEvent(new CustomEvent('boardAppearanceChanged'));
+        }
+
+        function saveBoardAppearance(key, value) {
+            const storageKey = key === 'pieceSet' ? 'chesspeps_piece_set' : 'chesspeps_board_theme';
+            localStorage.setItem(storageKey, value);
+            window.dispatchEvent(new CustomEvent('boardAppearanceChanged'));
         }
 
         function saveSetting(key, value) {
@@ -464,6 +535,50 @@
                 updateUserMenu(session?.user || null);
             });
         }
+    </script>
+    <script type="module">
+        import { Chessboard, COLOR, BORDER_TYPE, FEN } from './lib/cm-chessboard-src/Chessboard.js';
+
+        const boardThemes = new Set(['default', 'green', 'blue', 'chessboard-js', 'black-and-white']);
+        const pieceSets = new Set(['staunty', 'standard']);
+        let previewBoard = null;
+
+        function readAppearance() {
+            let theme = localStorage.getItem('chesspeps_board_theme') || localStorage.getItem('chesspeps_boardTheme') || 'green';
+            if (theme === 'brown') theme = 'chessboard-js';
+            const pieces = localStorage.getItem('chesspeps_piece_set') || 'staunty';
+            return {
+                theme: boardThemes.has(theme) ? theme : 'green',
+                pieces: pieceSets.has(pieces) ? pieces : 'staunty'
+            };
+        }
+
+        function renderBoardPreview() {
+            const target = document.getElementById('boardAppearancePreview');
+            if (!target) return;
+            const appearance = readAppearance();
+            if (previewBoard) {
+                previewBoard.destroy();
+                previewBoard = null;
+            }
+            target.innerHTML = '';
+            previewBoard = new Chessboard(target, {
+                assetsUrl: './lib/cm-chessboard-assets/',
+                assetsCache: false,
+                position: 'rn1qkbnr/ppp1pppp/8/3p4/3P4/2N2N2/PPP1PPPP/R1BQKB1R b KQkq - 2 3',
+                orientation: COLOR.white,
+                style: {
+                    cssClass: appearance.theme,
+                    borderType: BORDER_TYPE.none,
+                    pieces: { file: `pieces/${appearance.pieces}.svg`, tileSize: 40 },
+                    animationDuration: 0
+                }
+            });
+        }
+
+        window.addEventListener('boardAppearanceChanged', renderBoardPreview);
+        window.addEventListener('DOMContentLoaded', renderBoardPreview);
+        renderBoardPreview();
     </script>
 </body>
 </html>
