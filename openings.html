@@ -700,11 +700,55 @@
                     .eq('id', userId)
                     .single();
                 if (data && data.user_progress) {
-                    localStorage.setItem('chesspeps_progress', JSON.stringify(data.user_progress));
+                    const local = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+                    const merged = mergeProgress(local, data.user_progress);
+                    localStorage.setItem('chesspeps_progress', JSON.stringify(merged));
                     renderDailyStreak();
                     renderCourses(allOpenings);
                 }
             } catch (e) { /* silently ignore */ }
+        }
+
+        function mergeProgress(local, cloud) {
+            const merged = { ...(cloud || {}) };
+            for (const slug in local || {}) {
+                if (['puzzleELO', 'puzzleStreak', 'dailyStreak'].includes(slug)) {
+                    if (merged[slug] === undefined) merged[slug] = local[slug];
+                    continue;
+                }
+                if (!merged[slug]) {
+                    merged[slug] = local[slug];
+                    continue;
+                }
+                const localLearned = local[slug].learnedLines || [];
+                const cloudLearned = merged[slug].learnedLines || [];
+                merged[slug].learnedLines = [...new Set([...cloudLearned, ...localLearned])];
+
+                const localLines = local[slug].lines || {};
+                const cloudLines = merged[slug].lines || {};
+                for (const pgn in localLines) {
+                    cloudLines[pgn] = mergeLineProgress(localLines[pgn], cloudLines[pgn]);
+                }
+                merged[slug].lines = cloudLines;
+            }
+            return merged;
+        }
+
+        function mergeLineProgress(localLine = {}, cloudLine = {}) {
+            const localTimestamp = Number(localLine?.lastAttemptTimestamp) || 0;
+            const cloudTimestamp = Number(cloudLine?.lastAttemptTimestamp) || 0;
+            const newer = localTimestamp >= cloudTimestamp ? localLine : cloudLine;
+            return {
+                ...cloudLine,
+                ...localLine,
+                ...newer,
+                completions: Math.max(Number(localLine?.completions) || 0, Number(cloudLine?.completions) || 0),
+                perfectAttempts: Math.max(Number(localLine?.perfectAttempts) || 0, Number(cloudLine?.perfectAttempts) || 0),
+                practiceCompletions: Math.max(Number(localLine?.practiceCompletions) || 0, Number(cloudLine?.practiceCompletions) || 0),
+                practicePerfectAttempts: Math.max(Number(localLine?.practicePerfectAttempts) || 0, Number(cloudLine?.practicePerfectAttempts) || 0),
+                confidence: Math.max(Number(localLine?.confidence) || 0, Number(cloudLine?.confidence) || 0),
+                lastAttemptTimestamp: Math.max(localTimestamp, cloudTimestamp) || null
+            };
         }
 
         // Make functions global for inline handlers
