@@ -6,7 +6,7 @@
     <title>Profile — ChessPeps</title>
     <link rel="stylesheet" href="lib/cm-chessboard-assets/chessboard.css">
     <link rel="stylesheet" href="tokens.css">
-    <link rel="stylesheet" href="profile.css?v=9">
+    <link rel="stylesheet" href="profile.css?v=10">
 </head>
 <body>
 
@@ -131,12 +131,20 @@
         </div>
 
         <!-- Activity Heatmap -->
-        <div class="profile-card">
-            <h2 class="card-title">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-                Activity
-            </h2>
-            <div class="heatmap" id="heatmap"></div>
+        <div class="profile-card activity-card">
+            <div class="activity-heading">
+                <span>Activity</span>
+                <div class="activity-legend" aria-label="Activity intensity">
+                    <span>Less</span>
+                    <i class="activity-legend-cell level-0"></i>
+                    <i class="activity-legend-cell level-1"></i>
+                    <i class="activity-legend-cell level-2"></i>
+                    <i class="activity-legend-cell level-3"></i>
+                    <i class="activity-legend-cell level-4"></i>
+                    <span>More</span>
+                </div>
+            </div>
+            <div class="activity-chart" id="heatmap"></div>
         </div>
 
         <!-- Favorite Openings -->
@@ -698,17 +706,33 @@
             const progress = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
             const activityDates = getPracticeActivityDates(progress);
 
-            const weeks = 52;
+            const weeks = 53;
             const days = 7;
             const endDate = new Date();
+            endDate.setHours(0, 0, 0, 0);
             endDate.setDate(endDate.getDate() - (endDate.getDay() || 7) + 7); // Next Sunday
+            const startDate = new Date(endDate);
+            startDate.setDate(endDate.getDate() - (weeks * days - 1));
 
-            let html = '<div class="heatmap-grid">';
+            const monthLabels = [];
+            let previousMonth = -1;
+            for (let w = 0; w < weeks; w++) {
+                const weekDate = new Date(startDate);
+                weekDate.setDate(startDate.getDate() + w * days);
+                const month = weekDate.getMonth();
+                if (w === 0 || month !== previousMonth) {
+                    const label = weekDate.toLocaleDateString('en-US', { month: 'short' });
+                    monthLabels.push(`<span style="grid-column:${w + 1};">${label}</span>`);
+                }
+                previousMonth = month;
+            }
 
-            for (let d = 0; d < days; d++) {
-                for (let w = 0; w < weeks; w++) {
-                    const date = new Date(endDate);
-                    date.setDate(date.getDate() - (weeks - 1 - w) * 7 + d - 6);
+            let cells = '';
+
+            for (let w = 0; w < weeks; w++) {
+                for (let d = 0; d < days; d++) {
+                    const date = new Date(startDate);
+                    date.setDate(startDate.getDate() + w * days + d);
                     const dateStr = getLocalDateKey(date);
 
                     const count = Number(activityDates[dateStr]) || 0;
@@ -719,12 +743,27 @@
                     if (count >= 7) intensity = 4;
 
                     const tooltip = `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} · ${count} ${count === 1 ? 'line' : 'lines'} practiced`;
-                    html += `<div class="heatmap-cell level-${intensity}" title="${tooltip}" aria-label="${tooltip}"></div>`;
+                    cells += `<div class="activity-cell level-${intensity}" style="grid-area:${d + 1} / ${w + 1};" title="${tooltip}" aria-label="${tooltip}"></div>`;
                 }
             }
 
-            html += '</div>';
-            container.innerHTML = html;
+            container.innerHTML = `
+                <div class="activity-layout">
+                    <div class="activity-weekdays" aria-hidden="true">
+                        <span></span>
+                        <span>Mon</span>
+                        <span></span>
+                        <span>Wed</span>
+                        <span></span>
+                        <span>Fri</span>
+                        <span></span>
+                    </div>
+                    <div class="activity-scroll">
+                        <div class="activity-month-row" style="grid-template-columns: repeat(${weeks}, 1fr);">${monthLabels.join('')}</div>
+                        <div class="activity-grid" style="grid-template-columns: repeat(${weeks}, 1fr);">${cells}</div>
+                    </div>
+                </div>
+            `;
         }
 
         function getPracticeActivityDates(progress) {
