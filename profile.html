@@ -130,6 +130,7 @@
                         <select class="appearance-select" id="pieceSet" onchange="saveBoardAppearance('pieceSet', this.value)">
                             <option value="staunty">Staunty</option>
                             <option value="maestro">Maestro</option>
+                            <option value="custom">Custom</option>
                             <option value="standard">Standard</option>
                         </select>
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
@@ -543,7 +544,7 @@
         import { Chessboard, COLOR, BORDER_TYPE, FEN } from './lib/cm-chessboard-src/Chessboard.js';
 
         const boardThemes = new Set(['default', 'green', 'blue', 'white-violet', 'white-blue', 'chessboard-js', 'black-and-white']);
-        const pieceSets = new Set(['staunty', 'standard', 'maestro']);
+        const pieceSets = new Set(['staunty', 'standard', 'maestro', 'custom']);
         let previewBoard = null;
 
         function readAppearance() {
