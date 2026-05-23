@@ -6,7 +6,7 @@
     <title>Profile — ChessPeps</title>
     <link rel="stylesheet" href="lib/cm-chessboard-assets/chessboard.css">
     <link rel="stylesheet" href="tokens.css">
-    <link rel="stylesheet" href="profile.css?v=8">
+    <link rel="stylesheet" href="profile.css?v=9">
 </head>
 <body>
 
@@ -137,7 +137,6 @@
                 Activity
             </h2>
             <div class="heatmap" id="heatmap"></div>
-            <div class="heatmap-tooltip" id="heatmapTooltip" role="tooltip" aria-hidden="true"></div>
         </div>
 
         <!-- Favorite Openings -->
@@ -720,53 +719,12 @@
                     if (count >= 7) intensity = 4;
 
                     const tooltip = `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} · ${count} ${count === 1 ? 'line' : 'lines'} practiced`;
-                    html += `<div class="heatmap-cell level-${intensity}" tabindex="0" aria-label="${tooltip}" data-tooltip="${tooltip}"></div>`;
+                    html += `<div class="heatmap-cell level-${intensity}" title="${tooltip}" aria-label="${tooltip}"></div>`;
                 }
             }
 
             html += '</div>';
             container.innerHTML = html;
-            attachHeatmapTooltips();
-        }
-
-        function attachHeatmapTooltips() {
-            const tooltip = document.getElementById('heatmapTooltip');
-            const container = document.getElementById('heatmap');
-            if (!tooltip || !container) return;
-
-            const hide = () => {
-                tooltip.classList.remove('visible');
-                tooltip.setAttribute('aria-hidden', 'true');
-                tooltip.textContent = '';
-            };
-
-            const show = (cell, event) => {
-                const text = cell.dataset.tooltip || '';
-                if (!text) return;
-                tooltip.textContent = text;
-                tooltip.style.left = `${event.clientX}px`;
-                tooltip.style.top = `${event.clientY - 10}px`;
-                tooltip.setAttribute('aria-hidden', 'false');
-                tooltip.classList.add('visible');
-            };
-
-            container.addEventListener('mousemove', (event) => {
-                const cell = event.target.closest('.heatmap-cell');
-                if (!cell || !container.contains(cell)) {
-                    hide();
-                    return;
-                }
-                show(cell, event);
-            });
-            container.addEventListener('mouseleave', hide);
-            container.addEventListener('focusin', (event) => {
-                const cell = event.target.closest('.heatmap-cell');
-                if (!cell) return;
-                const rect = cell.getBoundingClientRect();
-                show(cell, { clientX: rect.left + rect.width / 2, clientY: rect.top });
-            });
-            container.addEventListener('focusout', hide);
-            container.addEventListener('scroll', hide);
         }
 
         function getPracticeActivityDates(progress) {

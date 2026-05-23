@@ -282,27 +282,6 @@
 .heatmap-cell.level-2 { background: oklch(56% 0.12 145 / 0.55); }
 .heatmap-cell.level-3 { background: oklch(56% 0.12 145 / 0.78); }
 .heatmap-cell.level-4 { background: oklch(56% 0.12 145); }
-.heatmap-tooltip {
-  position: fixed;
-  z-index: 100;
-  transform: translate(-50%, -100%);
-  padding: 6px 8px;
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-sm);
-  background: var(--color-paper);
-  color: var(--color-ink);
-  font-size: var(--text-xs);
-  line-height: 1.2;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
-  opacity: 0;
-  pointer-events: none;
-  white-space: nowrap;
-  transition: opacity var(--dur-short);
-}
-.heatmap-tooltip.visible {
-  opacity: 1;
-}
-
 /* ── Favorites ── */
 .favorites-list {
   display: flex;
