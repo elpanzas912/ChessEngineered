@@ -6,7 +6,7 @@
     <title>Profile — ChessPeps</title>
     <link rel="stylesheet" href="lib/cm-chessboard-assets/chessboard.css">
     <link rel="stylesheet" href="tokens.css">
-    <link rel="stylesheet" href="profile.css?v=7">
+    <link rel="stylesheet" href="profile.css?v=8">
 </head>
 <body>
 
@@ -137,7 +137,7 @@
                 Activity
             </h2>
             <div class="heatmap" id="heatmap"></div>
-            <div class="heatmap-tooltip" id="heatmapTooltip" role="tooltip"></div>
+            <div class="heatmap-tooltip" id="heatmapTooltip" role="tooltip" aria-hidden="true"></div>
         </div>
 
         <!-- Favorite Openings -->
@@ -732,30 +732,40 @@
         function attachHeatmapTooltips() {
             const tooltip = document.getElementById('heatmapTooltip');
             const container = document.getElementById('heatmap');
-            const cells = document.querySelectorAll('.heatmap-cell');
-            if (!tooltip || !container || !cells.length) return;
+            if (!tooltip || !container) return;
 
             const hide = () => {
                 tooltip.classList.remove('visible');
+                tooltip.setAttribute('aria-hidden', 'true');
+                tooltip.textContent = '';
             };
 
-            const show = (cell) => {
+            const show = (cell, event) => {
                 const text = cell.dataset.tooltip || '';
                 if (!text) return;
-                const rect = cell.getBoundingClientRect();
                 tooltip.textContent = text;
-                tooltip.style.left = `${rect.left + rect.width / 2}px`;
-                tooltip.style.top = `${rect.top - 8}px`;
+                tooltip.style.left = `${event.clientX}px`;
+                tooltip.style.top = `${event.clientY - 10}px`;
+                tooltip.setAttribute('aria-hidden', 'false');
                 tooltip.classList.add('visible');
             };
 
-            cells.forEach(cell => {
-                cell.addEventListener('mouseenter', () => show(cell));
-                cell.addEventListener('mouseleave', hide);
-                cell.addEventListener('focus', () => show(cell));
-                cell.addEventListener('blur', hide);
+            container.addEventListener('mousemove', (event) => {
+                const cell = event.target.closest('.heatmap-cell');
+                if (!cell || !container.contains(cell)) {
+                    hide();
+                    return;
+                }
+                show(cell, event);
             });
-
+            container.addEventListener('mouseleave', hide);
+            container.addEventListener('focusin', (event) => {
+                const cell = event.target.closest('.heatmap-cell');
+                if (!cell) return;
+                const rect = cell.getBoundingClientRect();
+                show(cell, { clientX: rect.left + rect.width / 2, clientY: rect.top });
+            });
+            container.addEventListener('focusout', hide);
             container.addEventListener('scroll', hide);
         }
 
