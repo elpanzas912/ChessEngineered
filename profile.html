@@ -375,6 +375,7 @@
         }
 
         let openingsCatalogPromise = null;
+        let accuracySelectedLineKey = 'all';
 
         async function getOpeningsCatalog() {
             if (!openingsCatalogPromise) {
@@ -451,6 +452,13 @@
             const lineSelect = document.getElementById('accuracyLine');
             const selectedMode = modeSelect.value || 'all';
             const previousOpening = openingSelect.value || 'all';
+            const selectedLineValue = lineSelect.value || 'all';
+            if (selectedLineValue === 'all') {
+                accuracySelectedLineKey = 'all';
+            } else {
+                const previousKey = lineSelect.options[lineSelect.selectedIndex]?.dataset?.lineKey;
+                if (previousKey) accuracySelectedLineKey = previousKey;
+            }
             const openingSlugs = Object.keys(accuracy.openings).sort((a, b) => {
                 const an = catalog[a]?.displayName || a;
                 const bn = catalog[b]?.displayName || b;
@@ -464,24 +472,38 @@
             openingSelect.value = openingSlugs.includes(previousOpening) ? previousOpening : 'all';
 
             const selectedOpening = openingSelect.value;
-            const previousLine = lineSelect.value || 'all';
+            if (selectedOpening === 'all') accuracySelectedLineKey = 'all';
             const lineEntries = selectedOpening === 'all'
                 ? []
-                : Object.keys(accuracy.openings[selectedOpening]?.lines || {});
+                : sortAccuracyLines(selectedOpening, Object.keys(accuracy.openings[selectedOpening]?.lines || {}), catalog);
             lineSelect.disabled = selectedOpening === 'all';
             lineSelect.innerHTML = [
                 '<option value="all">All lines</option>',
-                ...lineEntries.map(linePgn => `<option value="${escapeHtml(linePgn)}">${escapeHtml(lineLabel(selectedOpening, linePgn, catalog))}</option>`)
+                ...lineEntries.map((linePgn, index) => `<option value="${index}" data-line-key="${escapeHtml(linePgn)}">${escapeHtml(lineLabel(selectedOpening, linePgn, catalog))}</option>`)
             ].join('');
-            lineSelect.value = lineEntries.includes(previousLine) ? previousLine : 'all';
+            const selectedLineIndex = lineEntries.indexOf(accuracySelectedLineKey);
+            lineSelect.value = selectedLineIndex >= 0 ? String(selectedLineIndex) : 'all';
+            if (lineSelect.value === 'all') accuracySelectedLineKey = 'all';
 
-            const selectedLine = lineSelect.value;
+            const selectedLine = accuracySelectedLineKey;
             const daily = selectedOpening === 'all'
                 ? accuracy.daily
                 : selectedLine === 'all'
                     ? accuracy.openings[selectedOpening]?.daily
                     : accuracy.openings[selectedOpening]?.lines?.[selectedLine]?.daily;
             drawAccuracyChart(daily || {}, selectedMode);
+        }
+
+        function sortAccuracyLines(slug, lineEntries, catalog) {
+            const catalogLines = catalog[slug]?.lines || [];
+            return [...lineEntries].sort((a, b) => {
+                const ai = catalogLines.findIndex(line => line.trim() === a.trim());
+                const bi = catalogLines.findIndex(line => line.trim() === b.trim());
+                if (ai >= 0 && bi >= 0) return ai - bi;
+                if (ai >= 0) return -1;
+                if (bi >= 0) return 1;
+                return a.localeCompare(b);
+            });
         }
 
         function drawAccuracyChart(daily, mode) {
