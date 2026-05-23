@@ -45,17 +45,15 @@ export class Trainer {
         window.board.setOrientation(orientation);
 
         const saved = this.loadSessionState();
-        console.log('[Session] loadOpening:', slug, 'saved=', saved);
 
         renderLinesList(this);
         updateModeStats();
 
         const lines = this.opening.lines || [];
         const hasProgress = this.hasOpeningProgress();
-        const hasSavedLine = hasProgress && saved && saved.linePgn && lines.some(l => l.trim() === saved.linePgn.trim());
-        console.log('[Session] hasSavedLine=', hasSavedLine, 'linePgn=', saved?.linePgn);
-        if (hasSavedLine) {
-            this.loadLine(saved.linePgn);
+        const savedLine = this.resolveSavedLine(saved, lines);
+        if (savedLine) {
+            this.loadLine(savedLine);
         } else {
             if (!hasProgress) {
                 this.learnIndex = 0;
@@ -66,16 +64,16 @@ export class Trainer {
         }
     }
 
-    saveSessionState() {
+    saveSessionState(overrides = {}) {
         const key = `chesspeps_session_${this.slug}`;
         const payload = {
             learnIndex: this.learnIndex,
             mode: this.mode,
             linePgn: this.linePgn,
-            lastVisited: Date.now()
+            lastVisited: Date.now(),
+            ...overrides
         };
         localStorage.setItem(key, JSON.stringify(payload));
-        console.log('[Session] saveSessionState:', key, payload);
     }
 
     loadSessionState() {
@@ -87,16 +85,36 @@ export class Trainer {
                 this.learnIndex = saved.learnIndex || 0;
                 this.linePgn = saved.linePgn || null;
                 this.mode = 'learn';
-                console.log('[Session] loadSessionState:', key, saved);
                 return saved;
             }
         } catch (e) {}
-        console.log('[Session] loadSessionState: no saved state for', key);
         return null;
     }
 
     clearSessionState() {
         localStorage.removeItem(`chesspeps_session_${this.slug}`);
+    }
+
+    resolveSavedLine(saved, lines) {
+        if (!saved || !Array.isArray(lines) || !lines.length) return null;
+
+        const savedLine = saved.linePgn;
+        const savedLineIndex = savedLine ? lines.findIndex(l => l.trim() === savedLine.trim()) : -1;
+        const savedLearnIndex = Number.isInteger(saved.learnIndex) ? saved.learnIndex : Number(saved.learnIndex);
+        const normalizedLearnIndex = Number.isFinite(savedLearnIndex) && savedLearnIndex >= 0
+            ? savedLearnIndex % lines.length
+            : -1;
+
+        if (normalizedLearnIndex >= 0 && savedLineIndex >= 0 && normalizedLearnIndex !== savedLineIndex) {
+            const learned = getLearnedLines(this.slug);
+            if (learned.includes(lines[savedLineIndex])) {
+                return lines[normalizedLearnIndex];
+            }
+        }
+
+        if (savedLineIndex >= 0) return lines[savedLineIndex];
+        if (normalizedLearnIndex >= 0) return lines[normalizedLearnIndex];
+        return null;
     }
 
     hasOpeningProgress() {
@@ -819,7 +837,12 @@ export class Trainer {
         if (this.mode === 'learn') {
             markLineAsLearned(this.slug, this.linePgn);
             this.learnIndex++;
-            this.saveSessionState();
+            const lines = this.opening.lines || [];
+            const nextIndex = this.learnIndex >= lines.length ? 0 : this.learnIndex;
+            this.saveSessionState({
+                learnIndex: nextIndex,
+                linePgn: lines[nextIndex] || this.linePgn
+            });
         }
 
         updateModeStats();

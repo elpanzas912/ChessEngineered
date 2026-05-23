@@ -1,6 +1,6 @@
 import { initBoard, moveInputHandler } from './modules/board.js?v=32';
 import { loadLocalProgress, syncToCloud } from './modules/progress.js?v=3';
-import { Trainer } from './modules/trainer.js?v=41';
+import { Trainer } from './modules/trainer.js?v=42';
 import { stats } from './modules/stats.js';
 import { renderLinesList, renderLineDropdown, updateLineHeader, updateProgress, updateStats, updateModeStats, showFeedback } from './modules/ui.js?v=38';
 import { updateEvalBar } from './modules/evaluator.js';
