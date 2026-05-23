@@ -5,7 +5,7 @@ import { RightClickAnnotator } from '../lib/cm-chessboard-src/extensions/right-c
 let pendingIncorrectMove = null;
 
 const BOARD_THEMES = new Set(['default', 'green', 'blue', 'white-violet', 'white-blue', 'chessboard-js', 'black-and-white']);
-const PIECE_SETS = new Set(['staunty', 'standard', 'maestro', 'custom']);
+const PIECE_SETS = new Set(['staunty', 'standard', 'maestro']);
 
 function getBoardAppearance() {
     let storedTheme = localStorage.getItem('chesspeps_board_theme') || localStorage.getItem('chesspeps_boardTheme') || 'green';
