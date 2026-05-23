@@ -223,6 +223,43 @@
     .cm-chessboard.white-violet .coordinates .coordinate.white {
       fill: #6d28d9; }
 
+.cm-chessboard.white-blue .board .square.white {
+  fill: #f3f8ff; }
+
+.cm-chessboard.white-blue .board .square.black {
+  fill: #2563eb; }
+
+.cm-chessboard.white-blue.border-type-thin .board .border {
+  stroke: #2563eb;
+  stroke-width: 0.7%;
+  fill: #2563eb; }
+
+.cm-chessboard.white-blue.border-type-none .board .border {
+  stroke: #2563eb;
+  stroke-width: 0;
+  fill: #2563eb; }
+
+.cm-chessboard.white-blue.border-type-frame .board .border {
+  fill: #f3f8ff;
+  stroke: none; }
+
+.cm-chessboard.white-blue.border-type-frame .board .border-inner {
+  fill: #2563eb;
+  stroke: #2563eb;
+  stroke-width: 0.7%; }
+
+.cm-chessboard.white-blue .coordinates {
+  pointer-events: none;
+  user-select: none; }
+  .cm-chessboard.white-blue .coordinates .coordinate {
+    fill: #1d4ed8;
+    font-size: 7px;
+    cursor: default; }
+    .cm-chessboard.white-blue .coordinates .coordinate.black {
+      fill: #f8fbff; }
+    .cm-chessboard.white-blue .coordinates .coordinate.white {
+      fill: #1d4ed8; }
+
 .cm-chessboard.chess-club .board .square.white {
   fill: #E6D3B1; }
 

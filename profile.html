@@ -6,7 +6,7 @@
     <title>Profile — ChessPeps</title>
     <link rel="stylesheet" href="lib/cm-chessboard-assets/chessboard.css">
     <link rel="stylesheet" href="tokens.css">
-    <link rel="stylesheet" href="profile.css?v=3">
+    <link rel="stylesheet" href="profile.css?v=4">
 </head>
 <body>
 
@@ -115,6 +115,7 @@
                         <select class="appearance-select" id="boardTheme" onchange="saveBoardAppearance('boardTheme', this.value)">
                             <option value="green">Green</option>
                             <option value="white-violet">White Violet</option>
+                            <option value="white-blue">White Blue</option>
                             <option value="blue">Blue</option>
                             <option value="chessboard-js">Brown</option>
                             <option value="default">Classic</option>
@@ -540,7 +541,7 @@
     <script type="module">
         import { Chessboard, COLOR, BORDER_TYPE, FEN } from './lib/cm-chessboard-src/Chessboard.js';
 
-        const boardThemes = new Set(['default', 'green', 'blue', 'white-violet', 'chessboard-js', 'black-and-white']);
+        const boardThemes = new Set(['default', 'green', 'blue', 'white-violet', 'white-blue', 'chessboard-js', 'black-and-white']);
         const pieceSets = new Set(['staunty', 'standard']);
         let previewBoard = null;
 
