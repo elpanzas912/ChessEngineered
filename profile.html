@@ -137,6 +137,7 @@
                 Activity
             </h2>
             <div class="heatmap" id="heatmap"></div>
+            <div class="heatmap-tooltip" id="heatmapTooltip" role="tooltip"></div>
         </div>
 
         <!-- Favorite Openings -->
@@ -718,12 +719,44 @@
                     if (count >= 4) intensity = 3;
                     if (count >= 7) intensity = 4;
 
-                    html += `<div class="heatmap-cell level-${intensity}" title="${date.toDateString()} · ${count} lines practiced"></div>`;
+                    const tooltip = `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} · ${count} ${count === 1 ? 'line' : 'lines'} practiced`;
+                    html += `<div class="heatmap-cell level-${intensity}" tabindex="0" aria-label="${tooltip}" data-tooltip="${tooltip}"></div>`;
                 }
             }
 
             html += '</div>';
             container.innerHTML = html;
+            attachHeatmapTooltips();
+        }
+
+        function attachHeatmapTooltips() {
+            const tooltip = document.getElementById('heatmapTooltip');
+            const container = document.getElementById('heatmap');
+            const cells = document.querySelectorAll('.heatmap-cell');
+            if (!tooltip || !container || !cells.length) return;
+
+            const hide = () => {
+                tooltip.classList.remove('visible');
+            };
+
+            const show = (cell) => {
+                const text = cell.dataset.tooltip || '';
+                if (!text) return;
+                const rect = cell.getBoundingClientRect();
+                tooltip.textContent = text;
+                tooltip.style.left = `${rect.left + rect.width / 2}px`;
+                tooltip.style.top = `${rect.top - 8}px`;
+                tooltip.classList.add('visible');
+            };
+
+            cells.forEach(cell => {
+                cell.addEventListener('mouseenter', () => show(cell));
+                cell.addEventListener('mouseleave', hide);
+                cell.addEventListener('focus', () => show(cell));
+                cell.addEventListener('blur', hide);
+            });
+
+            container.addEventListener('scroll', hide);
         }
 
         function getPracticeActivityDates(progress) {
