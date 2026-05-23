@@ -1,6 +1,6 @@
 import { COLOR } from '../lib/cm-chessboard-src/Chessboard.js';
 import { playMoveSound, playCompletionSound } from './audio.js';
-import { updateLineProgress, syncToCloud, markLineAsLearned, getLineProgress, getLearnedLines, getPuzzleELO, updatePuzzleELO, findPuzzleInELORange, saveLocalProgress, savePuzzleStreak, getPuzzleStreak, recordDailyActivity } from './progress.js?v=5';
+import { updateLineProgress, syncToCloud, markLineAsLearned, getLineProgress, getLearnedLines, getPuzzleELO, updatePuzzleELO, findPuzzleInELORange, saveLocalProgress, savePuzzleStreak, getPuzzleStreak, recordDailyActivity, recordMoveAccuracy } from './progress.js?v=6';
 import { highlightHintSquare, clearHintSquare, highlightLastMove, clearLastMove, showCorrectCheckmark, clearCorrectCheckmark, showIncorrectCross, clearIncorrectCross, moveInputHandler } from './board.js?v=38';
 import { renderMoveHistory, updateLineHeader, updateProgress, showFeedback, updateModeStats, renderLinesList, renderLineDropdown, updateStats } from './ui.js?v=40';
 import { updateEvalBar } from './evaluator.js';
@@ -513,6 +513,9 @@ export class Trainer {
         if (!valid) {
             stats.attempts++;
             this.wrongAttempts++;
+            if (this.mode === 'learn' || this.mode === 'practice') {
+                recordMoveAccuracy(this.slug, this.linePgn, this.mode, false);
+            }
             if (this.mode === 'drill') {
                 this.endDrillGame();
             } else if (this.mode === 'time') {
@@ -659,6 +662,9 @@ export class Trainer {
         stats.attempts++;
         stats.correct++;
         stats.movesMade++;
+        if (this.mode === 'learn' || this.mode === 'practice') {
+            recordMoveAccuracy(this.slug, this.linePgn, this.mode, true);
+        }
 
         const moveResult = window.game.move(expected.san);
         if (!moveResult) return;

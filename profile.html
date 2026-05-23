@@ -6,7 +6,7 @@
     <title>Profile — ChessPeps</title>
     <link rel="stylesheet" href="lib/cm-chessboard-assets/chessboard.css">
     <link rel="stylesheet" href="tokens.css">
-    <link rel="stylesheet" href="profile.css?v=5">
+    <link rel="stylesheet" href="profile.css?v=6">
 </head>
 <body>
 
@@ -101,6 +101,33 @@
                     <strong id="timePuzzle">0m</strong>
                 </div>
             </div>
+        </div>
+
+        <div class="profile-card accuracy-card" id="accuracyCard" style="display:none">
+            <h2 class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-4 4"/></svg>
+                Accuracy over time
+            </h2>
+            <div class="accuracy-controls">
+                <label>
+                    <span>Mode</span>
+                    <select id="accuracyMode" onchange="renderAccuracyChart()">
+                        <option value="all">All</option>
+                        <option value="learn">Learn</option>
+                        <option value="practice">Practice</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Opening</span>
+                    <select id="accuracyOpening" onchange="renderAccuracyChart()"></select>
+                </label>
+                <label>
+                    <span>Line</span>
+                    <select id="accuracyLine" onchange="renderAccuracyChart()"></select>
+                </label>
+            </div>
+            <div class="accuracy-chart" id="accuracyChart"></div>
+            <div class="accuracy-summary" id="accuracySummary"></div>
         </div>
 
         <!-- Activity Heatmap -->
@@ -297,6 +324,7 @@
 
             // Load stats
             loadStats();
+            renderAccuracyChart();
             loadHeatmap();
             loadFavorites();
             loadSettings();
@@ -346,6 +374,176 @@
             return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
         }
 
+        let openingsCatalogPromise = null;
+
+        async function getOpeningsCatalog() {
+            if (!openingsCatalogPromise) {
+                openingsCatalogPromise = fetch('data/openings.json')
+                    .then(r => r.ok ? r.json() : { openings: {} })
+                    .then(data => data.openings || {})
+                    .catch(() => ({}));
+            }
+            return openingsCatalogPromise;
+        }
+
+        function getLocalDateKey(date = new Date()) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function getRecentDates(days = 14) {
+            const dates = [];
+            const today = new Date();
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(today.getDate() - i);
+                dates.push(getLocalDateKey(date));
+            }
+            return dates;
+        }
+
+        function emptyAccuracyBucket() {
+            return {
+                learn: { correct: 0, incorrect: 0 },
+                practice: { correct: 0, incorrect: 0 }
+            };
+        }
+
+        function normalizeAccuracyBucket(value) {
+            const source = value && typeof value === 'object' ? value : {};
+            return ['learn', 'practice'].reduce((acc, mode) => {
+                const modeData = source[mode] && typeof source[mode] === 'object' ? source[mode] : {};
+                acc[mode] = {
+                    correct: Math.max(0, Math.round(Number(modeData.correct) || 0)),
+                    incorrect: Math.max(0, Math.round(Number(modeData.incorrect) || 0))
+                };
+                return acc;
+            }, {});
+        }
+
+        function getBucketResult(bucket, mode) {
+            const normalized = normalizeAccuracyBucket(bucket);
+            if (mode === 'learn' || mode === 'practice') return normalized[mode];
+            return {
+                correct: normalized.learn.correct + normalized.practice.correct,
+                incorrect: normalized.learn.incorrect + normalized.practice.incorrect
+            };
+        }
+
+        function lineLabel(slug, linePgn, catalog) {
+            const lines = catalog[slug]?.lines || [];
+            const index = lines.findIndex(line => line.trim() === linePgn.trim());
+            return index >= 0 ? `Line ${index + 1}` : `Line ${linePgn.slice(0, 18)}...`;
+        }
+
+        async function renderAccuracyChart() {
+            const progress = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+            const accuracy = progress.accuracy && typeof progress.accuracy === 'object' ? progress.accuracy : null;
+            const card = document.getElementById('accuracyCard');
+            if (!card || !accuracy?.openings || Object.keys(accuracy.openings).length === 0) return;
+
+            card.style.display = '';
+            const catalog = await getOpeningsCatalog();
+            const modeSelect = document.getElementById('accuracyMode');
+            const openingSelect = document.getElementById('accuracyOpening');
+            const lineSelect = document.getElementById('accuracyLine');
+            const selectedMode = modeSelect.value || 'all';
+            const previousOpening = openingSelect.value || 'all';
+            const openingSlugs = Object.keys(accuracy.openings).sort((a, b) => {
+                const an = catalog[a]?.displayName || a;
+                const bn = catalog[b]?.displayName || b;
+                return an.localeCompare(bn);
+            });
+
+            openingSelect.innerHTML = [
+                '<option value="all">All openings</option>',
+                ...openingSlugs.map(slug => `<option value="${escapeHtml(slug)}">${escapeHtml(catalog[slug]?.displayName || slug)}</option>`)
+            ].join('');
+            openingSelect.value = openingSlugs.includes(previousOpening) ? previousOpening : 'all';
+
+            const selectedOpening = openingSelect.value;
+            const previousLine = lineSelect.value || 'all';
+            const lineEntries = selectedOpening === 'all'
+                ? []
+                : Object.keys(accuracy.openings[selectedOpening]?.lines || {});
+            lineSelect.disabled = selectedOpening === 'all';
+            lineSelect.innerHTML = [
+                '<option value="all">All lines</option>',
+                ...lineEntries.map(linePgn => `<option value="${escapeHtml(linePgn)}">${escapeHtml(lineLabel(selectedOpening, linePgn, catalog))}</option>`)
+            ].join('');
+            lineSelect.value = lineEntries.includes(previousLine) ? previousLine : 'all';
+
+            const selectedLine = lineSelect.value;
+            const daily = selectedOpening === 'all'
+                ? accuracy.daily
+                : selectedLine === 'all'
+                    ? accuracy.openings[selectedOpening]?.daily
+                    : accuracy.openings[selectedOpening]?.lines?.[selectedLine]?.daily;
+            drawAccuracyChart(daily || {}, selectedMode);
+        }
+
+        function drawAccuracyChart(daily, mode) {
+            const dates = getRecentDates(14);
+            const points = dates.map(date => {
+                const result = getBucketResult(daily[date] || emptyAccuracyBucket(), mode);
+                return { date, ...result, total: result.correct + result.incorrect };
+            });
+            const maxTotal = Math.max(1, ...points.map(point => point.total));
+            const chart = document.getElementById('accuracyChart');
+            const summary = document.getElementById('accuracySummary');
+            const width = 560;
+            const height = 180;
+            const padding = 24;
+            const gap = 8;
+            const barWidth = (width - padding * 2 - gap * (points.length - 1)) / points.length;
+            const chartHeight = height - 52;
+
+            const bars = points.map((point, index) => {
+                const x = padding + index * (barWidth + gap);
+                const correctHeight = chartHeight * (point.correct / maxTotal);
+                const incorrectHeight = chartHeight * (point.incorrect / maxTotal);
+                const incorrectY = padding + chartHeight - incorrectHeight;
+                const correctY = incorrectY - correctHeight;
+                const label = point.date.slice(5).replace('-', '/');
+                return `
+                    <g>
+                        <rect x="${x}" y="${correctY}" width="${barWidth}" height="${correctHeight}" rx="2" class="accuracy-correct"></rect>
+                        <rect x="${x}" y="${incorrectY}" width="${barWidth}" height="${incorrectHeight}" rx="2" class="accuracy-incorrect"></rect>
+                        <text x="${x + barWidth / 2}" y="${height - 12}" text-anchor="middle">${label}</text>
+                    </g>
+                `;
+            }).join('');
+
+            chart.innerHTML = `
+                <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Accuracy chart">
+                    <line x1="${padding}" y1="${padding + chartHeight}" x2="${width - padding}" y2="${padding + chartHeight}" class="accuracy-axis"></line>
+                    ${bars}
+                </svg>
+            `;
+
+            const correct = points.reduce((sum, point) => sum + point.correct, 0);
+            const incorrect = points.reduce((sum, point) => sum + point.incorrect, 0);
+            const total = correct + incorrect;
+            const pct = total ? Math.round((correct / total) * 100) : 0;
+            summary.innerHTML = `
+                <span><b>${correct}</b> correct</span>
+                <span><b>${incorrect}</b> errors</span>
+                <span><b>${pct}%</b> accuracy</span>
+            `;
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        window.renderAccuracyChart = renderAccuracyChart;
+
         async function loadCloudProgress(userId) {
             if (!supabaseClient) return;
             try {
@@ -364,8 +562,9 @@
         function mergeProgress(local, cloud) {
             const merged = { ...(cloud || {}) };
             merged.trainingTime = mergeTrainingTime(local?.trainingTime, cloud?.trainingTime);
+            merged.accuracy = mergeAccuracy(local?.accuracy, cloud?.accuracy);
             for (const slug in local || {}) {
-                if (['puzzleELO', 'puzzleStreak', 'dailyStreak', 'trainingTime'].includes(slug)) {
+                if (['puzzleELO', 'puzzleStreak', 'dailyStreak', 'trainingTime', 'accuracy'].includes(slug)) {
                     if (merged[slug] === undefined) merged[slug] = local[slug];
                     continue;
                 }
@@ -391,6 +590,75 @@
             const cloudTime = normalizeTrainingTime(cloud);
             return ['learn', 'practice', 'drill', 'time', 'puzzle'].reduce((acc, mode) => {
                 acc[mode] = Math.max(localTime[mode], cloudTime[mode]);
+                return acc;
+            }, {});
+        }
+
+        function mergeAccuracy(local, cloud) {
+            const localSource = local && typeof local === 'object' ? local : {};
+            const cloudSource = cloud && typeof cloud === 'object' ? cloud : {};
+            const openings = {};
+            const slugs = new Set([
+                ...Object.keys(localSource.openings || {}),
+                ...Object.keys(cloudSource.openings || {})
+            ]);
+
+            for (const slug of slugs) {
+                const localOpening = localSource.openings?.[slug] || {};
+                const cloudOpening = cloudSource.openings?.[slug] || {};
+                const lines = {};
+                const lineKeys = new Set([
+                    ...Object.keys(localOpening.lines || {}),
+                    ...Object.keys(cloudOpening.lines || {})
+                ]);
+                for (const linePgn of lineKeys) {
+                    lines[linePgn] = {
+                        totals: mergeAccuracyBucket(localOpening.lines?.[linePgn]?.totals, cloudOpening.lines?.[linePgn]?.totals),
+                        daily: mergeAccuracyDaily(localOpening.lines?.[linePgn]?.daily, cloudOpening.lines?.[linePgn]?.daily)
+                    };
+                }
+                openings[slug] = {
+                    totals: mergeAccuracyBucket(localOpening.totals, cloudOpening.totals),
+                    daily: mergeAccuracyDaily(localOpening.daily, cloudOpening.daily),
+                    lines
+                };
+            }
+
+            return {
+                totals: mergeAccuracyBucket(localSource.totals, cloudSource.totals),
+                daily: mergeAccuracyDaily(localSource.daily, cloudSource.daily),
+                openings
+            };
+        }
+
+        function mergeAccuracyDaily(local, cloud) {
+            const localDaily = normalizeAccuracyDaily(local);
+            const cloudDaily = normalizeAccuracyDaily(cloud);
+            const merged = {};
+            const dates = new Set([...Object.keys(localDaily), ...Object.keys(cloudDaily)]);
+            for (const date of dates) {
+                merged[date] = mergeAccuracyBucket(localDaily[date], cloudDaily[date]);
+            }
+            return merged;
+        }
+
+        function normalizeAccuracyDaily(value) {
+            const daily = {};
+            const source = value && typeof value === 'object' ? value : {};
+            for (const [date, bucket] of Object.entries(source)) {
+                if (/^\d{4}-\d{2}-\d{2}$/.test(date)) daily[date] = normalizeAccuracyBucket(bucket);
+            }
+            return daily;
+        }
+
+        function mergeAccuracyBucket(local, cloud) {
+            const localBucket = normalizeAccuracyBucket(local);
+            const cloudBucket = normalizeAccuracyBucket(cloud);
+            return ['learn', 'practice'].reduce((acc, mode) => {
+                acc[mode] = {
+                    correct: Math.max(localBucket[mode].correct, cloudBucket[mode].correct),
+                    incorrect: Math.max(localBucket[mode].incorrect, cloudBucket[mode].incorrect)
+                };
                 return acc;
             }, {});
         }

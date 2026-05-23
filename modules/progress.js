@@ -1,7 +1,9 @@
 window.userProgress = window.userProgress || {};
 
-const NON_OPENING_PROGRESS_KEYS = new Set(['puzzleELO', 'puzzleStreak', 'dailyStreak', 'trainingTime']);
+const NON_OPENING_PROGRESS_KEYS = new Set(['puzzleELO', 'puzzleStreak', 'dailyStreak', 'trainingTime', 'accuracy']);
 const TRAINING_TIME_MODES = ['learn', 'practice', 'drill', 'time', 'puzzle'];
+const ACCURACY_MODES = ['learn', 'practice'];
+const ACCURACY_RESULTS = ['correct', 'incorrect'];
 
 function getLocalDateKey(date = new Date()) {
     const year = date.getFullYear();
@@ -121,6 +123,96 @@ export function recordTrainingTime(mode, milliseconds) {
     const trainingTime = getTrainingTime();
     trainingTime[mode] += elapsed;
     window.userProgress.trainingTime = trainingTime;
+    saveLocalProgress();
+    syncToCloud();
+}
+
+function emptyAccuracyBucket() {
+    return ACCURACY_MODES.reduce((acc, mode) => {
+        acc[mode] = { correct: 0, incorrect: 0 };
+        return acc;
+    }, {});
+}
+
+function normalizeAccuracyBucket(value) {
+    const source = value && typeof value === 'object' ? value : {};
+    return ACCURACY_MODES.reduce((acc, mode) => {
+        const modeData = source[mode] && typeof source[mode] === 'object' ? source[mode] : {};
+        acc[mode] = ACCURACY_RESULTS.reduce((resultAcc, result) => {
+            resultAcc[result] = Math.max(0, Math.round(Number(modeData[result]) || 0));
+            return resultAcc;
+        }, {});
+        return acc;
+    }, {});
+}
+
+export function normalizeAccuracy(value) {
+    const source = value && typeof value === 'object' ? value : {};
+    const openings = {};
+    const sourceOpenings = source.openings && typeof source.openings === 'object' ? source.openings : {};
+
+    for (const [slug, opening] of Object.entries(sourceOpenings)) {
+        const openingSource = opening && typeof opening === 'object' ? opening : {};
+        const lines = {};
+        const sourceLines = openingSource.lines && typeof openingSource.lines === 'object' ? openingSource.lines : {};
+        for (const [linePgn, line] of Object.entries(sourceLines)) {
+            const lineSource = line && typeof line === 'object' ? line : {};
+            lines[linePgn] = {
+                totals: normalizeAccuracyBucket(lineSource.totals),
+                daily: normalizeAccuracyDaily(lineSource.daily)
+            };
+        }
+        openings[slug] = {
+            totals: normalizeAccuracyBucket(openingSource.totals),
+            daily: normalizeAccuracyDaily(openingSource.daily),
+            lines
+        };
+    }
+
+    return {
+        totals: normalizeAccuracyBucket(source.totals),
+        daily: normalizeAccuracyDaily(source.daily),
+        openings
+    };
+}
+
+function normalizeAccuracyDaily(value) {
+    const daily = {};
+    const source = value && typeof value === 'object' ? value : {};
+    for (const [date, bucket] of Object.entries(source)) {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+            daily[date] = normalizeAccuracyBucket(bucket);
+        }
+    }
+    return daily;
+}
+
+function incrementAccuracyBucket(container, mode, result, date) {
+    if (!container.totals) container.totals = emptyAccuracyBucket();
+    if (!container.daily) container.daily = {};
+    if (!container.daily[date]) container.daily[date] = emptyAccuracyBucket();
+    container.totals[mode][result] += 1;
+    container.daily[date][mode][result] += 1;
+}
+
+export function recordMoveAccuracy(slug, linePgn, mode, wasCorrect) {
+    if (!ACCURACY_MODES.includes(mode) || !slug || !linePgn) return;
+    if (!window.userProgress) window.userProgress = {};
+    const result = wasCorrect ? 'correct' : 'incorrect';
+    const date = getLocalDateKey();
+    const accuracy = normalizeAccuracy(window.userProgress.accuracy);
+
+    incrementAccuracyBucket(accuracy, mode, result, date);
+    if (!accuracy.openings[slug]) {
+        accuracy.openings[slug] = { totals: emptyAccuracyBucket(), daily: {}, lines: {} };
+    }
+    incrementAccuracyBucket(accuracy.openings[slug], mode, result, date);
+    if (!accuracy.openings[slug].lines[linePgn]) {
+        accuracy.openings[slug].lines[linePgn] = { totals: emptyAccuracyBucket(), daily: {} };
+    }
+    incrementAccuracyBucket(accuracy.openings[slug].lines[linePgn], mode, result, date);
+
+    window.userProgress.accuracy = accuracy;
     saveLocalProgress();
     syncToCloud();
 }
@@ -396,6 +488,7 @@ function mergeProgress(local, cloud) {
     const merged = { ...cloud };
     merged.dailyStreak = mergeDailyStreak(local?.dailyStreak, cloud?.dailyStreak);
     merged.trainingTime = mergeTrainingTime(local?.trainingTime, cloud?.trainingTime);
+    merged.accuracy = mergeAccuracy(local?.accuracy, cloud?.accuracy);
     if (local?.puzzleStreak !== undefined) {
         merged.puzzleStreak = Math.max(
             normalizePuzzleCount(local.puzzleStreak, 0),
@@ -418,6 +511,66 @@ function mergeProgress(local, cloud) {
         }
     }
     return merged;
+}
+
+function mergeAccuracy(local, cloud) {
+    const localAccuracy = normalizeAccuracy(local);
+    const cloudAccuracy = normalizeAccuracy(cloud);
+    const openings = {};
+    const slugs = new Set([
+        ...Object.keys(localAccuracy.openings),
+        ...Object.keys(cloudAccuracy.openings)
+    ]);
+
+    for (const slug of slugs) {
+        const localOpening = localAccuracy.openings[slug] || {};
+        const cloudOpening = cloudAccuracy.openings[slug] || {};
+        const lines = {};
+        const lineKeys = new Set([
+            ...Object.keys(localOpening.lines || {}),
+            ...Object.keys(cloudOpening.lines || {})
+        ]);
+        for (const linePgn of lineKeys) {
+            lines[linePgn] = {
+                totals: mergeAccuracyBucket(localOpening.lines?.[linePgn]?.totals, cloudOpening.lines?.[linePgn]?.totals),
+                daily: mergeAccuracyDaily(localOpening.lines?.[linePgn]?.daily, cloudOpening.lines?.[linePgn]?.daily)
+            };
+        }
+        openings[slug] = {
+            totals: mergeAccuracyBucket(localOpening.totals, cloudOpening.totals),
+            daily: mergeAccuracyDaily(localOpening.daily, cloudOpening.daily),
+            lines
+        };
+    }
+
+    return {
+        totals: mergeAccuracyBucket(localAccuracy.totals, cloudAccuracy.totals),
+        daily: mergeAccuracyDaily(localAccuracy.daily, cloudAccuracy.daily),
+        openings
+    };
+}
+
+function mergeAccuracyDaily(local, cloud) {
+    const localDaily = normalizeAccuracyDaily(local);
+    const cloudDaily = normalizeAccuracyDaily(cloud);
+    const merged = {};
+    const dates = new Set([...Object.keys(localDaily), ...Object.keys(cloudDaily)]);
+    for (const date of dates) {
+        merged[date] = mergeAccuracyBucket(localDaily[date], cloudDaily[date]);
+    }
+    return merged;
+}
+
+function mergeAccuracyBucket(local, cloud) {
+    const localBucket = normalizeAccuracyBucket(local);
+    const cloudBucket = normalizeAccuracyBucket(cloud);
+    return ACCURACY_MODES.reduce((acc, mode) => {
+        acc[mode] = ACCURACY_RESULTS.reduce((resultAcc, result) => {
+            resultAcc[result] = Math.max(localBucket[mode][result], cloudBucket[mode][result]);
+            return resultAcc;
+        }, {});
+        return acc;
+    }, {});
 }
 
 function mergeTrainingTime(local, cloud) {
