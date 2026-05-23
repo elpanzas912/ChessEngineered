@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chesspeps — Repertoire</title>
     <link rel="stylesheet" href="tokens.css">
-    <link rel="stylesheet" href="openings.css?v=14">
+    <link rel="stylesheet" href="openings.css?v=15">
 </head>
 <body>
 
@@ -455,10 +455,8 @@
                             <p class="card-desc">${shortDesc}</p>
                             <div class="card-progress-wrap">
                                 <span class="card-lines"><strong>${learnedCount}/${lineCount}</strong> lines</span>
-                                <div class="progress-track progress-track-practice" aria-label="${practicePerfectedCount}/${lineCount} lines perfected in practice">
+                                <div class="progress-track" aria-label="${learnedCount}/${lineCount} lines discovered, ${practicePerfectedCount}/${lineCount} lines perfected in practice">
                                     <div class="progress-fill progress-fill-practice" style="width: ${practicePct}%"></div>
-                                </div>
-                                <div class="progress-track" aria-label="${learnedCount}/${lineCount} lines discovered">
                                     <div class="progress-fill" style="width: ${pct}%"></div>
                                 </div>
                             </div>
