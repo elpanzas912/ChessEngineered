@@ -669,6 +669,7 @@ export class Trainer {
         const moveResult = window.game.move(expected.san);
         if (!moveResult) return;
         this.moveIndex++;
+        window.board.setPosition(window.game.fen(), true);
         if (this.mode === 'puzzle') {
             this.playedSans.push(moveResult.san);
         }
