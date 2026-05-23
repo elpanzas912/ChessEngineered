@@ -4,7 +4,7 @@ import { RightClickAnnotator } from '../lib/cm-chessboard-src/extensions/right-c
 
 let pendingIncorrectMove = null;
 
-const BOARD_THEMES = new Set(['default', 'green', 'blue', 'chessboard-js', 'black-and-white']);
+const BOARD_THEMES = new Set(['default', 'green', 'blue', 'white-violet', 'chessboard-js', 'black-and-white']);
 const PIECE_SETS = new Set(['staunty', 'standard']);
 
 function getBoardAppearance() {
