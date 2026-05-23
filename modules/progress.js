@@ -384,14 +384,30 @@ function mergeProgress(local, cloud) {
             const localLines = local[slug].lines || {};
             const cloudLines = merged[slug].lines || {};
             for (const pgn in localLines) {
-                if (!cloudLines[pgn] || (localLines[pgn].lastAttemptTimestamp > cloudLines[pgn].lastAttemptTimestamp)) {
-                    cloudLines[pgn] = localLines[pgn];
-                }
+                cloudLines[pgn] = mergeLineProgress(localLines[pgn], cloudLines[pgn]);
             }
             merged[slug].lines = cloudLines;
         }
     }
     return merged;
+}
+
+function mergeLineProgress(localLine = {}, cloudLine = {}) {
+    const localTimestamp = Number(localLine?.lastAttemptTimestamp) || 0;
+    const cloudTimestamp = Number(cloudLine?.lastAttemptTimestamp) || 0;
+    const newer = localTimestamp >= cloudTimestamp ? localLine : cloudLine;
+
+    return {
+        ...cloudLine,
+        ...localLine,
+        ...newer,
+        completions: Math.max(Number(localLine?.completions) || 0, Number(cloudLine?.completions) || 0),
+        perfectAttempts: Math.max(Number(localLine?.perfectAttempts) || 0, Number(cloudLine?.perfectAttempts) || 0),
+        practiceCompletions: Math.max(Number(localLine?.practiceCompletions) || 0, Number(cloudLine?.practiceCompletions) || 0),
+        practicePerfectAttempts: Math.max(Number(localLine?.practicePerfectAttempts) || 0, Number(cloudLine?.practicePerfectAttempts) || 0),
+        confidence: Math.max(Number(localLine?.confidence) || 0, Number(cloudLine?.confidence) || 0),
+        lastAttemptTimestamp: Math.max(localTimestamp, cloudTimestamp) || null
+    };
 }
 
 function mergeDailyStreak(local, cloud) {
