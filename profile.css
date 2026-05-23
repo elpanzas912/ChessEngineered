@@ -292,6 +292,7 @@
   border-radius: 2px;
 }
 .activity-chart {
+  position: relative;
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 2px;
@@ -344,6 +345,38 @@
 .activity-cell:hover {
   outline: 1px solid var(--color-ink-2);
   outline-offset: 1px;
+}
+.activity-tooltip {
+  position: fixed;
+  z-index: 50;
+  max-width: 210px;
+  padding: 6px 8px;
+  border: 1px solid var(--color-rule-light);
+  border-radius: 6px;
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+  font-size: 12px;
+  line-height: 1.25;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -100%);
+  transition: opacity 120ms ease;
+  white-space: nowrap;
+}
+.activity-tooltip::after {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 1px solid var(--color-rule-light);
+  border-bottom: 1px solid var(--color-rule-light);
+  background: var(--color-paper-2);
+  content: "";
+  transform: translateX(-50%) rotate(45deg);
+}
+.activity-tooltip.is-visible {
+  opacity: 1;
 }
 .activity-cell.level-0,
 .activity-legend-cell.level-0 { background: var(--ac-empty); }

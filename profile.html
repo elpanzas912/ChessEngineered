@@ -6,7 +6,7 @@
     <title>Profile — ChessPeps</title>
     <link rel="stylesheet" href="lib/cm-chessboard-assets/chessboard.css">
     <link rel="stylesheet" href="tokens.css">
-    <link rel="stylesheet" href="profile.css?v=10">
+    <link rel="stylesheet" href="profile.css?v=11">
 </head>
 <body>
 
@@ -743,7 +743,7 @@
                     if (count >= 7) intensity = 4;
 
                     const tooltip = `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} · ${count} ${count === 1 ? 'line' : 'lines'} practiced`;
-                    cells += `<div class="activity-cell level-${intensity}" style="grid-area:${d + 1} / ${w + 1};" title="${tooltip}" aria-label="${tooltip}"></div>`;
+                    cells += `<div class="activity-cell level-${intensity}" style="grid-area:${d + 1} / ${w + 1};" data-tooltip="${escapeHtml(tooltip)}" aria-label="${escapeHtml(tooltip)}"></div>`;
                 }
             }
 
@@ -763,7 +763,31 @@
                         <div class="activity-grid" style="grid-template-columns: repeat(${weeks}, 1fr);">${cells}</div>
                     </div>
                 </div>
+                <div class="activity-tooltip" id="activityTooltip" role="status"></div>
             `;
+
+            const tooltip = container.querySelector('#activityTooltip');
+            const positionTooltip = (cell) => {
+                if (!tooltip) return;
+                const cellRect = cell.getBoundingClientRect();
+                const left = cellRect.left + cellRect.width / 2;
+                const top = cellRect.top - 8;
+                tooltip.style.left = `${left}px`;
+                tooltip.style.top = `${top}px`;
+            };
+
+            container.querySelectorAll('.activity-cell').forEach((cell) => {
+                cell.addEventListener('mouseenter', () => {
+                    if (!tooltip) return;
+                    tooltip.textContent = cell.dataset.tooltip || '';
+                    positionTooltip(cell);
+                    tooltip.classList.add('is-visible');
+                });
+                cell.addEventListener('mousemove', () => positionTooltip(cell));
+                cell.addEventListener('mouseleave', () => {
+                    if (tooltip) tooltip.classList.remove('is-visible');
+                });
+            });
         }
 
         function getPracticeActivityDates(progress) {
