@@ -278,10 +278,10 @@
   z-index: 1;
 }
 .heatmap-cell.level-0 { background: var(--color-rule); }
-.heatmap-cell.level-1 { background: oklch(65% 0.18 145 / 0.25); }
-.heatmap-cell.level-2 { background: oklch(65% 0.18 145 / 0.5); }
-.heatmap-cell.level-3 { background: oklch(65% 0.18 145 / 0.75); }
-.heatmap-cell.level-4 { background: var(--color-success); }
+.heatmap-cell.level-1 { background: oklch(56% 0.12 145 / 0.35); }
+.heatmap-cell.level-2 { background: oklch(56% 0.12 145 / 0.55); }
+.heatmap-cell.level-3 { background: oklch(56% 0.12 145 / 0.78); }
+.heatmap-cell.level-4 { background: oklch(56% 0.12 145); }
 
 .heatmap-legend {
   display: flex;

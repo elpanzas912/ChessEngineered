@@ -6,7 +6,7 @@
     <title>Profile — ChessPeps</title>
     <link rel="stylesheet" href="lib/cm-chessboard-assets/chessboard.css">
     <link rel="stylesheet" href="tokens.css">
-    <link rel="stylesheet" href="profile.css?v=6">
+    <link rel="stylesheet" href="profile.css?v=7">
 </head>
 <body>
 
@@ -705,7 +705,7 @@
         function loadHeatmap() {
             const container = document.getElementById('heatmap');
             const progress = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
-            const activityDates = progress.dailyStreak?.activityDates || {};
+            const activityDates = getPracticeActivityDates(progress);
 
             // Generate last 52 weeks
             const weeks = 52;
@@ -728,12 +728,33 @@
                     if (count >= 4) intensity = 3;
                     if (count >= 7) intensity = 4;
 
-                    html += `<div class="heatmap-cell level-${intensity}" title="${date.toDateString()} · ${count} activities"></div>`;
+                    html += `<div class="heatmap-cell level-${intensity}" title="${date.toDateString()} · ${count} lines practiced"></div>`;
                 }
             }
 
             html += '</div>';
             container.innerHTML = html;
+        }
+
+        function getPracticeActivityDates(progress) {
+            const daily = progress.accuracy?.daily && typeof progress.accuracy.daily === 'object'
+                ? progress.accuracy.daily
+                : {};
+            const dates = {};
+
+            for (const [date, bucket] of Object.entries(daily)) {
+                const result = getBucketResult(bucket, 'all');
+                const count = result.correct + result.incorrect;
+                if (count > 0) dates[date] = count;
+            }
+
+            if (Object.keys(dates).length > 0) return dates;
+
+            const fallback = progress.dailyStreak?.activityDates || {};
+            return Object.entries(fallback).reduce((acc, [date, count]) => {
+                acc[date] = Math.max(0, Math.round(Number(count) || 0));
+                return acc;
+            }, {});
         }
 
         function loadFavorites() {
