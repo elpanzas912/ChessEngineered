@@ -370,6 +370,96 @@ body { overflow: hidden; }
   font-weight: 700;
 }
 
+/* ── Settings Menu ── */
+.settings-menu {
+  display: none;
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  z-index: var(--z-dropdown);
+  width: 224px;
+  max-height: min(72vh, 560px);
+  padding: 6px;
+  overflow-y: auto;
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-md);
+  background: #18181b;
+  color: #f4f4f5;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.settings-menu.open {
+  display: block;
+  animation: dropdownIn 0.15s var(--ease-out);
+}
+.settings-menu-title {
+  padding: 6px 8px;
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: #f4f4f5;
+}
+.settings-menu-separator {
+  height: 1px;
+  margin: 6px 4px;
+  background: rgba(255, 255, 255, 0.14);
+}
+.settings-menu-item,
+.settings-select-row {
+  width: 100%;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: #f4f4f5;
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+}
+.settings-menu-item {
+  padding: 6px 8px;
+  cursor: pointer;
+}
+.settings-menu-item:hover,
+.settings-select-row:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.settings-check {
+  width: 16px;
+  color: #f4f4f5;
+  visibility: hidden;
+}
+.settings-menu-item[aria-checked="true"] .settings-check {
+  visibility: visible;
+}
+.settings-select-row {
+  justify-content: space-between;
+  padding: 4px 8px;
+}
+.settings-select-row span {
+  white-space: nowrap;
+}
+.settings-select-row select {
+  max-width: 96px;
+  border: 0;
+  background: transparent;
+  color: #a1a1aa;
+  font: inherit;
+  font-size: var(--text-sm);
+  outline: none;
+}
+.settings-select-row select option {
+  background: #18181b;
+  color: #f4f4f5;
+}
+.settings-menu-chevron {
+  justify-content: space-between;
+}
+.settings-hide-eval .eval-bar {
+  display: none;
+}
+
 /* ── Instruction Dialog ── */
 .instruction-dialog {
   display: flex;
@@ -781,6 +871,9 @@ body { overflow: hidden; }
   display: flex;
   align-items: center;
   gap: var(--space-xs);
+}
+.toolbar-default-left {
+  position: relative;
 }
 .toolbar-btn {
   display: inline-flex;

@@ -1,7 +1,7 @@
 import { COLOR } from '../lib/cm-chessboard-src/Chessboard.js';
-import { playMoveSound, playCompletionSound } from './audio.js';
+import { playMoveSound, playCompletionSound } from './audio.js?v=2';
 import { updateLineProgress, syncToCloud, markLineAsLearned, getLineProgress, getLearnedLines, getPuzzleELO, updatePuzzleELO, findPuzzleInELORange, saveLocalProgress, savePuzzleStreak, getPuzzleStreak, recordDailyActivity, recordMoveAccuracy } from './progress.js?v=6';
-import { highlightHintSquare, clearHintSquare, highlightLastMove, clearLastMove, showCorrectCheckmark, clearCorrectCheckmark, showIncorrectCross, clearIncorrectCross, moveInputHandler } from './board.js?v=42';
+import { highlightHintSquare, clearHintSquare, highlightLastMove, clearLastMove, showCorrectCheckmark, clearCorrectCheckmark, showIncorrectCross, clearIncorrectCross, moveInputHandler } from './board.js?v=43';
 import { renderMoveHistory, updateLineHeader, updateProgress, showFeedback, updateModeStats, renderLinesList, renderLineDropdown, updateStats } from './ui.js?v=40';
 import { updateEvalBar } from './evaluator.js?v=3';
 import { stats } from './stats.js';
@@ -926,6 +926,7 @@ export class Trainer {
     }
 
     playCompletionConfetti() {
+        if (localStorage.getItem('chesspeps_confetti') === 'false') return;
         if (typeof confetti === 'undefined') return;
 
         const boardEl = document.getElementById('board');

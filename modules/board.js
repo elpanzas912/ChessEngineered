@@ -5,6 +5,11 @@ import { updateEvalBar } from './evaluator.js?v=3';
 
 let pendingIncorrectMove = null;
 
+function playHaptic(pattern = 12) {
+    if (localStorage.getItem('chesspeps_haptic') === 'false') return;
+    if (navigator.vibrate) navigator.vibrate(pattern);
+}
+
 const BOARD_THEMES = new Set(['default', 'green', 'blue', 'white-violet', 'white-blue', 'chessboard-js', 'black-and-white']);
 const PIECE_SETS = new Set(['staunty', 'standard', 'maestro']);
 
@@ -96,6 +101,7 @@ export function moveInputHandler(event) {
 
     if (event.type === INPUT_EVENT_TYPE.moveInputFinished) {
         if (pendingIncorrectMove) {
+            playHaptic([18, 20, 18]);
             showIncorrectCross(pendingIncorrectMove.to);
             const fallbackFen = game.fen();
             const wrongMove = game.move({
@@ -133,6 +139,7 @@ export function moveInputHandler(event) {
             return;
         }
         if (event.legalMove) {
+            playHaptic(10);
             trainer.applyMove(event.squareFrom, event.squareTo);
             event.chessboard.disableMoveInput();
             setTimeout(() => {

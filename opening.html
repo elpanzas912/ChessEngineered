@@ -282,12 +282,81 @@
             <!-- Bottom Toolbar -->
             <div class="trainer-toolbar">
                 <div class="toolbar-group toolbar-default-left">
-                    <button class="toolbar-btn icon-only" id="btnSettings" aria-label="Settings" onclick="alert('ChessPeps v1.4.0')">
+                    <button class="toolbar-btn icon-only" id="btnSettings" aria-label="Settings" aria-haspopup="menu" aria-expanded="false" type="button">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
                             <circle cx="12" cy="12" r="3"/>
                         </svg>
                     </button>
+                    <div class="settings-menu" id="settingsMenu" role="menu" aria-label="Settings">
+                        <div class="settings-menu-title">Settings</div>
+                        <div class="settings-menu-separator"></div>
+                        <button class="settings-menu-item is-check" type="button" role="menuitemcheckbox" data-setting-toggle="show_eval">
+                            <span class="settings-check" aria-hidden="true">✓</span>
+                            <span>Show Evaluation Bar</span>
+                        </button>
+                        <button class="settings-menu-item is-check" type="button" role="menuitemcheckbox" data-setting-toggle="confetti">
+                            <span class="settings-check" aria-hidden="true">✓</span>
+                            <span>Show Confetti</span>
+                        </button>
+                        <button class="settings-menu-item is-check" type="button" role="menuitemcheckbox" data-setting-toggle="sound">
+                            <span class="settings-check" aria-hidden="true">✓</span>
+                            <span>Play Sounds</span>
+                        </button>
+                        <button class="settings-menu-item is-check" type="button" role="menuitemcheckbox" data-setting-toggle="haptic">
+                            <span class="settings-check" aria-hidden="true">✓</span>
+                            <span>Haptic Feedback</span>
+                        </button>
+                        <div class="settings-menu-separator"></div>
+                        <div class="settings-menu-title">Board Style</div>
+                        <label class="settings-select-row">
+                            <span>Piece Set</span>
+                            <select id="settingsPieceSet">
+                                <option value="staunty">Staunty</option>
+                                <option value="maestro">Maestro</option>
+                                <option value="standard">Standard</option>
+                            </select>
+                        </label>
+                        <label class="settings-select-row">
+                            <span>Chessboard Theme</span>
+                            <select id="settingsBoardTheme">
+                                <option value="green">Green</option>
+                                <option value="white-violet">White Violet</option>
+                                <option value="white-blue">White Blue</option>
+                                <option value="blue">Blue</option>
+                                <option value="chessboard-js">Brown</option>
+                                <option value="default">Classic</option>
+                                <option value="black-and-white">Black & White</option>
+                            </select>
+                        </label>
+                        <div class="settings-menu-separator"></div>
+                        <div class="settings-menu-title">Export &amp; Share</div>
+                        <button class="settings-menu-item" type="button" data-settings-action="lichess">Open in Lichess</button>
+                        <button class="settings-menu-item" type="button" data-settings-action="copy-pgn">Copy PGN</button>
+                        <button class="settings-menu-item" type="button" data-settings-action="copy-fen">Copy FEN</button>
+                        <div class="settings-menu-separator"></div>
+                        <div class="settings-menu-title">Learn Settings</div>
+                        <label class="settings-select-row">
+                            <span>Training Arrows</span>
+                            <select id="settingsTrainingArrows">
+                                <option value="on">On</option>
+                                <option value="off">Off</option>
+                            </select>
+                        </label>
+                        <label class="settings-select-row">
+                            <span>Learn Dialog</span>
+                            <select id="settingsDialogBehavior">
+                                <option value="auto">Auto</option>
+                                <option value="open">Always Open</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                        </label>
+                        <button class="settings-menu-item settings-menu-chevron" type="button" data-settings-action="select-line">
+                            <span>Select Line</span>
+                            <span aria-hidden="true">›</span>
+                        </button>
+                        <button class="settings-menu-item" type="button" data-settings-action="reset-line">Reset Progress</button>
+                    </div>
                     <span class="version-badge">v1.4.0</span>
                     <button class="toolbar-btn" id="btnHint">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -405,7 +474,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-    <script type="module" src="app.js?v=65"></script>
+    <script type="module" src="app.js?v=66"></script>
 
     <!-- Auth Modal Controls (non-module, always works) -->
     <script>

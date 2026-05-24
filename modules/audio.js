@@ -3,7 +3,12 @@ const sounds = {
     capture: new Audio('sounds/capture.mp3')
 };
 
+function soundsEnabled() {
+    return localStorage.getItem('chesspeps_sound') !== 'false';
+}
+
 export function playMoveSound(move) {
+    if (!soundsEnabled()) return;
     const isCapture = move && (move.captured || (move.san && move.san.includes('x')));
     const snd = isCapture ? sounds.capture : sounds.move;
     snd.currentTime = 0;
@@ -24,6 +29,7 @@ function detectCheckSounds() {
 }
 
 function playCheckSound() {
+    if (!soundsEnabled()) return;
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const now = audioCtx.currentTime;
@@ -43,6 +49,7 @@ function playCheckSound() {
 }
 
 function playCheckmateSound() {
+    if (!soundsEnabled()) return;
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const now = audioCtx.currentTime;
@@ -63,6 +70,7 @@ function playCheckmateSound() {
 }
 
 function playCompletionSound() {
+    if (!soundsEnabled()) return;
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const notes = [523.25, 659.25, 783.99, 1046.50];

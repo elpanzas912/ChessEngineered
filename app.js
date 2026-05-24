@@ -1,6 +1,6 @@
-import { initBoard, moveInputHandler } from './modules/board.js?v=42';
+import { initBoard, moveInputHandler } from './modules/board.js?v=43';
 import { loadLocalProgress, syncToCloud, recordTrainingTime } from './modules/progress.js?v=6';
-import { Trainer } from './modules/trainer.js?v=53';
+import { Trainer } from './modules/trainer.js?v=54';
 import { stats } from './modules/stats.js';
 import { renderLinesList, renderLineDropdown, updateLineHeader, updateProgress, updateStats, updateModeStats, showFeedback } from './modules/ui.js?v=40';
 import { updateEvalBar } from './modules/evaluator.js?v=3';
@@ -162,6 +162,157 @@ function populateSelector() {
     }
 }
 
+function getSetting(key, defaultValue = true) {
+    const stored = localStorage.getItem(`chesspeps_${key}`);
+    if (stored === null) return defaultValue;
+    return stored !== 'false';
+}
+
+function setSetting(key, value) {
+    localStorage.setItem(`chesspeps_${key}`, String(Boolean(value)));
+}
+
+function applyTrainerSettings() {
+    document.body.classList.toggle('settings-hide-eval', !getSetting('show_eval'));
+}
+
+function getBoardTheme() {
+    const theme = localStorage.getItem('chesspeps_board_theme') || localStorage.getItem('chesspeps_boardTheme') || 'green';
+    return theme === 'brown' ? 'chessboard-js' : theme;
+}
+
+function updateSettingsMenuState() {
+    const toggles = document.querySelectorAll('[data-setting-toggle]');
+    toggles.forEach(btn => {
+        const key = btn.dataset.settingToggle;
+        const checked = getSetting(key);
+        btn.setAttribute('aria-checked', String(checked));
+    });
+
+    const pieceSelect = document.getElementById('settingsPieceSet');
+    if (pieceSelect) pieceSelect.value = localStorage.getItem('chesspeps_piece_set') || 'staunty';
+
+    const themeSelect = document.getElementById('settingsBoardTheme');
+    if (themeSelect) themeSelect.value = getBoardTheme();
+
+    const arrowSelect = document.getElementById('settingsTrainingArrows');
+    if (arrowSelect) arrowSelect.value = localStorage.getItem('chesspeps_training_arrows') || 'on';
+
+    const dialogSelect = document.getElementById('settingsDialogBehavior');
+    if (dialogSelect) dialogSelect.value = localStorage.getItem('chesspeps_dialog_behavior') || 'auto';
+}
+
+async function copyText(text) {
+    if (!text) return;
+    try {
+        await navigator.clipboard.writeText(text);
+    } catch (e) {
+        const area = document.createElement('textarea');
+        area.value = text;
+        area.setAttribute('readonly', '');
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand('copy');
+        area.remove();
+    }
+}
+
+function installSettingsMenu() {
+    const button = document.getElementById('btnSettings');
+    const menu = document.getElementById('settingsMenu');
+    if (!button || !menu) return;
+
+    const closeMenu = () => {
+        menu.classList.remove('open');
+        button.setAttribute('aria-expanded', 'false');
+    };
+
+    const openMenu = () => {
+        updateSettingsMenuState();
+        menu.classList.add('open');
+        button.setAttribute('aria-expanded', 'true');
+    };
+
+    button.addEventListener('click', event => {
+        event.stopPropagation();
+        menu.classList.contains('open') ? closeMenu() : openMenu();
+    });
+
+    menu.addEventListener('click', event => {
+        event.stopPropagation();
+        const toggle = event.target.closest('[data-setting-toggle]');
+        if (toggle) {
+            const key = toggle.dataset.settingToggle;
+            const next = !getSetting(key);
+            setSetting(key, next);
+            applyTrainerSettings();
+            updateSettingsMenuState();
+            return;
+        }
+
+        const action = event.target.closest('[data-settings-action]')?.dataset.settingsAction;
+        if (!action) return;
+
+        if (action === 'copy-fen') {
+            copyText(window.game?.fen?.() || '');
+            closeMenu();
+        } else if (action === 'copy-pgn') {
+            copyText(window.game?.pgn?.() || '');
+            closeMenu();
+        } else if (action === 'lichess') {
+            const fen = window.game?.fen?.();
+            if (fen) window.open(`https://lichess.org/analysis/${fen.replace(/\s/g, '_')}`, '_blank', 'noopener');
+            closeMenu();
+        } else if (action === 'select-line') {
+            closeMenu();
+            window.toggleLineDropdown?.();
+        } else if (action === 'reset-line') {
+            trainer?.resetLine?.();
+            closeMenu();
+        }
+    });
+
+    const pieceSelect = document.getElementById('settingsPieceSet');
+    if (pieceSelect) {
+        pieceSelect.addEventListener('change', () => {
+            localStorage.setItem('chesspeps_piece_set', pieceSelect.value);
+            window.location.reload();
+        });
+    }
+
+    const themeSelect = document.getElementById('settingsBoardTheme');
+    if (themeSelect) {
+        themeSelect.addEventListener('change', () => {
+            localStorage.setItem('chesspeps_board_theme', themeSelect.value);
+            window.location.reload();
+        });
+    }
+
+    const arrowSelect = document.getElementById('settingsTrainingArrows');
+    if (arrowSelect) {
+        arrowSelect.addEventListener('change', () => {
+            localStorage.setItem('chesspeps_training_arrows', arrowSelect.value);
+        });
+    }
+
+    const dialogSelect = document.getElementById('settingsDialogBehavior');
+    if (dialogSelect) {
+        dialogSelect.addEventListener('change', () => {
+            localStorage.setItem('chesspeps_dialog_behavior', dialogSelect.value);
+        });
+    }
+
+    document.addEventListener('click', closeMenu);
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') closeMenu();
+    });
+
+    applyTrainerSettings();
+    updateSettingsMenuState();
+}
+
 // ── Init ──
 function initApp() {
     loadLocalProgress();
@@ -169,6 +320,7 @@ function initApp() {
     window.game = game;
     board = initBoard(document.getElementById('board'));
     window.board = board;
+    installSettingsMenu();
 
     const selectEl = document.getElementById('openingSelect');
     if (selectEl) {
