@@ -133,7 +133,7 @@ body { overflow: hidden; }
   background: #18181b;
   transition: height 0.18s var(--ease-out), width 0.18s var(--ease-out);
 }
-.eval-bar-score {
+.eval-bar .eval-bar-score {
   position: absolute;
   top: -22px;
   left: 50%;
@@ -141,7 +141,7 @@ body { overflow: hidden; }
   font-size: 10px;
   line-height: 14px;
   font-weight: 600;
-  color: #e4e4e7;
+  color: #ffffff;
   text-shadow: none;
   z-index: 2;
   white-space: nowrap;
@@ -150,11 +150,11 @@ body { overflow: hidden; }
   min-width: 34px;
   text-align: center;
 }
-.eval-bar-score.is-fallback {
-  color: #a1a1aa;
+.eval-bar .eval-bar-score.is-fallback {
+  color: #ffffff;
 }
-.eval-bar-score.is-loading {
-  color: #d4d4d8;
+.eval-bar .eval-bar-score.is-loading {
+  color: #ffffff;
 }
 
 #board {
