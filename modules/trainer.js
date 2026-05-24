@@ -1,7 +1,7 @@
 import { COLOR } from '../lib/cm-chessboard-src/Chessboard.js';
 import { playMoveSound, playCompletionSound } from './audio.js';
 import { updateLineProgress, syncToCloud, markLineAsLearned, getLineProgress, getLearnedLines, getPuzzleELO, updatePuzzleELO, findPuzzleInELORange, saveLocalProgress, savePuzzleStreak, getPuzzleStreak, recordDailyActivity, recordMoveAccuracy } from './progress.js?v=6';
-import { highlightHintSquare, clearHintSquare, highlightLastMove, clearLastMove, showCorrectCheckmark, clearCorrectCheckmark, showIncorrectCross, clearIncorrectCross, moveInputHandler } from './board.js?v=39';
+import { highlightHintSquare, clearHintSquare, highlightLastMove, clearLastMove, showCorrectCheckmark, clearCorrectCheckmark, showIncorrectCross, clearIncorrectCross, moveInputHandler } from './board.js?v=40';
 import { renderMoveHistory, updateLineHeader, updateProgress, showFeedback, updateModeStats, renderLinesList, renderLineDropdown, updateStats } from './ui.js?v=40';
 import { updateEvalBar } from './evaluator.js?v=3';
 import { stats } from './stats.js';
@@ -484,7 +484,7 @@ export class Trainer {
                 this.recordPosition(next);
                 updateProgress(this.getProgress());
 
-                const delay = this.mode === 'drill' ? 200 : (isPuzzle ? 400 : 600);
+                const delay = 200;
                 setTimeout(() => playNext(), delay);
             } else {
                 finish();
@@ -634,11 +634,11 @@ export class Trainer {
                 this._playing = false;
                 this.handlePuzzleSuccess();
             } else {
-                setTimeout(playNext, 400);
+                setTimeout(playNext, 200);
             }
         };
 
-        setTimeout(playNext, 400);
+        setTimeout(playNext, 200);
     }
 
     endDrillGame() {
@@ -724,7 +724,7 @@ export class Trainer {
                     updateProgress(this.getProgress());
 
                     if (this.moveIndex < this.moves.length) {
-                        setTimeout(() => this.playOpponentPuzzleMove(), 600);
+                        setTimeout(() => this.playOpponentPuzzleMove(), 200);
                         return;
                     }
                 }
@@ -745,7 +745,7 @@ export class Trainer {
 
             setTimeout(() => {
                 this.playOpponentMoves();
-            }, this.mode === 'drill' ? 250 : 500);
+            }, 200);
         } else {
             highlightHintSquare(exp.from);
             this.hintShown = true;

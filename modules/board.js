@@ -137,7 +137,7 @@ export function moveInputHandler(event) {
             event.chessboard.disableMoveInput();
             setTimeout(() => {
                 trainer && trainer.playOpponentMoves();
-            }, trainer.mode === 'drill' ? 250 : 500);
+            }, 200);
         }
     }
 
