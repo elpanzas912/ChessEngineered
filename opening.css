@@ -148,6 +148,9 @@ body { overflow: hidden; }
 .eval-bar-score.is-fallback {
   color: #a1a1aa;
 }
+.eval-bar-score.is-loading {
+  color: #d4d4d8;
+}
 
 #board {
   width: min(960px, calc(100vh - 140px), calc(100vw - 480px));

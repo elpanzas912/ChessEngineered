@@ -3,7 +3,7 @@ import { loadLocalProgress, syncToCloud, recordTrainingTime } from './modules/pr
 import { Trainer } from './modules/trainer.js?v=48';
 import { stats } from './modules/stats.js';
 import { renderLinesList, renderLineDropdown, updateLineHeader, updateProgress, updateStats, updateModeStats, showFeedback } from './modules/ui.js?v=40';
-import { updateEvalBar } from './modules/evaluator.js?v=2';
+import { updateEvalBar } from './modules/evaluator.js?v=3';
 import { getLearnedLines, getPuzzleELO, getPuzzleStreak } from './modules/progress.js?v=6';
 
 let db = {};
