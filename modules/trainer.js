@@ -1,7 +1,7 @@
 import { COLOR } from '../lib/cm-chessboard-src/Chessboard.js';
 import { playMoveSound, playCompletionSound } from './audio.js';
 import { updateLineProgress, syncToCloud, markLineAsLearned, getLineProgress, getLearnedLines, getPuzzleELO, updatePuzzleELO, findPuzzleInELORange, saveLocalProgress, savePuzzleStreak, getPuzzleStreak, recordDailyActivity, recordMoveAccuracy } from './progress.js?v=6';
-import { highlightHintSquare, clearHintSquare, highlightLastMove, clearLastMove, showCorrectCheckmark, clearCorrectCheckmark, showIncorrectCross, clearIncorrectCross, moveInputHandler } from './board.js?v=41';
+import { highlightHintSquare, clearHintSquare, highlightLastMove, clearLastMove, showCorrectCheckmark, clearCorrectCheckmark, showIncorrectCross, clearIncorrectCross, moveInputHandler } from './board.js?v=42';
 import { renderMoveHistory, updateLineHeader, updateProgress, showFeedback, updateModeStats, renderLinesList, renderLineDropdown, updateStats } from './ui.js?v=40';
 import { updateEvalBar } from './evaluator.js?v=3';
 import { stats } from './stats.js';
@@ -484,7 +484,7 @@ export class Trainer {
                 this.recordPosition(next);
                 updateProgress(this.getProgress());
 
-                const delay = isPuzzle ? 200 : 650;
+                const delay = isPuzzle ? 200 : 350;
                 setTimeout(() => playNext(), delay);
             } else {
                 finish();
@@ -745,7 +745,7 @@ export class Trainer {
 
             setTimeout(() => {
                 this.playOpponentMoves();
-            }, 650);
+            }, 350);
         } else {
             highlightHintSquare(exp.from);
             this.hintShown = true;
