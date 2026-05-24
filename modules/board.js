@@ -1,6 +1,7 @@
 import { Chessboard, COLOR, INPUT_EVENT_TYPE, BORDER_TYPE, FEN } from '../lib/cm-chessboard-src/Chessboard.js';
 import { Markers } from '../lib/cm-chessboard-src/extensions/markers/Markers.js';
 import { RightClickAnnotator } from '../lib/cm-chessboard-src/extensions/right-click-annotator/RightClickAnnotator.js';
+import { updateEvalBar } from './evaluator.js?v=3';
 
 let pendingIncorrectMove = null;
 
@@ -82,7 +83,11 @@ export function moveInputHandler(event) {
         }
         const valid = trainer.validateMove(event.squareFrom, event.squareTo);
         if (!valid) {
-            pendingIncorrectMove = { from: event.squareFrom, to: event.squareTo };
+            pendingIncorrectMove = {
+                from: event.squareFrom,
+                to: event.squareTo,
+                fenBefore: game.fen()
+            };
             return true;
         }
         pendingIncorrectMove = null;
@@ -92,16 +97,30 @@ export function moveInputHandler(event) {
     if (event.type === INPUT_EVENT_TYPE.moveInputFinished) {
         if (pendingIncorrectMove) {
             showIncorrectCross(pendingIncorrectMove.to);
+            const fallbackFen = game.fen();
+            const wrongMove = game.move({
+                from: pendingIncorrectMove.from,
+                to: pendingIncorrectMove.to,
+                promotion: 'q'
+            });
+            if (!wrongMove) {
+                pendingIncorrectMove.fenBefore = fallbackFen;
+            }
+            board.setPosition(game.fen(), true);
+            updateEvalBar();
             setTimeout(() => {
                 clearIncorrectCross();
+                game.load(pendingIncorrectMove.fenBefore || fallbackFen);
                 if (trainer && trainer.mode === 'puzzle' && trainer.currentPuzzle) {
                     board.setPosition(game.fen(), true);
+                    updateEvalBar();
                     setTimeout(() => {
                         trainer.enableCurrentMoveInput();
                         trainer.updateHistoryButtons();
                     }, 300);
                 } else {
                     board.setPosition(game.fen(), true);
+                    updateEvalBar();
                     setTimeout(() => {
                         if (trainer && !trainer.completed) {
                             const playerColor = trainer.opening.playerSide === 'w' ? COLOR.white : COLOR.black;
@@ -110,7 +129,7 @@ export function moveInputHandler(event) {
                     }, 300);
                 }
                 pendingIncorrectMove = null;
-            }, 700);
+            }, 500);
             return;
         }
         if (event.legalMove) {
