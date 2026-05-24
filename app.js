@@ -1,6 +1,6 @@
 import { initBoard, moveInputHandler } from './modules/board.js?v=38';
 import { loadLocalProgress, syncToCloud, recordTrainingTime } from './modules/progress.js?v=6';
-import { Trainer } from './modules/trainer.js?v=46';
+import { Trainer } from './modules/trainer.js?v=47';
 import { stats } from './modules/stats.js';
 import { renderLinesList, renderLineDropdown, updateLineHeader, updateProgress, updateStats, updateModeStats, showFeedback } from './modules/ui.js?v=40';
 import { updateEvalBar } from './modules/evaluator.js';
@@ -176,15 +176,13 @@ function initApp() {
     }
     document.getElementById('btnNext').addEventListener('click', () => {
         if (!trainer) return;
-        if (trainer.mode === 'puzzle') trainer.navigatePuzzleHistory(1);
-        else trainer.nextLine();
+        trainer.navigateMoveHistory(1);
     });
     const prevBtn = document.getElementById('btnPrev');
     if (prevBtn) {
         prevBtn.addEventListener('click', () => {
             if (!trainer) return;
-            if (trainer.mode === 'puzzle') trainer.navigatePuzzleHistory(-1);
-            else trainer.resetLine();
+            trainer.navigateMoveHistory(-1);
         });
     }
     const resetBtn = document.getElementById('btnReset');
@@ -223,14 +221,12 @@ function initApp() {
         if (e.code === 'ArrowLeft') {
             e.preventDefault();
             if (!trainer) return;
-            if (trainer.mode === 'puzzle') trainer.navigatePuzzleHistory(-1);
-            else trainer.resetLine();
+            trainer.navigateMoveHistory(-1);
         }
         if (e.code === 'ArrowRight') {
             e.preventDefault();
             if (!trainer) return;
-            if (trainer.mode === 'puzzle') trainer.navigatePuzzleHistory(1);
-            else trainer.nextLine();
+            trainer.navigateMoveHistory(1);
         }
     });
 

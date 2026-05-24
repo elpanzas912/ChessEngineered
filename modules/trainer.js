@@ -197,21 +197,22 @@ export class Trainer {
         this.moveIndex = 0;
         this.completed = false;
         this.wrongAttempts = 0;
+        this.positionHistory = [];
+        this.historyIndex = 0;
+        this.playedSans = [];
 
         this.saveSessionState();
 
         window.game.reset();
         window.board.setPosition(window.game.fen(), true);
+        this.recordPosition(null);
 
         updateLineHeader(this.lineName, this.opening.displayName);
         renderMoveHistory([]);
         updateProgress(0);
         updateEvalBar();
         renderLineDropdown(this);
-        const prevBtn = document.getElementById('btnPrev');
-        const nextBtn = document.getElementById('btnNext');
-        if (prevBtn) prevBtn.disabled = false;
-        if (nextBtn) nextBtn.disabled = false;
+        this.updateHistoryButtons();
 
         this.playOpponentMoves();
         renderLinesList(this);
@@ -365,21 +366,21 @@ export class Trainer {
     }
 
     recordPosition(lastMove) {
-        if (this.mode !== 'puzzle') return;
-
         this.positionHistory = this.positionHistory.slice(0, this.historyIndex + 1);
         this.positionHistory.push({
             fen: window.game.fen(),
             moveIndex: this.moveIndex,
             lastMove: lastMove ? { from: lastMove.from, to: lastMove.to } : null,
-            sans: this.playedSans.slice()
+            sans: this.mode === 'puzzle'
+                ? this.playedSans.slice()
+                : window.game.history({ verbose: false })
         });
         this.historyIndex = this.positionHistory.length - 1;
         this.updateHistoryButtons();
     }
 
-    navigatePuzzleHistory(direction) {
-        if (this.mode !== 'puzzle' || !this.positionHistory.length) return;
+    navigateMoveHistory(direction) {
+        if (!this.positionHistory.length) return;
 
         const nextIndex = Math.max(0, Math.min(this.positionHistory.length - 1, this.historyIndex + direction));
         if (nextIndex === this.historyIndex) return;
@@ -402,13 +403,18 @@ export class Trainer {
         this.updateInstruction();
         this.updateHistoryButtons();
 
-        if (this.historyIndex === this.positionHistory.length - 1 && !this.completed) {
+        const isLatest = this.historyIndex === this.positionHistory.length - 1;
+        const isUserTurn = this.mode === 'puzzle' || window.game.turn() === this.opening.playerSide;
+        if (isLatest && !this.completed && isUserTurn) {
             this.enableCurrentMoveInput();
         }
     }
 
+    navigatePuzzleHistory(direction) {
+        this.navigateMoveHistory(direction);
+    }
+
     updateHistoryButtons() {
-        if (this.mode !== 'puzzle') return;
         const prevBtn = document.getElementById('btnPrev');
         const nextBtn = document.getElementById('btnNext');
         if (prevBtn) prevBtn.disabled = this.historyIndex <= 0;
@@ -471,11 +477,11 @@ export class Trainer {
                 this.updateInstruction();
                 if (isPuzzle) {
                     this.playedSans.push(moveResult.san);
-                    this.recordPosition(next);
                     renderMoveHistory(this.playedSans);
                 } else {
                     renderMoveHistory(window.game.history({ verbose: false }));
                 }
+                this.recordPosition(next);
                 updateProgress(this.getProgress());
 
                 const delay = this.mode === 'drill' ? 200 : (isPuzzle ? 400 : 600);
@@ -678,11 +684,11 @@ export class Trainer {
         playMoveSound(moveResult);
 
         if (this.mode === 'puzzle') {
-            this.recordPosition(expected);
             renderMoveHistory(this.playedSans);
         } else {
             renderMoveHistory(window.game.history({ verbose: false }));
         }
+        this.recordPosition(expected);
         updateProgress(this.getProgress());
         updateEvalBar();
 
@@ -734,6 +740,7 @@ export class Trainer {
             playMoveSound(moveResult);
 
             renderMoveHistory(window.game.history({ verbose: false }));
+            this.recordPosition(exp);
             updateProgress(this.getProgress());
 
             setTimeout(() => {
