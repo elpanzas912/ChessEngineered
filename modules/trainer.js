@@ -484,7 +484,7 @@ export class Trainer {
                 this.recordPosition(next);
                 updateProgress(this.getProgress());
 
-                const delay = 200;
+                const delay = isPuzzle ? 200 : 400;
                 setTimeout(() => playNext(), delay);
             } else {
                 finish();
