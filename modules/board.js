@@ -2,6 +2,7 @@ import { Chessboard, COLOR, INPUT_EVENT_TYPE, BORDER_TYPE, FEN } from '../lib/cm
 import { Markers } from '../lib/cm-chessboard-src/extensions/markers/Markers.js';
 import { RightClickAnnotator } from '../lib/cm-chessboard-src/extensions/right-click-annotator/RightClickAnnotator.js';
 import { updateEvalBar } from './evaluator.js?v=3';
+import { playMoveSound } from './audio.js?v=2';
 
 let pendingIncorrectMove = null;
 
@@ -111,6 +112,8 @@ export function moveInputHandler(event) {
             });
             if (!wrongMove) {
                 pendingIncorrectMove.fenBefore = fallbackFen;
+            } else {
+                playMoveSound(wrongMove);
             }
             board.setPosition(game.fen(), true);
             updateEvalBar();

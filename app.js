@@ -1,4 +1,4 @@
-import { initBoard, moveInputHandler } from './modules/board.js?v=43';
+import { initBoard, moveInputHandler } from './modules/board.js?v=44';
 import { loadLocalProgress, syncToCloud, recordTrainingTime } from './modules/progress.js?v=6';
 import { Trainer } from './modules/trainer.js?v=54';
 import { stats } from './modules/stats.js';
