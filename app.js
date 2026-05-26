@@ -12,7 +12,7 @@ let catalog = {};
 let game = null;
 let board = null;
 let trainer = null;
-const OPENING_CACHE_PREFIX = 'chesspeps_opening_cache_';
+const OPENING_CACHE_PREFIX = 'chessengineered_opening_cache_';
 const OPENING_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
 
 window.db = db;
@@ -25,7 +25,7 @@ window.getPuzzleStreak = getPuzzleStreak;
 window.playTenSecondsSound = playTenSecondsSound;
 
 function installDailyStreakToast() {
-    window.addEventListener('chesspeps:daily-streak-earned', (event) => {
+    window.addEventListener('chessengineered:daily-streak-earned', (event) => {
         const count = Number(event.detail?.count) || 1;
         const existing = document.querySelector('.daily-streak-toast');
         if (existing) existing.remove();
@@ -206,24 +206,24 @@ function populateSelector() {
 }
 
 function getSetting(key, defaultValue = true) {
-    const stored = localStorage.getItem(`chesspeps_${key}`);
+    const stored = localStorage.getItem(`chessengineered_${key}`);
     if (stored === null) return defaultValue;
     return stored !== 'false';
 }
 
 function setSetting(key, value) {
-    localStorage.setItem(`chesspeps_${key}`, String(Boolean(value)));
+    localStorage.setItem(`chessengineered_${key}`, String(Boolean(value)));
 }
 
 function applyTrainerSettings() {
     document.body.classList.toggle('settings-hide-eval', !getSetting('show_eval'));
-    const dialogBehavior = localStorage.getItem('chesspeps_dialog_behavior') || 'auto';
+    const dialogBehavior = localStorage.getItem('chessengineered_dialog_behavior') || 'auto';
     document.body.classList.toggle('dialog-setting-open', dialogBehavior === 'open');
     document.body.classList.toggle('dialog-setting-closed', dialogBehavior === 'closed');
 }
 
 function getBoardTheme() {
-    const theme = localStorage.getItem('chesspeps_board_theme') || localStorage.getItem('chesspeps_boardTheme') || 'green';
+    const theme = localStorage.getItem('chessengineered_board_theme') || localStorage.getItem('chessengineered_boardTheme') || 'green';
     return theme === 'brown' ? 'chessboard-js' : theme;
 }
 
@@ -236,16 +236,16 @@ function updateSettingsMenuState() {
     });
 
     const pieceSelect = document.getElementById('settingsPieceSet');
-    if (pieceSelect) pieceSelect.value = localStorage.getItem('chesspeps_piece_set') || 'staunty';
+    if (pieceSelect) pieceSelect.value = localStorage.getItem('chessengineered_piece_set') || 'staunty';
 
     const themeSelect = document.getElementById('settingsBoardTheme');
     if (themeSelect) themeSelect.value = getBoardTheme();
 
     const arrowSelect = document.getElementById('settingsTrainingArrows');
-    if (arrowSelect) arrowSelect.value = localStorage.getItem('chesspeps_training_arrows') || 'on';
+    if (arrowSelect) arrowSelect.value = localStorage.getItem('chessengineered_training_arrows') || 'on';
 
     const dialogSelect = document.getElementById('settingsDialogBehavior');
-    if (dialogSelect) dialogSelect.value = localStorage.getItem('chesspeps_dialog_behavior') || 'auto';
+    if (dialogSelect) dialogSelect.value = localStorage.getItem('chessengineered_dialog_behavior') || 'auto';
 }
 
 async function copyText(text) {
@@ -323,7 +323,7 @@ function installSettingsMenu() {
     const pieceSelect = document.getElementById('settingsPieceSet');
     if (pieceSelect) {
         pieceSelect.addEventListener('change', () => {
-            localStorage.setItem('chesspeps_piece_set', pieceSelect.value);
+            localStorage.setItem('chessengineered_piece_set', pieceSelect.value);
             applyBoardAppearance(window.board, { pieceSet: pieceSelect.value });
         });
     }
@@ -331,7 +331,7 @@ function installSettingsMenu() {
     const themeSelect = document.getElementById('settingsBoardTheme');
     if (themeSelect) {
         themeSelect.addEventListener('change', () => {
-            localStorage.setItem('chesspeps_board_theme', themeSelect.value);
+            localStorage.setItem('chessengineered_board_theme', themeSelect.value);
             applyBoardAppearance(window.board, { theme: themeSelect.value });
         });
     }
@@ -339,7 +339,7 @@ function installSettingsMenu() {
     const arrowSelect = document.getElementById('settingsTrainingArrows');
     if (arrowSelect) {
         arrowSelect.addEventListener('change', () => {
-            localStorage.setItem('chesspeps_training_arrows', arrowSelect.value);
+            localStorage.setItem('chessengineered_training_arrows', arrowSelect.value);
             if (arrowSelect.value === 'off') {
                 window.board?.removeArrows?.();
                 window.board?.removeMarkers?.();
@@ -350,7 +350,7 @@ function installSettingsMenu() {
     const dialogSelect = document.getElementById('settingsDialogBehavior');
     if (dialogSelect) {
         dialogSelect.addEventListener('change', () => {
-            localStorage.setItem('chesspeps_dialog_behavior', dialogSelect.value);
+            localStorage.setItem('chessengineered_dialog_behavior', dialogSelect.value);
             applyTrainerSettings();
         });
     }
@@ -508,6 +508,6 @@ window.debugProgress = function () {
         currentUser: window.currentUser ? window.currentUser.email : null,
         lastSyncError: window.lastSyncError,
         lastSyncSuccess: window.lastSyncSuccess,
-        localStorage: JSON.parse(localStorage.getItem('chesspeps_progress') || '{}')
+        localStorage: JSON.parse(localStorage.getItem('chessengineered_progress') || '{}')
     };
 };

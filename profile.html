@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile — ChessPeps</title>
+    <title>Profile — ChessEngineered</title>
     <link rel="stylesheet" href="lib/cm-chessboard-assets/chessboard.css">
     <link rel="stylesheet" href="tokens.css">
     <link rel="stylesheet" href="profile.css?v=11">
+</head>
+<body>
+
 </head>
 <body>
 
@@ -14,12 +17,12 @@
     <nav class="nav">
         <a href="/openings.html" class="nav-logo">
             <div class="nav-logo-icon">♟</div>
-            chesspeps
+            chessengineered
         </a>
         <ul class="nav-links">
             <li><a href="/openings.html">Repertoire</a></li>
-            <li><a href="/index.html">Trainer</a></li>
-            <li><a href="/pricing.html">Pricing</a></li>
+            <li><a href="/openings.html">Trainer</a></li>
+            <li><a href="/plans.html">Pricing</a></li>
         </ul>
         <div class="nav-right" id="userMenu">
             <button class="btn-login" onclick="openAuthModal()">Log in</button>
@@ -35,7 +38,7 @@
                 <p class="profile-email" id="profileEmail">—</p>
                 <p class="profile-meta">Member since <span id="profileJoined">—</span></p>
             </div>
-            <a href="/pricing.html" class="btn btn-primary" id="upgradeBtn" style="display:none">Upgrade to Unlimited</a>
+            <a href="/plans.html" class="btn btn-primary" id="upgradeBtn" style="display:none">Upgrade to Unlimited</a>
         </div>
 
         <!-- Subscription Card -->
@@ -50,7 +53,7 @@
             </div>
             <p class="subscription-desc" id="subscriptionDesc">Upgrade to unlock all 30+ openings and sync across devices.</p>
             <div class="subscription-actions">
-                <a href="/pricing.html" class="btn btn-primary" id="subActionBtn">Upgrade — $11.99/year</a>
+                <a href="/plans.html" class="btn btn-primary" id="subActionBtn">Upgrade — $11.99/year</a>
             </div>
         </div>
 
@@ -330,13 +333,15 @@
         }
 
         function loadStats() {
-            const progress = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
-            const usage = JSON.parse(localStorage.getItem('chesspeps_usage') || '{}');
+            const progress = JSON.parse(localStorage.getItem('chessengineered_progress') || '{}');
+            const usage = JSON.parse(localStorage.getItem('chessengineered_usage') || '{}');
 
             const openingsPracticed = Object.keys(usage).length;
             let linesLearned = 0;
             for (const slug in progress) {
-                linesLearned += progress[slug]?.learnedLines?.length || 0;
+                if (!['puzzleELO', 'puzzleStreak', 'dailyStreak', 'trainingTime', 'accuracy'].includes(slug)) {
+                    linesLearned += progress[slug]?.learnedLines?.length || 0;
+                }
             }
 
             const streak = Math.max(0, Math.round(Number(progress.dailyStreak?.count) || 0));
@@ -439,7 +444,7 @@
         }
 
         async function renderAccuracyChart() {
-            const progress = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+            const progress = JSON.parse(localStorage.getItem('chessengineered_progress') || '{}');
             const accuracy = progress.accuracy && typeof progress.accuracy === 'object' ? progress.accuracy : null;
             const card = document.getElementById('accuracyCard');
             if (!card || !accuracy?.openings || Object.keys(accuracy.openings).length === 0) return;
@@ -574,8 +579,8 @@
                     .eq('id', userId)
                     .single();
                 if (data?.user_progress) {
-                    const local = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
-                    localStorage.setItem('chesspeps_progress', JSON.stringify(mergeProgress(local, data.user_progress)));
+                    const local = JSON.parse(localStorage.getItem('chessengineered_progress') || '{}');
+                    localStorage.setItem('chessengineered_progress', JSON.stringify(mergeProgress(local, data.user_progress)));
                 }
             } catch (e) { /* ignore */ }
         }
@@ -703,7 +708,7 @@
 
         function loadHeatmap() {
             const container = document.getElementById('heatmap');
-            const progress = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+            const progress = JSON.parse(localStorage.getItem('chessengineered_progress') || '{}');
             const activityDates = getPracticeActivityDates(progress);
 
             const weeks = 53;
@@ -819,7 +824,7 @@
         }
 
         function loadFavorites() {
-            const usage = JSON.parse(localStorage.getItem('chesspeps_usage') || '{}');
+            const usage = JSON.parse(localStorage.getItem('chessengineered_usage') || '{}');
             const sorted = Object.entries(usage).sort((a, b) => (b[1].count || 0) - (a[1].count || 0)).slice(0, 5);
 
             if (sorted.length === 0) return;
@@ -845,11 +850,11 @@
         }
 
         function loadSettings() {
-            let boardTheme = localStorage.getItem('chesspeps_board_theme') || localStorage.getItem('chesspeps_boardTheme') || 'green';
+            let boardTheme = localStorage.getItem('chessengineered_board_theme') || localStorage.getItem('chessengineered_boardTheme') || 'green';
             if (boardTheme === 'brown') boardTheme = 'chessboard-js';
-            const pieceSet = localStorage.getItem('chesspeps_piece_set') || 'staunty';
-            const soundEnabled = localStorage.getItem('chesspeps_sound') !== 'false';
-            const hintsEnabled = localStorage.getItem('chesspeps_hints') !== 'false';
+            const pieceSet = localStorage.getItem('chessengineered_piece_set') || 'staunty';
+            const soundEnabled = localStorage.getItem('chessengineered_sound') !== 'false';
+            const hintsEnabled = localStorage.getItem('chessengineered_hints') !== 'false';
 
             document.getElementById('boardTheme').value = boardTheme;
             document.getElementById('pieceSet').value = pieceSet;
@@ -859,13 +864,13 @@
         }
 
         function saveBoardAppearance(key, value) {
-            const storageKey = key === 'pieceSet' ? 'chesspeps_piece_set' : 'chesspeps_board_theme';
+            const storageKey = key === 'pieceSet' ? 'chessengineered_piece_set' : 'chessengineered_board_theme';
             localStorage.setItem(storageKey, value);
             window.dispatchEvent(new CustomEvent('boardAppearanceChanged'));
         }
 
         function saveSetting(key, value) {
-            localStorage.setItem('chesspeps_' + key, value);
+            localStorage.setItem('chessengineered_' + key, value);
         }
 
         /* ── Auth Modal ── */
@@ -980,9 +985,9 @@
         let previewBoard = null;
 
         function readAppearance() {
-            let theme = localStorage.getItem('chesspeps_board_theme') || localStorage.getItem('chesspeps_boardTheme') || 'green';
+            let theme = localStorage.getItem('chessengineered_board_theme') || localStorage.getItem('chessengineered_boardTheme') || 'green';
             if (theme === 'brown') theme = 'chessboard-js';
-            const pieces = localStorage.getItem('chesspeps_piece_set') || 'staunty';
+            const pieces = localStorage.getItem('chessengineered_piece_set') || 'staunty';
             return {
                 theme: boardThemes.has(theme) ? theme : 'green',
                 pieces: pieceSets.has(pieces) ? pieces : 'staunty'

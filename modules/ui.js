@@ -204,7 +204,7 @@ export function updateModeStats() {
             if (wasLocked && !window.drillUnlocks?.includes(window.trainer.slug)) {
                 if (!window.drillUnlocks) window.drillUnlocks = [];
                 window.drillUnlocks.push(window.trainer.slug);
-                localStorage.setItem('chesspeps_drill_unlocks', JSON.stringify(window.drillUnlocks));
+                localStorage.setItem('chessengineered_drill_unlocks', JSON.stringify(window.drillUnlocks));
                 const overlay = document.getElementById('unlockOverlay');
                 if (overlay) {
                     setTimeout(() => overlay.classList.add('open'), 600);

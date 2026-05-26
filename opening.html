@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChessPeps - Practice</title>
+    <title>ChessEngineered - Practice</title>
     <link rel="stylesheet" href="lib/cm-chessboard-assets/chessboard.css">
     <link rel="stylesheet" href="lib/cm-chessboard-assets/extensions/markers/markers.css">
     <link rel="stylesheet" href="tokens.css">
@@ -17,7 +17,7 @@
             const params = new URLSearchParams(window.location.search);
             const slug = params.get('slug');
             if (!slug) return;
-            const freeOpening = localStorage.getItem('chesspeps_free_opening');
+            const freeOpening = localStorage.getItem('chessengineered_free_opening');
             const isFree = freeOpening === slug;
             if (isFree) return; // Free opening, allow access
             // For now, allow all if no free opening picked yet (they'll pick on openings page)
@@ -493,7 +493,7 @@
         function toggleAuthMode() {
             authMode2 = authMode2 === 'login' ? 'signup' : 'login';
             document.getElementById('authTitle').textContent = authMode2 === 'login' ? 'Welcome back' : 'Create account';
-            document.getElementById('authSubtitle').textContent = authMode2 === 'login' ? 'Sign in to your account' : 'Get started with ChessPeps';
+            document.getElementById('authSubtitle').textContent = authMode2 === 'login' ? 'Sign in to your account' : 'Get started with ChessEngineered';
             document.getElementById('authBtn').textContent = authMode2 === 'login' ? 'Sign In' : 'Sign Up';
             document.getElementById('authToggleText').textContent = authMode2 === 'login' ? "Don't have an account?" : 'Already have an account?';
             document.getElementById('authToggleLink').textContent = authMode2 === 'login' ? 'Sign up' : 'Sign in';
@@ -668,7 +668,7 @@
             if (trainer.timeScore > high) {
                 if (!window.userProgress[trainer.slug]) window.userProgress[trainer.slug] = {};
                 window.userProgress[trainer.slug].timeHighScore = trainer.timeScore;
-                localStorage.setItem('chesspeps_progress', JSON.stringify(window.userProgress));
+                localStorage.setItem('chessengineered_progress', JSON.stringify(window.userProgress));
             }
             const overlay = document.getElementById('timeoverOverlay');
             const scoreEl = document.getElementById('timeoverScore');
@@ -754,7 +754,7 @@
         }
 
         // Initialize progress from localStorage for all users (logged in or not)
-        window.userProgress = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+        window.userProgress = JSON.parse(localStorage.getItem('chessengineered_progress') || '{}');
 
         async function handleAuth() {
             if (!supabaseClient) {
@@ -855,6 +855,12 @@
                 const { data, error } = await supabaseClient
                     .rpc('get_user_progress', { p_user_id: userId });
 
+        async function loadCloudProgress(userId) {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .rpc('get_user_progress', { p_user_id: userId });
+
                 if (error || !data) {
                     const fb = await supabaseClient
                         .from('profiles')
@@ -862,17 +868,17 @@
                         .eq('id', userId)
                         .single();
                     if (fb.data && fb.data.user_progress) {
-                        const local = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+                        const local = JSON.parse(localStorage.getItem('chessengineered_progress') || '{}');
                         const cloud = fb.data.user_progress;
                         const merged = mergeProgress(local, cloud);
                         window.userProgress = merged;
-                        localStorage.setItem('chesspeps_progress', JSON.stringify(merged));
+                        localStorage.setItem('chessengineered_progress', JSON.stringify(merged));
                         await supabaseClient.from('profiles').update({ user_progress: merged, updated_at: new Date().toISOString() }).eq('id', userId);
                     }
                     return;
                 }
 
-                const local = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+                const local = JSON.parse(localStorage.getItem('chessengineered_progress') || '{}');
                 let cloud = data;
                 const profile = await supabaseClient
                     .from('profiles')
@@ -884,7 +890,7 @@
                 }
                 const merged = mergeProgress(local, cloud);
                 window.userProgress = merged;
-                localStorage.setItem('chesspeps_progress', JSON.stringify(merged));
+                localStorage.setItem('chessengineered_progress', JSON.stringify(merged));
                 await supabaseClient.from('profiles').update({ user_progress: merged, updated_at: new Date().toISOString() }).eq('id', userId);
             } catch (e) { /* silently ignore */ }
         }
@@ -967,7 +973,7 @@
             const slug = params.get('slug');
             if (!slug) return;
 
-            const freeOpening = localStorage.getItem('chesspeps_free_opening');
+            const freeOpening = localStorage.getItem('chessengineered_free_opening');
             if (freeOpening === slug) return; // Free opening, allow
 
             // Check subscription

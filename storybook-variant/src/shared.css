@@ -1,0 +1,10 @@
+/* Cross-variant chess board squares */
+.sq-l { background: #F2E8D8; }
+.sq-d { background: #B58863; }
+
+/* Soft selection ring */
+.ring-soft { box-shadow: 0 0 0 4px rgba(124, 91, 242, .25); }
+
+/* Hide scrollbars inside artboards that need it */
+.scroll-hide::-webkit-scrollbar { display: none; }
+.scroll-hide { scrollbar-width: none; }

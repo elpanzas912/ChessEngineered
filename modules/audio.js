@@ -14,7 +14,7 @@ const sounds = {
 };
 
 function soundsEnabled() {
-    return localStorage.getItem('chesspeps_sound') !== 'false';
+    return localStorage.getItem('chessengineered_sound') !== 'false';
 }
 
 function playSound(name) {

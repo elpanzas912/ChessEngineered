@@ -1,4 +1,4 @@
-# Google Auth Setup for ChessPeps
+# Google Auth Setup for ChessEngineered
 
 ## Status
 Google OAuth is currently **disabled** in your Supabase project.
@@ -22,12 +22,12 @@ You need to create OAuth 2.0 credentials in Google Cloud Console:
 4. Click **Create Credentials** → **OAuth 2.0 Client ID**
 5. Configure consent screen:
    - User Type: External
-   - App name: ChessPeps
+   - App name: ChessEngineered
    - User support email: your email
    - Developer contact: your email
 6. Create OAuth Client ID:
    - Application type: Web application
-   - Name: ChessPeps Web
+   - Name: ChessEngineered Web
    - Authorized redirect URIs: `https://mvvnqkixgxjblgyrnvte.supabase.co/auth/v1/callback`
    - Also add for local dev: `http://localhost:8080/openings.html`
 7. Copy **Client ID** and **Client Secret**

@@ -21,6 +21,15 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
 *.swo
 
 # Logs
@@ -30,3 +39,8 @@ npm-debug.log*
 # Build
 /dist
 /build
+
+# Antigravity CLI and Windows temp files
+.commandcode/
+.antigravitycli/
+nul

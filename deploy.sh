@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🚀 ChessPeps Stripe Backend Deploy Script"
+echo "🚀 ChessEngineered Stripe Backend Deploy Script"
 echo "=========================================="
 echo ""
 

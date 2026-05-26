@@ -1,4 +1,4 @@
--- Supabase Schema for ChessPeps
+-- Supabase Schema for ChessEngineered
 -- Run this in Supabase Dashboard → SQL Editor
 
 -- Enable UUID extension

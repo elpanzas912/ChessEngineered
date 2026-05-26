@@ -29,9 +29,9 @@ function announceDailyStreak(streak) {
             seen: false,
             timestamp: Date.now()
         };
-        localStorage.setItem('chesspeps_daily_streak_earned', JSON.stringify(payload));
+        localStorage.setItem('chessengineered_daily_streak_earned', JSON.stringify(payload));
         if (typeof window.dispatchEvent === 'function' && typeof CustomEvent === 'function') {
-            window.dispatchEvent(new CustomEvent('chesspeps:daily-streak-earned', { detail: payload }));
+            window.dispatchEvent(new CustomEvent('chessengineered:daily-streak-earned', { detail: payload }));
         }
     } catch (e) {}
 }
@@ -84,13 +84,13 @@ export function recordDailyActivity() {
 
 export function loadLocalProgress() {
     try {
-        const stored = localStorage.getItem('chesspeps_progress');
+        const stored = localStorage.getItem('chessengineered_progress');
         if (stored) {
             window.userProgress = JSON.parse(stored);
         }
     } catch (e) {}
     try {
-        const unlocked = localStorage.getItem('chesspeps_drill_unlocks');
+        const unlocked = localStorage.getItem('chessengineered_drill_unlocks');
         if (unlocked) {
             window.drillUnlocks = JSON.parse(unlocked);
         }
@@ -98,7 +98,7 @@ export function loadLocalProgress() {
 }
 
 export function saveLocalProgress() {
-    localStorage.setItem('chesspeps_progress', JSON.stringify(window.userProgress));
+    localStorage.setItem('chessengineered_progress', JSON.stringify(window.userProgress));
 }
 
 export function normalizeTrainingTime(value) {
@@ -480,7 +480,7 @@ export async function loadCloudProgressNormalized(userId) {
         }
 
         if (data) {
-            const local = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+            const local = JSON.parse(localStorage.getItem('chessengineered_progress') || '{}');
             let cloud = data;
             const profile = await supabase
                 .from('profiles')
@@ -492,7 +492,7 @@ export async function loadCloudProgressNormalized(userId) {
             }
             const merged = mergeProgress(local, cloud);
             window.userProgress = merged;
-            localStorage.setItem('chesspeps_progress', JSON.stringify(merged));
+            localStorage.setItem('chessengineered_progress', JSON.stringify(merged));
         }
     } catch (e) {
         console.warn('loadCloudProgressNormalized error:', e);
@@ -512,10 +512,10 @@ async function loadCloudProgressFallback(userId) {
             .single();
 
         if (data && data.user_progress) {
-            const local = JSON.parse(localStorage.getItem('chesspeps_progress') || '{}');
+            const local = JSON.parse(localStorage.getItem('chessengineered_progress') || '{}');
             const merged = mergeProgress(local, data.user_progress);
             window.userProgress = merged;
-            localStorage.setItem('chesspeps_progress', JSON.stringify(merged));
+            localStorage.setItem('chessengineered_progress', JSON.stringify(merged));
         }
     } catch (e) { /* silently ignore */ }
 }

@@ -7,7 +7,7 @@ import { playMoveSound } from './audio.js?v=3';
 let pendingIncorrectMove = null;
 
 function playHaptic(pattern = 12) {
-    if (localStorage.getItem('chesspeps_haptic') === 'false') return;
+    if (localStorage.getItem('chessengineered_haptic') === 'false') return;
     if (navigator.vibrate) navigator.vibrate(pattern);
 }
 
@@ -15,10 +15,10 @@ const BOARD_THEMES = new Set(['default', 'green', 'blue', 'white-violet', 'white
 const PIECE_SETS = new Set(['staunty', 'standard', 'maestro']);
 
 function getBoardAppearance(overrides = {}) {
-    let storedTheme = localStorage.getItem('chesspeps_board_theme') || localStorage.getItem('chesspeps_boardTheme') || 'green';
+    let storedTheme = localStorage.getItem('chessengineered_board_theme') || localStorage.getItem('chessengineered_boardTheme') || 'green';
     if (overrides.theme) storedTheme = overrides.theme;
     if (storedTheme === 'brown') storedTheme = 'chessboard-js';
-    const storedPieces = overrides.pieceSet || localStorage.getItem('chesspeps_piece_set') || 'staunty';
+    const storedPieces = overrides.pieceSet || localStorage.getItem('chessengineered_piece_set') || 'staunty';
     const cssClass = BOARD_THEMES.has(storedTheme) ? storedTheme : 'green';
     const pieceSet = PIECE_SETS.has(storedPieces) ? storedPieces : 'staunty';
     return {

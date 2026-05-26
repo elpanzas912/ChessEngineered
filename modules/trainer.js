@@ -76,7 +76,7 @@ export class Trainer {
     }
 
     saveSessionState(overrides = {}) {
-        const key = `chesspeps_session_${this.slug}`;
+        const key = `chessengineered_session_${this.slug}`;
         const payload = {
             learnIndex: this.learnIndex,
             mode: this.mode,
@@ -88,7 +88,7 @@ export class Trainer {
     }
 
     loadSessionState() {
-        const key = `chesspeps_session_${this.slug}`;
+        const key = `chessengineered_session_${this.slug}`;
         try {
             const stored = localStorage.getItem(key);
             if (stored) {
@@ -103,7 +103,7 @@ export class Trainer {
     }
 
     clearSessionState() {
-        localStorage.removeItem(`chesspeps_session_${this.slug}`);
+        localStorage.removeItem(`chessengineered_session_${this.slug}`);
     }
 
     resolveSavedLine(saved, lines) {
@@ -948,7 +948,7 @@ export class Trainer {
     }
 
     playCompletionConfetti() {
-        if (localStorage.getItem('chesspeps_confetti') === 'false') return;
+        if (localStorage.getItem('chessengineered_confetti') === 'false') return;
         if (typeof confetti === 'undefined') return;
 
         const boardEl = document.getElementById('board');
