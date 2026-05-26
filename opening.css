@@ -377,7 +377,7 @@ body { overflow: hidden; }
   left: 0;
   bottom: calc(100% + 8px);
   z-index: var(--z-dropdown);
-  width: 224px;
+  width: min(292px, calc(100vw - 24px));
   max-height: min(72vh, 560px);
   padding: 6px;
   overflow-y: auto;
@@ -441,7 +441,8 @@ body { overflow: hidden; }
   white-space: nowrap;
 }
 .settings-select-row select {
-  max-width: 96px;
+  min-width: 132px;
+  max-width: 152px;
   border: 0;
   background: transparent;
   color: #a1a1aa;
