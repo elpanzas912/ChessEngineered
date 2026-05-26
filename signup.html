@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - ChessPeps</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="signup.css">
+</head>
+<body>
+    <main class="signup-section">
+        <div class="signup-card">
+            <div class="signup-logo">♟</div>
+            <h1 class="signup-title">Create your account</h1>
+            <p class="signup-lede">Join ChessPeps to save your progress and master your openings.</p>
+            
+            <!-- Redirects to index.html (page principal) as requested -->
+            <form class="signup-form" action="#" onsubmit="event.preventDefault(); window.location.href='/index.html';">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" required placeholder="you@example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required placeholder="••••••••">
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg btn-signup">Sign Up</button>
+            </form>
+            
+            <div class="signup-divider">OR</div>
+            
+            <button class="btn btn-social btn-lg" onclick="window.location.href='/index.html'">
+                Continue with Google
+            </button>
+            
+            <p class="signup-footer">
+                Already have an account? <a href="/index.html">Log in</a>
+            </p>
+        </div>
+    </main>
+</body>
+</html>

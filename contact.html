@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - ChessPeps</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="contact.css">
+</head>
+<body>
+    <!-- ── Nav ── -->
+    <nav class="nav">
+        <a href="/" class="nav-logo">
+            <div class="nav-logo-icon">♟</div>
+            chesspeps
+        </a>
+        <ul class="nav-links">
+            <li><a href="/openings.html">Trainer</a></li>
+            <li><a href="/plans.html">Pricing</a></li>
+            <li><a href="/leaderboards.html">Leaderboards</a></li>
+        </ul>
+        <div class="nav-right">
+            <button class="btn btn-primary" onclick="location.href='/signup.html'">Get Started</button>
+        </div>
+    </nav>
+
+    <!-- ── Contact Form ── -->
+    <section class="contact-section">
+        <div class="contact-container">
+            <h1 class="contact-title">Get in touch</h1>
+            <p class="contact-lede">Have a question or feedback? We'd love to hear from you.</p>
+            <form action="#" method="POST" onsubmit="event.preventDefault(); alert('Message sent!');">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" required placeholder="Magnus Carlsen">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required placeholder="magnus@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <input type="text" id="subject" name="subject" required placeholder="How can we help?">
+                </div>
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" required placeholder="Your message here..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg btn-submit">Send Message</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- ── Footer ── -->
+    <footer class="site-footer" style="padding: 2rem 1rem; text-align: center; border-top: 1px solid var(--color-rule);">
+        <p style="color: var(--color-muted); font-size: var(--text-xs);">© 2026 ChessPeps. All rights reserved.</p>
+    </footer>
+</body>
+</html>
