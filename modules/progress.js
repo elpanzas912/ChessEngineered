@@ -321,6 +321,22 @@ export function markLineAsLearned(slug, linePgn) {
     }
 }
 
+export function resetOpeningTrainingProgress(slug) {
+    if (!slug) return;
+    if (!window.userProgress) window.userProgress = {};
+
+    const existing = window.userProgress[slug] || {};
+    window.userProgress[slug] = {
+        ...existing,
+        lines: {},
+        learnedLines: []
+    };
+
+    saveLocalProgress();
+    syncToCloud();
+    deleteOpeningTrainingProgress(slug);
+}
+
 const K_FACTOR = 32;
 
 let _syncVersion = 0;
@@ -412,6 +428,26 @@ async function insertLearnedLine(slug, linePgn) {
         .from('learned_lines')
         .upsert({ user_id: user.id, opening_slug: slug, line_pgn: linePgn }, { onConflict: 'user_id,opening_slug,line_pgn' });
     if (error) console.warn('learned_lines upsert failed:', error.message);
+}
+
+async function deleteOpeningTrainingProgress(slug) {
+    const supabase = window.supabaseClient;
+    const user = window.currentUser;
+    if (!supabase || !user) return;
+
+    const { error: lineError } = await supabase
+        .from('line_progress')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('opening_slug', slug);
+    if (lineError) console.warn('line_progress reset failed:', lineError.message);
+
+    const { error: learnedError } = await supabase
+        .from('learned_lines')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('opening_slug', slug);
+    if (learnedError) console.warn('learned_lines reset failed:', learnedError.message);
 }
 
 async function upsertPuzzleRating(elo) {

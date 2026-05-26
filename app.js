@@ -1,10 +1,10 @@
 import { initBoard, moveInputHandler, applyBoardAppearance } from './modules/board.js?v=46';
-import { loadLocalProgress, syncToCloud, recordTrainingTime } from './modules/progress.js?v=6';
-import { Trainer } from './modules/trainer.js?v=54';
+import { loadLocalProgress, syncToCloud, recordTrainingTime } from './modules/progress.js?v=7';
+import { Trainer } from './modules/trainer.js?v=55';
 import { stats } from './modules/stats.js';
-import { renderLinesList, renderLineDropdown, updateLineHeader, updateProgress, updateStats, updateModeStats, showFeedback } from './modules/ui.js?v=40';
+import { renderLinesList, renderLineDropdown, updateLineHeader, updateProgress, updateStats, updateModeStats, showFeedback } from './modules/ui.js?v=41';
 import { updateEvalBar } from './modules/evaluator.js?v=3';
-import { getLearnedLines, getPuzzleELO, getPuzzleStreak } from './modules/progress.js?v=6';
+import { getLearnedLines, getPuzzleELO, getPuzzleStreak } from './modules/progress.js?v=7';
 
 let db = {};
 let catalog = {};
@@ -272,7 +272,7 @@ function installSettingsMenu() {
             closeMenu();
             window.toggleLineDropdown?.();
         } else if (action === 'reset-line') {
-            trainer?.resetLine?.();
+            trainer?.resetOpeningProgress?.();
             closeMenu();
         }
     });

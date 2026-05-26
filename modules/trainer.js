@@ -1,8 +1,8 @@
 import { COLOR } from '../lib/cm-chessboard-src/Chessboard.js';
 import { playMoveSound, playCompletionSound } from './audio.js?v=2';
-import { updateLineProgress, syncToCloud, markLineAsLearned, getLineProgress, getLearnedLines, getPuzzleELO, updatePuzzleELO, findPuzzleInELORange, saveLocalProgress, savePuzzleStreak, getPuzzleStreak, recordDailyActivity, recordMoveAccuracy } from './progress.js?v=6';
+import { updateLineProgress, syncToCloud, markLineAsLearned, getLineProgress, getLearnedLines, getPuzzleELO, updatePuzzleELO, findPuzzleInELORange, saveLocalProgress, savePuzzleStreak, getPuzzleStreak, recordDailyActivity, recordMoveAccuracy, resetOpeningTrainingProgress } from './progress.js?v=7';
 import { highlightHintSquare, clearHintSquare, highlightLastMove, clearLastMove, showCorrectCheckmark, clearCorrectCheckmark, showIncorrectCross, clearIncorrectCross, moveInputHandler } from './board.js?v=44';
-import { renderMoveHistory, updateLineHeader, updateProgress, showFeedback, updateModeStats, renderLinesList, renderLineDropdown, updateStats } from './ui.js?v=40';
+import { renderMoveHistory, updateLineHeader, updateProgress, showFeedback, updateModeStats, renderLinesList, renderLineDropdown, updateStats } from './ui.js?v=41';
 import { updateEvalBar } from './evaluator.js?v=3';
 import { stats } from './stats.js';
 
@@ -221,6 +221,28 @@ export class Trainer {
     resetLine() {
         if (!this.linePgn) return;
         this.loadLine(this.linePgn);
+    }
+
+    resetOpeningProgress() {
+        if (!this.slug || !this.opening) return;
+        resetOpeningTrainingProgress(this.slug);
+        this.clearSessionState();
+        this.mode = 'learn';
+        this.learnIndex = 0;
+        const lines = this.opening.lines || [];
+        if (lines.length) {
+            this.loadLine(lines[0]);
+        } else {
+            this.linePgn = null;
+            renderMoveHistory([]);
+            updateLineHeader('', this.opening.displayName);
+            updateProgress(0);
+        }
+        updateModeStats();
+        updateStats();
+        renderLinesList(this);
+        renderLineDropdown(this);
+        showFeedback('Progress reset for this opening.', 'success');
     }
 
     async loadPuzzles() {
