@@ -1,5 +1,5 @@
 import { COLOR } from '../lib/cm-chessboard-src/Chessboard.js';
-import { playMoveSound, playCompletionSound, playGameStartSound } from './audio.js?v=3';
+import { playMoveSound, playCompletionSound } from './audio.js?v=3';
 import { updateLineProgress, syncToCloud, markLineAsLearned, getLineProgress, getLearnedLines, getPuzzleELO, updatePuzzleELO, findPuzzleInELORange, saveLocalProgress, savePuzzleStreak, getPuzzleStreak, recordDailyActivity, recordMoveAccuracy, resetOpeningTrainingProgress } from './progress.js?v=7';
 import { highlightHintSquare, clearHintSquare, highlightLastMove, clearLastMove, showCorrectCheckmark, clearCorrectCheckmark, showIncorrectCross, clearIncorrectCross, moveInputHandler } from './board.js?v=47';
 import { renderMoveHistory, updateLineHeader, updateProgress, showFeedback, updateModeStats, renderLinesList, renderLineDropdown, updateStats } from './ui.js?v=41';
@@ -206,7 +206,6 @@ export class Trainer {
         window.game.reset();
         window.board.setPosition(window.game.fen(), true);
         this.recordPosition(null);
-        playGameStartSound();
 
         updateLineHeader(this.lineName, this.opening.displayName);
         renderMoveHistory([]);
