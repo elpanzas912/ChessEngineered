@@ -89,6 +89,7 @@ body { overflow: hidden; }
 /* ── Board Area ── */
 .board-area {
   flex: 1;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -926,10 +927,10 @@ body { overflow: hidden; }
 /* ── Completion Overlay ── */
 .completion-overlay {
   display: none;
-  position: fixed;
-  left: 50%;
-  bottom: 88px;
-  transform: translateX(-50%);
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--space-md) + 12px);
   background: transparent;
   z-index: var(--z-modal);
   align-items: center;

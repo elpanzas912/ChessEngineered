@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="lib/cm-chessboard-assets/extensions/markers/markers.css">
     <link rel="stylesheet" href="tokens.css">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="opening.css?v=7">
+    <link rel="stylesheet" href="opening.css?v=8">
 </head>
 <body>
     <!-- Access Check -->
@@ -71,6 +71,11 @@
                     <div class="eval-bar-score" id="evalBarScore">0.0</div>
                 </div>
                 <div id="board"></div>
+            </div>
+            <div class="completion-overlay" id="completionOverlay">
+                <h2>Line Complete!</h2>
+                <div class="completion-sub" id="completionSub">Great job! You learned a new line.</div>
+                <button class="btn-next-line" onclick="nextLineAfterComplete()">Next Line</button>
             </div>
         </div>
 
@@ -405,12 +410,6 @@
     <div id="feedback" class="feedback hidden"></div>
 
     <!-- Completion Overlay -->
-    <div class="completion-overlay" id="completionOverlay">
-        <h2>Line Complete!</h2>
-        <div class="completion-sub" id="completionSub">Great job! You learned a new line.</div>
-        <button class="btn-next-line" onclick="nextLineAfterComplete()">Next Line</button>
-    </div>
-
     <!-- Drill Unlock Overlay -->
     <div class="unlock-overlay" id="unlockOverlay">
         <div class="unlock-icon">🔥</div>
