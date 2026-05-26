@@ -1404,8 +1404,8 @@ body { overflow: hidden; }
 
   .instruction-dialog {
     order: 3;
-    height: auto;
-    min-height: 48px;
+    height: 86px;
+    min-height: 86px;
     max-height: 86px;
     overflow: hidden;
     padding: 0 12px;
@@ -1443,6 +1443,7 @@ body { overflow: hidden; }
     justify-content: flex-start;
     gap: 4px;
     padding: 0;
+    margin-top: 8px;
   }
 
   .eval-bar {
@@ -1718,7 +1719,7 @@ body { overflow: hidden; }
   .trainer-toolbar {
     order: 5;
     height: 40px;
-    margin-top: auto;
+    margin-top: 4px;
     padding: 0 6px;
     border-top: 0;
     gap: var(--space-xs);
@@ -1833,8 +1834,8 @@ body { overflow: hidden; }
   }
 
   .instruction-dialog {
-    height: auto;
-    min-height: 42px;
+    height: 72px;
+    min-height: 72px;
   }
 
   #board {
