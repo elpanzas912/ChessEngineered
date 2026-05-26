@@ -14,10 +14,11 @@ function playHaptic(pattern = 12) {
 const BOARD_THEMES = new Set(['default', 'green', 'blue', 'white-violet', 'white-blue', 'chessboard-js', 'black-and-white']);
 const PIECE_SETS = new Set(['staunty', 'standard', 'maestro']);
 
-function getBoardAppearance() {
+function getBoardAppearance(overrides = {}) {
     let storedTheme = localStorage.getItem('chesspeps_board_theme') || localStorage.getItem('chesspeps_boardTheme') || 'green';
+    if (overrides.theme) storedTheme = overrides.theme;
     if (storedTheme === 'brown') storedTheme = 'chessboard-js';
-    const storedPieces = localStorage.getItem('chesspeps_piece_set') || 'staunty';
+    const storedPieces = overrides.pieceSet || localStorage.getItem('chesspeps_piece_set') || 'staunty';
     const cssClass = BOARD_THEMES.has(storedTheme) ? storedTheme : 'green';
     const pieceSet = PIECE_SETS.has(storedPieces) ? storedPieces : 'staunty';
     return {
@@ -30,6 +31,7 @@ export function initBoard(element) {
     const appearance = getBoardAppearance();
     const board = new Chessboard(element, {
         assetsUrl: "../lib/cm-chessboard-assets/",
+        assetsCache: false,
         position: FEN.start,
         style: {
             pieces: { file: appearance.piecesFile, tileSize: 40 },
@@ -41,6 +43,21 @@ export function initBoard(element) {
         extensions: [{ class: Markers }, { class: RightClickAnnotator }]
     });
     return board;
+}
+
+export function applyBoardAppearance(board, overrides = {}) {
+    if (!board?.props?.style || !board?.view) return;
+
+    const appearance = getBoardAppearance(overrides);
+    board.props.style.cssClass = appearance.cssClass;
+    board.props.style.pieces = {
+        ...board.props.style.pieces,
+        file: appearance.piecesFile
+    };
+
+    const borderType = board.props.style.borderType || BORDER_TYPE.none;
+    board.view.svg?.setAttribute('class', `cm-chessboard border-type-${borderType} ${appearance.cssClass}`);
+    board.view.redrawPieces();
 }
 
 export function moveInputHandler(event) {

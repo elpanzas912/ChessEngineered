@@ -1,4 +1,4 @@
-import { initBoard, moveInputHandler } from './modules/board.js?v=44';
+import { initBoard, moveInputHandler, applyBoardAppearance } from './modules/board.js?v=45';
 import { loadLocalProgress, syncToCloud, recordTrainingTime } from './modules/progress.js?v=6';
 import { Trainer } from './modules/trainer.js?v=54';
 import { stats } from './modules/stats.js';
@@ -278,7 +278,7 @@ function installSettingsMenu() {
     if (pieceSelect) {
         pieceSelect.addEventListener('change', () => {
             localStorage.setItem('chesspeps_piece_set', pieceSelect.value);
-            window.location.reload();
+            applyBoardAppearance(window.board, { pieceSet: pieceSelect.value });
         });
     }
 
@@ -286,7 +286,7 @@ function installSettingsMenu() {
     if (themeSelect) {
         themeSelect.addEventListener('change', () => {
             localStorage.setItem('chesspeps_board_theme', themeSelect.value);
-            window.location.reload();
+            applyBoardAppearance(window.board, { theme: themeSelect.value });
         });
     }
 
