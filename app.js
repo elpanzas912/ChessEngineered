@@ -11,6 +11,8 @@ let catalog = {};
 let game = null;
 let board = null;
 let trainer = null;
+const OPENING_CACHE_PREFIX = 'chesspeps_opening_cache_';
+const OPENING_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
 
 window.db = db;
 window.game = game;
@@ -125,9 +127,41 @@ async function getOpeningAccessToken() {
     return data?.session?.access_token || null;
 }
 
+function getCachedOpening(slug) {
+    try {
+        const cached = JSON.parse(localStorage.getItem(`${OPENING_CACHE_PREFIX}${slug}`) || 'null');
+        if (!cached?.opening || !cached.cachedAt) return null;
+        if (Date.now() - cached.cachedAt > OPENING_CACHE_TTL) return null;
+        return cached.opening;
+    } catch (e) {
+        return null;
+    }
+}
+
+function setCachedOpening(slug, opening) {
+    if (!slug || !opening?.lines?.length) return;
+    try {
+        localStorage.setItem(`${OPENING_CACHE_PREFIX}${slug}`, JSON.stringify({
+            cachedAt: Date.now(),
+            opening
+        }));
+    } catch (e) {}
+}
+
 async function fetchProtectedOpening(slug) {
     if (db[slug]?.lines?.length) return db[slug];
 
+    const cachedOpening = getCachedOpening(slug);
+    if (cachedOpening?.lines?.length) {
+        db[slug] = cachedOpening;
+        refreshProtectedOpening(slug);
+        return db[slug];
+    }
+
+    return requestProtectedOpening(slug);
+}
+
+async function requestProtectedOpening(slug) {
     const token = await getOpeningAccessToken();
     if (!token) {
         throw new Error('Log in to access this opening.');
@@ -147,7 +181,14 @@ async function fetchProtectedOpening(slug) {
         throw error;
     }
     db[slug] = payload.opening;
+    setCachedOpening(slug, db[slug]);
     return db[slug];
+}
+
+async function refreshProtectedOpening(slug) {
+    try {
+        await requestProtectedOpening(slug);
+    } catch (e) {}
 }
 
 function populateSelector() {

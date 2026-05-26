@@ -6,10 +6,18 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
+const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+
 function jsonResponse(body: unknown, status = 200) {
+  const cacheControl = status === 200
+    ? 'private, max-age=86400, stale-while-revalidate=604800'
+    : 'no-store';
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Cache-Control': cacheControl },
   });
 }
 
@@ -61,21 +69,17 @@ serve(async (req) => {
       return jsonResponse({ error: 'Invalid opening' }, 400);
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-
     const supabaseUser = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
+    const databaseRequest = getOpeningDatabase(supabaseAdmin);
     const { data: userData, error: userError } = await supabaseUser.auth.getUser();
     if (userError || !userData.user) {
       return jsonResponse({ error: 'Invalid session' }, 401);
     }
 
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
-    const database = await getOpeningDatabase(supabaseAdmin);
+    const database = await databaseRequest;
     const opening = database[slug];
     if (!opening) {
       return jsonResponse({ error: 'Opening not found' }, 404);
