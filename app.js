@@ -1,4 +1,4 @@
-import { initBoard, moveInputHandler, applyBoardAppearance } from './modules/board.js?v=45';
+import { initBoard, moveInputHandler, applyBoardAppearance } from './modules/board.js?v=46';
 import { loadLocalProgress, syncToCloud, recordTrainingTime } from './modules/progress.js?v=6';
 import { Trainer } from './modules/trainer.js?v=54';
 import { stats } from './modules/stats.js';
@@ -294,6 +294,10 @@ function installSettingsMenu() {
     if (arrowSelect) {
         arrowSelect.addEventListener('change', () => {
             localStorage.setItem('chesspeps_training_arrows', arrowSelect.value);
+            if (arrowSelect.value === 'off') {
+                window.board?.removeArrows?.();
+                window.board?.removeMarkers?.();
+            }
         });
     }
 

@@ -1,6 +1,6 @@
 import { Chessboard, COLOR, INPUT_EVENT_TYPE, BORDER_TYPE, FEN } from '../lib/cm-chessboard-src/Chessboard.js';
 import { Markers } from '../lib/cm-chessboard-src/extensions/markers/Markers.js';
-import { RightClickAnnotator } from '../lib/cm-chessboard-src/extensions/right-click-annotator/RightClickAnnotator.js';
+import { RightClickAnnotator } from '../lib/cm-chessboard-src/extensions/right-click-annotator/RightClickAnnotator.js?v=2';
 import { updateEvalBar } from './evaluator.js?v=3';
 import { playMoveSound } from './audio.js?v=2';
 
