@@ -474,7 +474,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-    <script type="module" src="app.js?v=71"></script>
+    <script type="module" src="app.js?v=72"></script>
 
     <!-- Auth Modal Controls (non-module, always works) -->
     <script>
@@ -635,15 +635,21 @@
         // Time Trial Timer
         let timeInterval = null;
         let timeRemaining = 6000; // centiseconds (60 seconds)
+        let tenSecondSoundPlayed = false;
         
         window.startTimeTrial = function() {
             if (!trainer) return;
             trainer.timeScore = 0;
             timeRemaining = 6000; // 60 seconds in centiseconds
+            tenSecondSoundPlayed = false;
             updateTimeUI();
             clearInterval(timeInterval);
             timeInterval = setInterval(() => {
                 timeRemaining--;
+                if (!tenSecondSoundPlayed && timeRemaining <= 1000 && timeRemaining > 0) {
+                    tenSecondSoundPlayed = true;
+                    window.playTenSecondsSound?.();
+                }
                 updateTimeUI();
                 if (timeRemaining <= 0) {
                     endTimeTrial();

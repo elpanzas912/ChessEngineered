@@ -1,10 +1,11 @@
-import { initBoard, moveInputHandler, applyBoardAppearance } from './modules/board.js?v=46';
+import { initBoard, moveInputHandler, applyBoardAppearance } from './modules/board.js?v=47';
 import { loadLocalProgress, syncToCloud, recordTrainingTime } from './modules/progress.js?v=7';
-import { Trainer } from './modules/trainer.js?v=55';
+import { Trainer } from './modules/trainer.js?v=56';
 import { stats } from './modules/stats.js';
 import { renderLinesList, renderLineDropdown, updateLineHeader, updateProgress, updateStats, updateModeStats, showFeedback } from './modules/ui.js?v=41';
 import { updateEvalBar } from './modules/evaluator.js?v=3';
 import { getLearnedLines, getPuzzleELO, getPuzzleStreak } from './modules/progress.js?v=7';
+import { playTenSecondsSound } from './modules/audio.js?v=3';
 
 let db = {};
 let catalog = {};
@@ -21,6 +22,7 @@ window.trainer = trainer;
 window.stats = stats;
 window.getPuzzleELO = getPuzzleELO;
 window.getPuzzleStreak = getPuzzleStreak;
+window.playTenSecondsSound = playTenSecondsSound;
 
 function installDailyStreakToast() {
     window.addEventListener('chesspeps:daily-streak-earned', (event) => {
