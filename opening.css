@@ -926,15 +926,21 @@ body { overflow: hidden; }
 
 /* ── Completion Overlay ── */
 .completion-overlay {
-  display: none;
+  display: flex;
   position: static;
   width: 100%;
+  min-height: 44px;
   background: transparent;
   z-index: var(--z-modal);
   align-items: center;
   justify-content: center;
+  visibility: hidden;
+  pointer-events: none;
 }
-.completion-overlay.open { display: flex; }
+.completion-overlay.open {
+  visibility: visible;
+  pointer-events: auto;
+}
 .completion-overlay h2,
 .completion-overlay .completion-sub {
   display: none;
