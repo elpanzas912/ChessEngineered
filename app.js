@@ -174,6 +174,9 @@ function setSetting(key, value) {
 
 function applyTrainerSettings() {
     document.body.classList.toggle('settings-hide-eval', !getSetting('show_eval'));
+    const dialogBehavior = localStorage.getItem('chesspeps_dialog_behavior') || 'auto';
+    document.body.classList.toggle('dialog-setting-open', dialogBehavior === 'open');
+    document.body.classList.toggle('dialog-setting-closed', dialogBehavior === 'closed');
 }
 
 function getBoardTheme() {
@@ -305,6 +308,7 @@ function installSettingsMenu() {
     if (dialogSelect) {
         dialogSelect.addEventListener('change', () => {
             localStorage.setItem('chesspeps_dialog_behavior', dialogSelect.value);
+            applyTrainerSettings();
         });
     }
 

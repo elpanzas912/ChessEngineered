@@ -460,6 +460,12 @@ body { overflow: hidden; }
 .settings-hide-eval .eval-bar {
   display: none;
 }
+.dialog-setting-open .instruction-dialog {
+  display: flex !important;
+}
+.dialog-setting-closed .instruction-dialog {
+  display: none !important;
+}
 
 /* ── Instruction Dialog ── */
 .instruction-dialog {
