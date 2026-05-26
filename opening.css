@@ -927,10 +927,8 @@ body { overflow: hidden; }
 /* ── Completion Overlay ── */
 .completion-overlay {
   display: none;
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: calc(var(--space-md) + 12px);
+  position: static;
+  width: 100%;
   background: transparent;
   z-index: var(--z-modal);
   align-items: center;
