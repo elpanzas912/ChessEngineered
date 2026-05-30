@@ -135,15 +135,13 @@ async function fetchProtectedOpening(slug) {
 
 async function requestProtectedOpening(slug) {
     const token = await getOpeningAccessToken();
-    if (!token) {
-        throw new Error('Log in to access this opening.');
-    }
+    const headers = {
+        apikey: window.SUPABASE_KEY || ''
+    };
+    if (token) headers.Authorization = `Bearer ${token}`;
 
     const res = await fetch(`${window.SUPABASE_URL}/functions/v1/get-opening?slug=${encodeURIComponent(slug)}`, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-            apikey: window.SUPABASE_KEY || ''
-        }
+        headers
     });
     const payload = await res.json().catch(() => ({}));
     if (!res.ok) {

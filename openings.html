@@ -215,6 +215,8 @@
         let auth = window.auth || null;
         let hasActiveSubscription = false;
         let serverFreeOpening = null;
+        let activeUserId = null;
+        let subscriptionCheckVersion = 0;
 
         if (!supabaseClient) {
             document.getElementById('authError').textContent = 'Connection error. Please refresh.';
@@ -231,6 +233,9 @@
 
         // Check subscription status and render
         async function checkSubscriptionAndRender() {
+            const checkVersion = ++subscriptionCheckVersion;
+            let nextHasActiveSubscription = false;
+            let nextServerFreeOpening = null;
             if (auth) {
                 const { data: { user } } = await auth.getUser();
                 if (user) {
@@ -242,11 +247,11 @@
                                 .eq('user_id', user.id)
                                 .single();
 
-                            hasActiveSubscription = sub &&
+                            nextHasActiveSubscription = sub &&
                                 (sub.status === 'active' || sub.status === 'trialing') &&
                                 new Date(sub.current_period_end) > new Date();
                         } catch (e) {
-                            hasActiveSubscription = false;
+                            nextHasActiveSubscription = false;
                         }
 
                         try {
@@ -256,19 +261,25 @@
                                 .eq('id', user.id)
                                 .single();
                             if (profile?.free_opening_slug) {
-                                serverFreeOpening = profile.free_opening_slug;
-                                localStorage.setItem('chessengineered_free_opening', serverFreeOpening);
+                                nextServerFreeOpening = profile.free_opening_slug;
                             }
                         } catch (e) { /* ignore */ }
                     }
                 }
             }
 
+            if (checkVersion !== subscriptionCheckVersion) return;
+            hasActiveSubscription = nextHasActiveSubscription;
+            serverFreeOpening = nextServerFreeOpening;
+            if (serverFreeOpening) {
+                localStorage.setItem('chessengineered_free_opening', serverFreeOpening);
+            }
+
             // Show free tier banner if no subscription and no free opening picked
             const freeOpening = serverFreeOpening || localStorage.getItem('chessengineered_free_opening');
             const banner = document.getElementById('freeTierBanner');
-            if (banner && !hasActiveSubscription && !freeOpening) {
-                banner.style.display = 'block';
+            if (banner) {
+                banner.style.display = !hasActiveSubscription && !freeOpening ? 'block' : 'none';
             }
 
             renderCourses(allOpenings);
@@ -719,18 +730,26 @@
             }
         }
 
-        async function logout() {
-            if (!supabaseClient) return;
-            await auth.signOut();
+        function resetSignedOutState() {
+            subscriptionCheckVersion++;
             window.clearLocalUserData?.();
             serverFreeOpening = null;
             hasActiveSubscription = false;
             updateUserUI(null);
+            const banner = document.getElementById('freeTierBanner');
+            if (banner) banner.style.display = 'block';
             renderCourses(allOpenings);
+        }
+
+        async function logout() {
+            if (!supabaseClient) return;
+            resetSignedOutState();
+            await auth.signOut();
         }
 
         function updateUserUI(user) {
             const menu = document.getElementById('userMenu');
+            activeUserId = user?.id || null;
             if (user) {
                 window.prepareLocalProgressForUser?.(user.id);
                 menu.innerHTML = `
@@ -750,6 +769,7 @@
                     </div>
                 `;
                 loadCloudProgress(user.id);
+                checkSubscriptionAndRender();
             } else {
                 menu.innerHTML = `
                     <button class="nav-icon-btn" id="btnLogin" onclick="openAuthModal()" aria-label="Log in">
@@ -769,7 +789,7 @@
                     .select('user_progress')
                     .eq('id', userId)
                     .single();
-                if (data && data.user_progress) {
+                if (data && data.user_progress && activeUserId === userId) {
                     const local = JSON.parse(localStorage.getItem('chessengineered_progress') || '{}');
                     const merged = mergeProgress(local, data.user_progress);
                     localStorage.setItem('chessengineered_progress', JSON.stringify(merged));
@@ -842,6 +862,10 @@
                 if (data.user) updateUserUI(data.user);
             });
             auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_OUT') {
+                    resetSignedOutState();
+                    return;
+                }
                 updateUserUI(session?.user || null);
             });
         }

@@ -58,22 +58,26 @@ serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return jsonResponse({ error: 'Unauthorized' }, 401);
-    }
-
     const url = new URL(req.url);
     const slug = url.searchParams.get('slug')?.trim();
     if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
       return jsonResponse({ error: 'Invalid opening' }, 400);
     }
 
+    const databaseRequest = getOpeningDatabase(supabaseAdmin);
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      const database = await databaseRequest;
+      const opening = database[slug];
+      return opening
+        ? jsonResponse({ opening })
+        : jsonResponse({ error: 'Opening not found' }, 404);
+    }
+
     const supabaseUser = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const databaseRequest = getOpeningDatabase(supabaseAdmin);
     const { data: userData, error: userError } = await supabaseUser.auth.getUser();
     if (userError || !userData.user) {
       return jsonResponse({ error: 'Invalid session' }, 401);

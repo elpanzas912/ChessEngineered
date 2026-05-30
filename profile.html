@@ -955,8 +955,8 @@
 
         async function handleLogout() {
             if (!supabaseClient) return;
-            await auth.signOut();
             window.clearLocalUserData?.();
+            await auth.signOut();
             window.location.reload();
         }
 
@@ -982,6 +982,7 @@
                 loadProfile();
             });
             auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_OUT') window.clearLocalUserData?.();
                 updateUserMenu(session?.user || null);
             });
         }
