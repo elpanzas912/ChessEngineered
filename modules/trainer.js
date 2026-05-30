@@ -115,10 +115,28 @@ export class Trainer {
         const normalizedLearnIndex = Number.isFinite(savedLearnIndex) && savedLearnIndex >= 0
             ? savedLearnIndex % lines.length
             : -1;
+        const known = new Set(lines.map(line => line.trim()));
+        const learned = new Set(
+            getLearnedLines(this.slug)
+                .map(line => String(line).trim())
+                .filter(line => known.has(line))
+        );
+
+        if (learned.size < lines.length) {
+            const startIndex = normalizedLearnIndex >= 0
+                ? normalizedLearnIndex
+                : Math.max(0, savedLineIndex);
+            for (let offset = 0; offset < lines.length; offset++) {
+                const index = (startIndex + offset) % lines.length;
+                if (!learned.has(lines[index].trim())) {
+                    this.learnIndex = index;
+                    return lines[index];
+                }
+            }
+        }
 
         if (normalizedLearnIndex >= 0 && savedLineIndex >= 0 && normalizedLearnIndex !== savedLineIndex) {
-            const learned = getLearnedLines(this.slug);
-            if (learned.includes(lines[savedLineIndex])) {
+            if (learned.has(lines[savedLineIndex].trim())) {
                 return lines[normalizedLearnIndex];
             }
         }
@@ -154,6 +172,21 @@ export class Trainer {
         if (this.mode === 'learn') {
             if (this.learnIndex >= lines.length) {
                 this.learnIndex = 0;
+            }
+            const known = new Set(lines.map(line => line.trim()));
+            const learned = new Set(
+                getLearnedLines(this.slug)
+                    .map(line => String(line).trim())
+                    .filter(line => known.has(line))
+            );
+            if (learned.size < lines.length) {
+                for (let offset = 0; offset < lines.length; offset++) {
+                    const index = (this.learnIndex + offset) % lines.length;
+                    if (!learned.has(lines[index].trim())) {
+                        this.learnIndex = index;
+                        break;
+                    }
+                }
             }
             this.saveSessionState();
             this.loadLine(lines[this.learnIndex]);

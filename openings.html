@@ -462,14 +462,18 @@
                 let practicePerfectedCount = 0;
                 try {
                     const progress = JSON.parse(localStorage.getItem('chessengineered_progress') || '{}');
-                    learnedCount = progress[slug]?.learnedLines?.length || 0;
+                    learnedCount = Math.min(
+                        lineCount,
+                        new Set((progress[slug]?.learnedLines || []).map(line => String(line).trim())).size
+                    );
                     const lineProgress = progress[slug]?.lines || {};
-                    practicePerfectedCount = Object.values(lineProgress)
+                    practicePerfectedCount = Math.min(lineCount, Object.values(lineProgress)
                         .filter(line => (Number(line?.practicePerfectAttempts) || 0) > 0)
-                        .length;
+                        .length);
                 } catch (e) { /* ignore */ }
                 const pct = lineCount > 0 ? Math.round((learnedCount / lineCount) * 100) : 0;
                 const practicePct = lineCount > 0 ? Math.round((practicePerfectedCount / lineCount) * 100) : 0;
+                const learnCompleteClass = lineCount > 0 && learnedCount >= lineCount ? ' progress-fill-complete' : '';
 
                 // Determine if this opening is unlocked
                 const isUnlocked = hasActiveSubscription || freeOpening === slug;
@@ -506,7 +510,7 @@
                                 <span class="card-lines"><strong>${learnedCount}/${lineCount}</strong> lines</span>
                                 <div class="progress-track" aria-label="${learnedCount}/${lineCount} lines discovered, ${practicePerfectedCount}/${lineCount} lines perfected in practice">
                                     <div class="progress-fill progress-fill-practice" style="width: ${practicePct}%"></div>
-                                    <div class="progress-fill" style="width: ${pct}%"></div>
+                                    <div class="progress-fill progress-fill-learn${learnCompleteClass}" style="width: ${pct}%"></div>
                                 </div>
                             </div>
                         </div>

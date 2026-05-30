@@ -339,8 +339,16 @@ export function getLearnedLines(slug) {
 export function markLineAsLearned(slug, linePgn) {
     if (!window.userProgress[slug]) window.userProgress[slug] = { lines: {}, learnedLines: [] };
     if (!window.userProgress[slug].learnedLines) window.userProgress[slug].learnedLines = [];
-    if (!window.userProgress[slug].learnedLines.includes(linePgn)) {
+    const normalizedPgn = String(linePgn).trim();
+    const learnedLines = window.userProgress[slug].learnedLines;
+    const existingIndex = learnedLines.findIndex(line => String(line).trim() === normalizedPgn);
+    if (existingIndex === -1) {
         window.userProgress[slug].learnedLines.push(linePgn);
+        saveLocalProgress();
+        syncToCloud();
+        insertLearnedLine(slug, linePgn);
+    } else if (learnedLines[existingIndex] !== linePgn) {
+        learnedLines[existingIndex] = linePgn;
         saveLocalProgress();
         syncToCloud();
         insertLearnedLine(slug, linePgn);

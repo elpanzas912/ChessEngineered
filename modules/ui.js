@@ -265,13 +265,15 @@ function esc(text) {
 }
 
 function completedKnownLines(lineProgress, knownLines, learnedFallback = []) {
-    const known = new Set(knownLines);
-    const learned = [...new Set(learnedFallback || [])].filter(pgn => known.has(pgn));
+    const known = new Map(knownLines.map(pgn => [String(pgn).trim(), pgn]));
+    const learned = [...new Set((learnedFallback || []).map(pgn => String(pgn).trim()))]
+        .filter(pgn => known.has(pgn))
+        .map(pgn => known.get(pgn));
     if (learned.length > 0) return learned;
 
     const completed = Object.entries(lineProgress || {})
-        .filter(([pgn, line]) => known.has(pgn) && (Number(line?.completions) || 0) > 0)
-        .map(([pgn]) => pgn);
+        .filter(([pgn, line]) => known.has(String(pgn).trim()) && (Number(line?.completions) || 0) > 0)
+        .map(([pgn]) => known.get(String(pgn).trim()));
 
     return [...new Set(completed)];
 }
