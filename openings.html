@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChessEngineered — Repertoire</title>
     <link rel="stylesheet" href="tokens.css">
-    <link rel="stylesheet" href="openings.css?v=15">
+    <link rel="stylesheet" href="openings.css?v=16">
 </head>
 <body>
 
@@ -386,6 +386,15 @@
             setDailyStreakPopover(panel?.hidden !== false);
         }
 
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         function renderCourses(openings) {
             renderDailyStreak();
             const grid = document.getElementById('courseGrid');
@@ -455,7 +464,9 @@
                 const sideLabel = o.playerSide === 'w' ? 'White' : 'Black';
                 const lineCount = Number(o.lineCount) || 0;
                 const desc = o.description || '';
-                const shortDesc = desc ? desc.substring(0, 120) + (desc.length > 120 ? '...' : '') : 'Practice this opening with interactive training.';
+                const cardDesc = desc || 'Practice this opening with interactive training.';
+                const escapedDisplayName = escapeHtml(o.displayName);
+                const escapedCardDesc = escapeHtml(cardDesc);
 
                 // Calculate progress
                 let learnedCount = 0;
@@ -492,20 +503,20 @@
 
                 card.innerHTML = `
                     <div class="card-thumb">
-                        <img src="boards/${slug}.png" alt="${o.displayName} board">
+                        <img src="boards/${slug}.png" alt="${escapedDisplayName} board">
                         ${lockOverlay}
                     </div>
                     <div class="card-body">
                         <div class="card-main">
                             <div class="card-top">
-                                <h2 class="card-title">${o.displayName}</h2>
+                                <h2 class="card-title">${escapedDisplayName}</h2>
                                 <div class="card-badges">
                                     <span class="badge badge-${side}">${sideLabel}</span>
                                     ${freeBadge}
                                     ${unlockedBadge}
                                 </div>
                             </div>
-                            <p class="card-desc">${shortDesc}</p>
+                            <p class="card-desc">${escapedCardDesc}</p>
                             <div class="card-progress-wrap">
                                 <span class="card-lines"><strong>${learnedCount}/${lineCount}</strong> lines</span>
                                 <div class="progress-track" aria-label="${learnedCount}/${lineCount} lines discovered, ${practicePerfectedCount}/${lineCount} lines perfected in practice">

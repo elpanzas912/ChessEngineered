@@ -791,10 +791,6 @@ main {
   color: var(--color-muted);
   letter-spacing: 0.01em;
   margin-top: var(--space-xs);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
   transition: color var(--dur-short);
 }
 .card:hover .card-desc { color: var(--color-ink-2); }
@@ -1004,8 +1000,6 @@ main {
     margin-top: auto;
   }
   .card-desc {
-    -webkit-line-clamp: 2;
-    min-height: 38px;
     margin-bottom: 0;
   }
   .card-progress-wrap {
