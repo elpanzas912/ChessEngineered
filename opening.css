@@ -2500,7 +2500,7 @@ body {
 @media (max-width: 800px) {
   .instruction-dialog {
     position: fixed;
-    top: 312px;
+    top: 288px;
     left: 0;
     right: 0;
     z-index: 5;
