@@ -2498,6 +2498,14 @@ body {
 }
 
 @media (max-width: 800px) {
+  .mode-header {
+    z-index: var(--z-dropdown);
+  }
+
+  .line-dropdown {
+    z-index: var(--z-sticky);
+  }
+
   .instruction-dialog {
     position: fixed;
     top: 283px;
