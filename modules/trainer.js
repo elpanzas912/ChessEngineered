@@ -835,7 +835,6 @@ export class Trainer {
 
         if (el) el.textContent = text;
         if (bubbleText) bubbleText.textContent = text;
-        syncMobileInstructionSpace();
     }
 
     findDescription() {
@@ -1040,15 +1039,6 @@ export class Trainer {
     }
 }
 
-function syncMobileInstructionSpace() {
-    if (!window.matchMedia('(max-width: 800px)').matches) return;
-    requestAnimationFrame(() => {
-        const bubble = document.querySelector('.speech-bubble');
-        if (!bubble) return;
-        const space = Math.ceil(bubble.getBoundingClientRect().height) + 24;
-        document.documentElement.style.setProperty('--mobile-instruction-space', `${space}px`);
-    });
-}
 
 function parsePuzzleMoves(puzzle) {
     const temp = new Chess(puzzle.FEN);

@@ -2520,6 +2520,6 @@ body {
   }
 
   .board-with-eval {
-    margin-top: var(--mobile-instruction-space, 110px);
+    margin-top: 170px;
   }
 }
