@@ -4,6 +4,28 @@ const NON_OPENING_PROGRESS_KEYS = new Set(['puzzleELO', 'puzzleStreak', 'dailySt
 const TRAINING_TIME_MODES = ['learn', 'practice', 'drill', 'time', 'puzzle'];
 const ACCURACY_MODES = ['learn', 'practice'];
 const ACCURACY_RESULTS = ['correct', 'incorrect'];
+const PROGRESS_RESET_VERSION = '2026-05-30-reset-1';
+
+function ensureProgressResetVersion() {
+    if (typeof window.ensureProgressResetVersion === 'function') {
+        window.ensureProgressResetVersion();
+        return;
+    }
+    const versionKey = 'chessengineered_progress_reset_version';
+    if (localStorage.getItem(versionKey) === PROGRESS_RESET_VERSION) return;
+    Object.keys(localStorage)
+        .filter(key => (
+            key === 'chessengineered_progress' ||
+            key === 'chessengineered_drill_unlocks' ||
+            key === 'chessengineered_daily_streak_earned' ||
+            key === 'chessengineered_usage' ||
+            key.startsWith('chessengineered_opening_cache_') ||
+            key.startsWith('chessengineered_session_')
+        ))
+        .forEach(key => localStorage.removeItem(key));
+    localStorage.setItem(versionKey, PROGRESS_RESET_VERSION);
+    window.userProgress = {};
+}
 
 function getLocalDateKey(date = new Date()) {
     const year = date.getFullYear();
@@ -37,10 +59,12 @@ function announceDailyStreak(streak) {
 }
 
 export function normalizeDailyStreak(value) {
-    const count = Math.max(0, Math.round(Number(value?.count) || 0));
+    let count = Math.max(0, Math.round(Number(value?.count) || 0));
     const lastActiveDate = typeof value?.lastActiveDate === 'string' ? value.lastActiveDate : null;
     const activityDates = value?.activityDates && typeof value.activityDates === 'object' ? value.activityDates : {};
     const resetAt = typeof value?.resetAt === 'string' ? value.resetAt : null;
+    const gap = lastActiveDate ? daysBetween(lastActiveDate, getLocalDateKey()) : null;
+    if (gap !== null && gap > 1) count = 0;
     return { count, lastActiveDate, activityDates, resetAt };
 }
 
@@ -83,6 +107,7 @@ export function recordDailyActivity() {
 }
 
 export function loadLocalProgress() {
+    ensureProgressResetVersion();
     try {
         const stored = localStorage.getItem('chessengineered_progress');
         if (stored) {
@@ -98,6 +123,7 @@ export function loadLocalProgress() {
 }
 
 export function saveLocalProgress() {
+    ensureProgressResetVersion();
     localStorage.setItem('chessengineered_progress', JSON.stringify(window.userProgress));
 }
 
@@ -329,12 +355,20 @@ export function resetOpeningTrainingProgress(slug) {
     window.userProgress[slug] = {
         ...existing,
         lines: {},
-        learnedLines: []
+        learnedLines: [],
+        resetAt: new Date().toISOString()
     };
 
     saveLocalProgress();
     syncToCloud();
     deleteOpeningTrainingProgress(slug);
+}
+
+export function saveOpeningHighScores(slug) {
+    if (!slug) return;
+    saveLocalProgress();
+    syncToCloud();
+    upsertOpeningProgress(slug);
 }
 
 const K_FACTOR = 32;
@@ -535,6 +569,13 @@ function mergeProgress(local, cloud) {
         if (NON_OPENING_PROGRESS_KEYS.has(slug)) continue;
         if (!merged[slug]) merged[slug] = local[slug];
         else {
+            const localResetAt = local[slug]?.resetAt || '';
+            const cloudResetAt = merged[slug]?.resetAt || '';
+            if (localResetAt > cloudResetAt) {
+                merged[slug] = local[slug];
+                continue;
+            }
+            if (cloudResetAt > localResetAt) continue;
             const localLearned = local[slug].learnedLines || [];
             const cloudLearned = merged[slug].learnedLines || [];
             merged[slug].learnedLines = [...new Set([...cloudLearned, ...localLearned])];
@@ -652,11 +693,12 @@ function mergeDailyStreak(local, cloud) {
         .sort()
         .pop() || null;
 
-    return {
+    const merged = {
         count: Math.max(localStreak.count, cloudStreak.count),
         lastActiveDate,
         activityDates
     };
+    return normalizeDailyStreak(merged);
 }
 
 export function normalizePuzzleCount(value, fallback = 0) {

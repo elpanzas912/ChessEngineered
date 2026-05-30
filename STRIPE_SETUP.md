@@ -30,7 +30,7 @@ Te va a pedir:
 
 ## Paso 3: Setear Secrets en Supabase
 
-Necesitás estos 5 valores:
+Necesitás estos 7 valores:
 
 | Secret | Dónde conseguirlo |
 |---|---|
@@ -40,6 +40,7 @@ Necesitás estos 5 valores:
 | `SUPABASE_URL` | `https://mvvnqkixgxjblgyrnvte.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard → Project Settings → API → service_role key |
 | `SUPABASE_ANON_KEY` | Supabase Dashboard → Project Settings → API → anon/public key |
+| `APP_ORIGIN` | Dominio de producción, por ejemplo `https://app.example.com` |
 
 ### Para setearlos:
 

@@ -58,13 +58,14 @@ serve(async (req) => {
       );
     }
 
-    const { plan = 'yearly', successUrl, cancelUrl } = await req.json();
+    const { plan = 'yearly' } = await req.json();
     const priceId = priceIds[plan];
+    const appOrigin = (Deno.env.get('APP_ORIGIN') || '').replace(/\/$/, '');
 
-    if (!priceId) {
+    if (!priceId || !appOrigin) {
       return new Response(
-        JSON.stringify({ error: 'Invalid checkout plan' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: !priceId ? 'Invalid checkout plan' : 'Checkout origin is not configured' }),
+        { status: !priceId ? 400 : 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -110,8 +111,8 @@ serve(async (req) => {
       },
       client_reference_id: user.id,
       allow_promotion_codes: true,
-      success_url: successUrl || `${req.headers.get('origin')}/openings.html?checkout=success`,
-      cancel_url: cancelUrl || `${req.headers.get('origin')}/checkout.html`,
+      success_url: `${appOrigin}/openings.html?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appOrigin}/checkout.html`,
       metadata: {
         plan,
         user_id: user.id,

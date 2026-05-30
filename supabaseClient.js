@@ -3,9 +3,59 @@
 
 const SUPABASE_URL = 'https://mvvnqkixgxjblgyrnvte.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_oTugIxx-nIZDcJgCuMnnqw_1ppfExp9';
+const PROGRESS_RESET_VERSION = '2026-05-30-reset-1';
+const LOCAL_PROGRESS_KEYS = [
+    'chessengineered_progress',
+    'chessengineered_drill_unlocks',
+    'chessengineered_daily_streak_earned',
+    'chessengineered_usage'
+];
 
 window.SUPABASE_URL = SUPABASE_URL;
 window.SUPABASE_KEY = SUPABASE_KEY;
+window.CHESSENGINEERED_PROGRESS_RESET_VERSION = PROGRESS_RESET_VERSION;
+
+function clearOpeningCaches() {
+    Object.keys(localStorage)
+        .filter(key => key.startsWith('chessengineered_opening_cache_') || key.startsWith('chessengineered_session_'))
+        .forEach(key => localStorage.removeItem(key));
+}
+
+function clearLocalProgress(options = {}) {
+    LOCAL_PROGRESS_KEYS.forEach(key => localStorage.removeItem(key));
+    clearOpeningCaches();
+    if (options.clearFreeOpening) localStorage.removeItem('chessengineered_free_opening');
+    window.userProgress = {};
+    window.drillUnlocks = [];
+}
+
+function ensureProgressResetVersion() {
+    const versionKey = 'chessengineered_progress_reset_version';
+    if (localStorage.getItem(versionKey) === PROGRESS_RESET_VERSION) return;
+    clearLocalProgress({ clearFreeOpening: false });
+    localStorage.setItem(versionKey, PROGRESS_RESET_VERSION);
+}
+
+function prepareLocalProgressForUser(userId) {
+    ensureProgressResetVersion();
+    const ownerKey = 'chessengineered_progress_owner';
+    const previousOwner = localStorage.getItem(ownerKey);
+    if (previousOwner && previousOwner !== userId) {
+        clearLocalProgress({ clearFreeOpening: true });
+    }
+    if (userId) localStorage.setItem(ownerKey, userId);
+}
+
+function clearLocalUserData() {
+    clearLocalProgress({ clearFreeOpening: true });
+    localStorage.removeItem('chessengineered_progress_owner');
+}
+
+window.ensureProgressResetVersion = ensureProgressResetVersion;
+window.prepareLocalProgressForUser = prepareLocalProgressForUser;
+window.clearLocalUserData = clearLocalUserData;
+window.clearOpeningCaches = clearOpeningCaches;
+ensureProgressResetVersion();
 
 // Auto-initialize the Supabase client if the CDN library is loaded
 if (typeof supabase !== 'undefined' && supabase.createClient) {

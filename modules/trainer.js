@@ -1,6 +1,6 @@
 import { COLOR } from '../lib/cm-chessboard-src/Chessboard.js';
 import { playMoveSound, playCompletionSound } from './audio.js?v=3';
-import { updateLineProgress, syncToCloud, markLineAsLearned, getLineProgress, getLearnedLines, getPuzzleELO, updatePuzzleELO, findPuzzleInELORange, saveLocalProgress, savePuzzleStreak, getPuzzleStreak, recordDailyActivity, recordMoveAccuracy, resetOpeningTrainingProgress } from './progress.js?v=7';
+import { updateLineProgress, markLineAsLearned, getLineProgress, getLearnedLines, getPuzzleELO, updatePuzzleELO, findPuzzleInELORange, savePuzzleStreak, getPuzzleStreak, recordDailyActivity, recordMoveAccuracy, resetOpeningTrainingProgress, saveOpeningHighScores } from './progress.js?v=8';
 import { highlightHintSquare, clearHintSquare, highlightLastMove, clearLastMove, showCorrectCheckmark, clearCorrectCheckmark, showIncorrectCross, clearIncorrectCross, moveInputHandler } from './board.js?v=47';
 import { renderMoveHistory, updateLineHeader, updateProgress, showFeedback, updateModeStats, renderLinesList, renderLineDropdown, updateStats } from './ui.js?v=41';
 import { updateEvalBar } from './evaluator.js?v=3';
@@ -669,8 +669,7 @@ export class Trainer {
         if (this.drillScore > high) {
             if (!window.userProgress[this.slug]) window.userProgress[this.slug] = {};
             window.userProgress[this.slug].drillHighScore = this.drillScore;
-            saveLocalProgress();
-            syncToCloud();
+            saveOpeningHighScores(this.slug);
         }
         const overlay = document.getElementById('gameoverOverlay');
         const scoreEl = document.getElementById('gameoverScore');

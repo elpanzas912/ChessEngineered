@@ -296,8 +296,16 @@
             try {
                 const progress = JSON.parse(localStorage.getItem('chessengineered_progress') || '{}');
                 const streak = progress.dailyStreak || {};
+                let count = Math.max(0, Math.round(Number(streak.count) || 0));
+                if (typeof streak.lastActiveDate === 'string') {
+                    const [year, month, day] = streak.lastActiveDate.split('-').map(Number);
+                    const last = new Date(year, month - 1, day);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    if (Math.round((today - last) / 86400000) > 1) count = 0;
+                }
                 return {
-                    count: Math.max(0, Math.round(Number(streak.count) || 0)),
+                    count,
                     lastActiveDate: typeof streak.lastActiveDate === 'string' ? streak.lastActiveDate : null,
                     activityDates: streak.activityDates && typeof streak.activityDates === 'object' ? streak.activityDates : {}
                 };
@@ -699,12 +707,17 @@
         async function logout() {
             if (!supabaseClient) return;
             await auth.signOut();
+            window.clearLocalUserData?.();
+            serverFreeOpening = null;
+            hasActiveSubscription = false;
             updateUserUI(null);
+            renderCourses(allOpenings);
         }
 
         function updateUserUI(user) {
             const menu = document.getElementById('userMenu');
             if (user) {
+                window.prepareLocalProgressForUser?.(user.id);
                 menu.innerHTML = `
                     <div class="nav-profile-menu">
                         <a href="/profile.html" class="nav-icon-btn" aria-label="Profile">
@@ -762,6 +775,13 @@
                     merged[slug] = local[slug];
                     continue;
                 }
+                const localResetAt = local[slug]?.resetAt || '';
+                const cloudResetAt = merged[slug]?.resetAt || '';
+                if (localResetAt > cloudResetAt) {
+                    merged[slug] = local[slug];
+                    continue;
+                }
+                if (cloudResetAt > localResetAt) continue;
                 const localLearned = local[slug].learnedLines || [];
                 const cloudLearned = merged[slug].learnedLines || [];
                 merged[slug].learnedLines = [...new Set([...cloudLearned, ...localLearned])];

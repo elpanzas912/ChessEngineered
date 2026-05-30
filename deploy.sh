@@ -28,6 +28,7 @@ echo "📦 Step 2: Deploying Edge Functions..."
 supabase functions deploy create-checkout --no-verify-jwt
 supabase functions deploy confirm-checkout --no-verify-jwt
 supabase functions deploy stripe-webhook --no-verify-jwt
+supabase functions deploy get-opening --no-verify-jwt
 
 echo ""
 echo "🔐 Step 3: Checking secrets..."
@@ -42,6 +43,7 @@ echo "   • STRIPE_YEARLY_PRICE_ID   (yearly Unlimited Pass price, e.g. price_.
 echo "   • SUPABASE_URL             (https://$PROJECT_REF.supabase.co)"
 echo "   • SUPABASE_SERVICE_ROLE_KEY (from Project Settings > API)"
 echo "   • SUPABASE_ANON_KEY         (from Project Settings > API)"
+echo "   • APP_ORIGIN                (production site origin, e.g. https://example.com)"
 echo ""
 
 read -p "Do you want to set secrets now? (y/n) " -n 1 -r
@@ -53,6 +55,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     read -p "STRIPE_YEARLY_PRICE_ID (price_...): " yearly_price_id
     read -p "SUPABASE_SERVICE_ROLE_KEY: " service_key
     read -p "SUPABASE_ANON_KEY: " anon_key
+    read -p "APP_ORIGIN (https://...): " app_origin
     
     supabase secrets set STRIPE_SECRET_KEY="$stripe_key"
     supabase secrets set STRIPE_WEBHOOK_SECRET="$webhook_secret"
@@ -60,6 +63,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     supabase secrets set SUPABASE_URL="https://$PROJECT_REF.supabase.co"
     supabase secrets set SUPABASE_SERVICE_ROLE_KEY="$service_key"
     supabase secrets set SUPABASE_ANON_KEY="$anon_key"
+    supabase secrets set APP_ORIGIN="$app_origin"
     
     echo ""
     echo "✅ Secrets set!"
@@ -68,7 +72,7 @@ fi
 echo ""
 echo "🗄️  Step 4: Run database migration..."
 echo "   Go to https://supabase.com/dashboard/project/$PROJECT_REF/sql"
-echo "   and run the SQL from: supabase/migrations/20240101000000_add_subscriptions.sql"
+echo "   Apply all pending files from: supabase/migrations/"
 echo ""
 
 echo ""

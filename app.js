@@ -1,10 +1,10 @@
 import { initBoard, moveInputHandler, applyBoardAppearance } from './modules/board.js?v=47';
-import { loadLocalProgress, syncToCloud, recordTrainingTime } from './modules/progress.js?v=7';
+import { loadLocalProgress, syncToCloud, recordTrainingTime, saveOpeningHighScores } from './modules/progress.js?v=8';
 import { Trainer } from './modules/trainer.js?v=57';
 import { stats } from './modules/stats.js';
 import { renderLinesList, renderLineDropdown, updateLineHeader, updateProgress, updateStats, updateModeStats, showFeedback } from './modules/ui.js?v=41';
 import { updateEvalBar } from './modules/evaluator.js?v=3';
-import { getLearnedLines, getPuzzleELO, getPuzzleStreak } from './modules/progress.js?v=7';
+import { getLearnedLines, getPuzzleELO, getPuzzleStreak } from './modules/progress.js?v=8';
 import { playTenSecondsSound } from './modules/audio.js?v=3';
 
 let db = {};
@@ -12,8 +12,6 @@ let catalog = {};
 let game = null;
 let board = null;
 let trainer = null;
-const OPENING_CACHE_PREFIX = 'chessengineered_opening_cache_';
-const OPENING_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
 
 window.db = db;
 window.game = game;
@@ -22,6 +20,7 @@ window.trainer = trainer;
 window.stats = stats;
 window.getPuzzleELO = getPuzzleELO;
 window.getPuzzleStreak = getPuzzleStreak;
+window.saveOpeningHighScores = saveOpeningHighScores;
 window.playTenSecondsSound = playTenSecondsSound;
 
 function installDailyStreakToast() {
@@ -129,37 +128,8 @@ async function getOpeningAccessToken() {
     return data?.session?.access_token || null;
 }
 
-function getCachedOpening(slug) {
-    try {
-        const cached = JSON.parse(localStorage.getItem(`${OPENING_CACHE_PREFIX}${slug}`) || 'null');
-        if (!cached?.opening || !cached.cachedAt) return null;
-        if (Date.now() - cached.cachedAt > OPENING_CACHE_TTL) return null;
-        return cached.opening;
-    } catch (e) {
-        return null;
-    }
-}
-
-function setCachedOpening(slug, opening) {
-    if (!slug || !opening?.lines?.length) return;
-    try {
-        localStorage.setItem(`${OPENING_CACHE_PREFIX}${slug}`, JSON.stringify({
-            cachedAt: Date.now(),
-            opening
-        }));
-    } catch (e) {}
-}
-
 async function fetchProtectedOpening(slug) {
     if (db[slug]?.lines?.length) return db[slug];
-
-    const cachedOpening = getCachedOpening(slug);
-    if (cachedOpening?.lines?.length) {
-        db[slug] = cachedOpening;
-        refreshProtectedOpening(slug);
-        return db[slug];
-    }
-
     return requestProtectedOpening(slug);
 }
 
@@ -183,14 +153,7 @@ async function requestProtectedOpening(slug) {
         throw error;
     }
     db[slug] = payload.opening;
-    setCachedOpening(slug, db[slug]);
     return db[slug];
-}
-
-async function refreshProtectedOpening(slug) {
-    try {
-        await requestProtectedOpening(slug);
-    } catch (e) {}
 }
 
 function populateSelector() {

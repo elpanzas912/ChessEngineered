@@ -59,6 +59,10 @@ CREATE OR REPLACE FUNCTION public.get_daily_event_counts_by_timezone(
 )
 RETURNS TABLE (date_str TEXT, event_count BIGINT) AS $$
 BEGIN
+    IF auth.uid() IS NULL OR auth.uid() <> p_user_id THEN
+        RAISE EXCEPTION 'Not authorized';
+    END IF;
+
     RETURN QUERY
     SELECT
         (TO_TIMESTAMP(COALESCE(lp.last_attempt_timestamp, 0) / 1000.0) AT TIME ZONE p_timezone)::DATE::TEXT as date_str,
@@ -68,7 +72,7 @@ BEGIN
       AND lp.last_attempt_timestamp IS NOT NULL
     GROUP BY (TO_TIMESTAMP(COALESCE(lp.last_attempt_timestamp, 0) / 1000.0) AT TIME ZONE p_timezone)::DATE::TEXT;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- ── Normalized tables (replacing user_progress JSONB) ──
 
@@ -150,11 +154,15 @@ CREATE INDEX IF NOT EXISTS idx_learned_lines_user_slug ON public.learned_lines(u
 CREATE OR REPLACE FUNCTION public.get_user_progress(p_user_id UUID)
 RETURNS JSONB AS $$
 DECLARE
-    result JSONB := '{}';
+    result JSONB := '{}'::JSONB;
     opening_row RECORD;
     line_row RECORD;
     slug_data JSONB;
 BEGIN
+    IF auth.uid() IS NULL OR auth.uid() <> p_user_id THEN
+        RAISE EXCEPTION 'Not authorized';
+    END IF;
+
     result := jsonb_set(result, '{puzzleELO}',
         COALESCE((SELECT to_jsonb(pr.puzzle_elo) FROM public.puzzle_ratings pr WHERE pr.user_id = p_user_id), '1500'));
 
@@ -205,7 +213,12 @@ BEGIN
 
     RETURN result;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
+
+REVOKE ALL ON FUNCTION public.get_daily_event_counts_by_timezone(UUID, TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_user_progress(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.get_daily_event_counts_by_timezone(UUID, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_user_progress(UUID) TO authenticated;
 
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_profiles_username ON public.profiles(username);

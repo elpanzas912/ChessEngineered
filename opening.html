@@ -45,6 +45,12 @@
         </div>
     </div>
 
+    <!-- Ambient background layers -->
+    <div class="bg-glows" aria-hidden="true">
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+    </div>
+
     <div class="trainer-layout">
         <!-- Board -->
         <div class="board-area">
@@ -473,6 +479,8 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="supabaseClient.js"></script>
     <script type="module" src="app.js?v=73"></script>
 
     <!-- Auth Modal Controls (non-module, always works) -->
@@ -668,7 +676,7 @@
             if (trainer.timeScore > high) {
                 if (!window.userProgress[trainer.slug]) window.userProgress[trainer.slug] = {};
                 window.userProgress[trainer.slug].timeHighScore = trainer.timeScore;
-                localStorage.setItem('chessengineered_progress', JSON.stringify(window.userProgress));
+                window.saveOpeningHighScores?.(trainer.slug);
             }
             const overlay = document.getElementById('timeoverOverlay');
             const scoreEl = document.getElementById('timeoverScore');
@@ -742,9 +750,7 @@
         };
     </script>
 
-    <!-- Supabase Auth (global bundle - more reliable) -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    <script src="supabaseClient.js"></script>
+    <!-- Supabase Auth -->
     <script>
         let supabaseClient = window.supabaseClient || null;
         let auth = window.auth || null;
@@ -823,13 +829,15 @@
         async function logout() {
             if (!supabaseClient) return;
             await auth.signOut();
-            updateUserUI(null);
+            window.clearLocalUserData?.();
+            window.location.href = '/openings.html';
         }
 
         function updateUserUI(user) {
             window.currentUser = user || null;
             const menu = document.getElementById('userMenu');
             if (user) {
+                window.prepareLocalProgressForUser?.(user.id);
                 const name = user.email.split('@')[0];
                 const initial = name.charAt(0).toUpperCase();
                 if (menu) {
@@ -848,12 +856,6 @@
                 menu.innerHTML = `<button class="btn-login" onclick="openAuthModal()">Log in</button>`;
             }
         }
-
-        async function loadCloudProgress(userId) {
-            if (!supabaseClient) return;
-            try {
-                const { data, error } = await supabaseClient
-                    .rpc('get_user_progress', { p_user_id: userId });
 
         async function loadCloudProgress(userId) {
             if (!supabaseClient) return;
@@ -911,6 +913,13 @@
                 if (['puzzleELO', 'puzzleStreak', 'dailyStreak'].includes(slug)) continue;
                 if (!merged[slug]) merged[slug] = local[slug];
                 else {
+                    const localResetAt = local[slug]?.resetAt || '';
+                    const cloudResetAt = merged[slug]?.resetAt || '';
+                    if (localResetAt > cloudResetAt) {
+                        merged[slug] = local[slug];
+                        continue;
+                    }
+                    if (cloudResetAt > localResetAt) continue;
                     const localLearned = local[slug].learnedLines || [];
                     const cloudLearned = merged[slug].learnedLines || [];
                     merged[slug].learnedLines = [...new Set([...cloudLearned, ...localLearned])];
@@ -956,11 +965,19 @@
             Object.entries(a.activityDates).forEach(([date, count]) => {
                 activityDates[date] = Math.max(Number(activityDates[date]) || 0, Number(count) || 0);
             });
-            return {
+            const merged = {
                 count: Math.max(a.count, b.count),
                 lastActiveDate: [a.lastActiveDate, b.lastActiveDate].filter(Boolean).sort().pop() || null,
                 activityDates
             };
+            if (merged.lastActiveDate) {
+                const today = new Date();
+                const [year, month, day] = merged.lastActiveDate.split('-').map(Number);
+                const last = new Date(year, month - 1, day);
+                today.setHours(0, 0, 0, 0);
+                if (Math.round((today - last) / 86400000) > 1) merged.count = 0;
+            }
+            return merged;
         }
 
         window.handleAuth = handleAuth;

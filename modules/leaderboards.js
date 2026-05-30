@@ -1,5 +1,4 @@
 // Leaderboards integration with Supabase
-import { supabase } from '../supabaseClient.js';
 
 async function fetchLeaderboard() {
     const tbody = document.getElementById('leaderboard-body');
@@ -7,14 +6,9 @@ async function fetchLeaderboard() {
 
     try {
         // Fetch top players by puzzle ELO
-        const { data, error } = await supabase
-            .from('puzzle_ratings')
-            .select(`
-                puzzle_elo,
-                profiles:user_id ( username, display_name )
-            `)
-            .order('puzzle_elo', { ascending: false })
-            .limit(10);
+        const supabase = window.supabaseClient;
+        if (!supabase) throw new Error('Supabase client unavailable');
+        const { data, error } = await supabase.rpc('get_puzzle_leaderboard', { p_limit: 10 });
 
         if (error) throw error;
 
@@ -28,8 +22,7 @@ async function fetchLeaderboard() {
 
         data.forEach((entry, index) => {
             const rank = index + 1;
-            const profile = entry.profiles || {};
-            const name = profile.display_name || profile.username || 'Anonymous';
+            const name = entry.display_name || 'Anonymous';
             const initial = name.charAt(0).toUpperCase();
             const elo = entry.puzzle_elo || 1500;
             
@@ -40,17 +33,25 @@ async function fetchLeaderboard() {
             else if (rank === 3) rankClass = 'rank-3';
 
             const row = document.createElement('tr');
-            row.innerHTML = `
-                <td class="rank-cell ${rankClass}">#${rank}</td>
-                <td>
-                    <div class="player-cell">
-                        <div class="player-avatar">${initial}</div>
-                        <span>${name}</span>
-                    </div>
-                </td>
-                <td>--</td> <!-- Streak not currently tracked directly in a single table, placeholder -->
-                <td class="score-cell">${elo}</td>
-            `;
+            const rankCell = document.createElement('td');
+            rankCell.className = `rank-cell ${rankClass}`;
+            rankCell.textContent = `#${rank}`;
+            const playerCell = document.createElement('td');
+            const player = document.createElement('div');
+            player.className = 'player-cell';
+            const avatar = document.createElement('div');
+            avatar.className = 'player-avatar';
+            avatar.textContent = initial;
+            const label = document.createElement('span');
+            label.textContent = name;
+            player.append(avatar, label);
+            playerCell.appendChild(player);
+            const streakCell = document.createElement('td');
+            streakCell.textContent = '--';
+            const eloCell = document.createElement('td');
+            eloCell.className = 'score-cell';
+            eloCell.textContent = String(elo);
+            row.append(rankCell, playerCell, streakCell, eloCell);
             tbody.appendChild(row);
         });
 

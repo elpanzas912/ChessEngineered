@@ -205,7 +205,7 @@
                         <span class="setting-desc">Play sounds on move and capture</span>
                     </div>
                     <label class="toggle-switch">
-                        <input type="checkbox" id="soundToggle" checked onchange="saveSetting('soundEnabled', this.checked)">
+                        <input type="checkbox" id="soundToggle" checked onchange="saveSetting('sound', this.checked)">
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
@@ -215,7 +215,7 @@
                         <span class="setting-desc">Display move hints during practice</span>
                     </div>
                     <label class="toggle-switch">
-                        <input type="checkbox" id="hintsToggle" checked onchange="saveSetting('hintsEnabled', this.checked)">
+                        <input type="checkbox" id="hintsToggle" checked onchange="saveSetting('hints', this.checked)">
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
@@ -282,6 +282,7 @@
                 openAuthModal();
                 return;
             }
+            window.prepareLocalProgressForUser?.(user.id);
 
             // User info
             const name = user.email.split('@')[0];
@@ -598,6 +599,13 @@
                     merged[slug] = local[slug];
                     continue;
                 }
+                const localResetAt = local[slug]?.resetAt || '';
+                const cloudResetAt = merged[slug]?.resetAt || '';
+                if (localResetAt > cloudResetAt) {
+                    merged[slug] = local[slug];
+                    continue;
+                }
+                if (cloudResetAt > localResetAt) continue;
                 const localLearned = local[slug].learnedLines || [];
                 const cloudLearned = merged[slug].learnedLines || [];
                 merged[slug].learnedLines = [...new Set([...cloudLearned, ...localLearned])];
@@ -948,6 +956,7 @@
         async function handleLogout() {
             if (!supabaseClient) return;
             await auth.signOut();
+            window.clearLocalUserData?.();
             window.location.reload();
         }
 

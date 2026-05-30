@@ -182,6 +182,8 @@
             auth.getUser().then(({ data }) => {
                 if (data.user) {
                     currentUser = data.user;
+                    window.prepareLocalProgressForUser?.(currentUser.id);
+                    persistOnboardingPreferences(currentUser);
                     showCheckout();
                 } else {
                     showAuth();
@@ -190,6 +192,8 @@
             auth.onAuthStateChange((event, session) => {
                 currentUser = session?.user || null;
                 if (currentUser) {
+                    window.prepareLocalProgressForUser?.(currentUser.id);
+                    persistOnboardingPreferences(currentUser);
                     showCheckout();
                 } else {
                     showAuth();
@@ -207,6 +211,25 @@
         function showCheckout() {
             document.getElementById('authOverlay').style.display = 'none';
             document.getElementById('checkoutContent').style.display = 'grid';
+        }
+
+        async function persistOnboardingPreferences(user) {
+            if (!supabaseClient || !user) return;
+            try {
+                const stored = JSON.parse(localStorage.getItem('chessengineered_onboarding') || 'null');
+                if (!stored || typeof stored !== 'object') return;
+                const { error } = await supabaseClient
+                    .from('profiles')
+                    .update({
+                        rating: stored.rating || null,
+                        color_preference: stored.color || null,
+                        goal: stored.goal || null,
+                        commitment: stored.commitment || null,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', user.id);
+                if (!error) localStorage.removeItem('chessengineered_onboarding');
+            } catch (e) {}
         }
 
         /* ── Auth UI ── */
@@ -293,6 +316,8 @@
                 showAuthError(result.error.message);
             } else {
                 currentUser = result.data.user;
+                window.prepareLocalProgressForUser?.(currentUser.id);
+                persistOnboardingPreferences(currentUser);
                 showCheckout();
             }
         }
@@ -333,9 +358,7 @@
                         'Authorization': 'Bearer ' + accessToken
                     },
                     body: JSON.stringify({
-                        plan: 'yearly',
-                        successUrl: window.location.origin + '/openings.html?checkout=success&session_id={CHECKOUT_SESSION_ID}',
-                        cancelUrl: window.location.origin + '/checkout.html'
+                        plan: 'yearly'
                     })
                 });
 
