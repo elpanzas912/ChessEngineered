@@ -1,6 +1,6 @@
 import { initBoard, moveInputHandler, applyBoardAppearance } from './modules/board.js?v=47';
 import { loadLocalProgress, syncToCloud, recordTrainingTime, saveOpeningHighScores } from './modules/progress.js?v=8';
-import { Trainer } from './modules/trainer.js?v=58';
+import { Trainer } from './modules/trainer.js?v=59';
 import { stats } from './modules/stats.js';
 import { renderLinesList, renderLineDropdown, updateLineHeader, updateProgress, updateStats, updateModeStats, showFeedback } from './modules/ui.js?v=41';
 import { updateEvalBar } from './modules/evaluator.js?v=3';
@@ -51,6 +51,25 @@ function installDailyStreakToast() {
 }
 
 installDailyStreakToast();
+
+function installMobileInstructionSpacing() {
+    const bubble = document.querySelector('.speech-bubble');
+    if (!bubble) return;
+
+    const sync = () => {
+        if (!window.matchMedia('(max-width: 800px)').matches) {
+            document.documentElement.style.removeProperty('--mobile-instruction-space');
+            return;
+        }
+        const space = Math.ceil(bubble.getBoundingClientRect().height) + 24;
+        document.documentElement.style.setProperty('--mobile-instruction-space', `${space}px`);
+    };
+
+    const observer = new ResizeObserver(sync);
+    observer.observe(bubble);
+    window.addEventListener('resize', sync);
+    requestAnimationFrame(sync);
+}
 
 function installTrainingTimeTracker() {
     const trackedModes = new Set(['learn', 'practice', 'drill', 'time', 'puzzle']);
@@ -335,6 +354,7 @@ function initApp() {
     board = initBoard(document.getElementById('board'));
     window.board = board;
     installSettingsMenu();
+    installMobileInstructionSpacing();
 
     const selectEl = document.getElementById('openingSelect');
     if (selectEl) {

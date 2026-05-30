@@ -835,6 +835,7 @@ export class Trainer {
 
         if (el) el.textContent = text;
         if (bubbleText) bubbleText.textContent = text;
+        syncMobileInstructionSpace();
     }
 
     findDescription() {
@@ -1037,6 +1038,16 @@ export class Trainer {
         fire(0.3, { spread: 120, startVelocity: 45, angle: 90, decay: 0.92 });
         fire(0.15, { spread: 160, startVelocity: 30, angle: 90, decay: 0.94, scalar: 2.2 });
     }
+}
+
+function syncMobileInstructionSpace() {
+    if (!window.matchMedia('(max-width: 800px)').matches) return;
+    requestAnimationFrame(() => {
+        const bubble = document.querySelector('.speech-bubble');
+        if (!bubble) return;
+        const space = Math.ceil(bubble.getBoundingClientRect().height) + 24;
+        document.documentElement.style.setProperty('--mobile-instruction-space', `${space}px`);
+    });
 }
 
 function parsePuzzleMoves(puzzle) {
