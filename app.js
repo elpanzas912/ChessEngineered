@@ -1,6 +1,6 @@
 import { initBoard, moveInputHandler, applyBoardAppearance } from './modules/board.js?v=47';
 import { loadLocalProgress, syncToCloud, recordTrainingTime, saveOpeningHighScores } from './modules/progress.js?v=8';
-import { Trainer } from './modules/trainer.js?v=57';
+import { Trainer } from './modules/trainer.js?v=58';
 import { stats } from './modules/stats.js';
 import { renderLinesList, renderLineDropdown, updateLineHeader, updateProgress, updateStats, updateModeStats, showFeedback } from './modules/ui.js?v=41';
 import { updateEvalBar } from './modules/evaluator.js?v=3';
@@ -368,6 +368,14 @@ function initApp() {
         });
     }
     document.getElementById('btnHint').addEventListener('click', () => trainer && trainer.showHint());
+    const qaSolveBtn = document.getElementById('btnQaSolve');
+    if (qaSolveBtn) {
+        qaSolveBtn.addEventListener('click', () => {
+            if (!trainer?.solveCurrentLearnLineForTesting()) {
+                showFeedback('Solve QA is only available for an active Learn line.', 'error');
+            }
+        });
+    }
 
     document.addEventListener('keydown', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;

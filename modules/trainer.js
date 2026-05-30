@@ -866,6 +866,30 @@ export class Trainer {
         return (this.moveIndex / this.moves.length) * 100;
     }
 
+    solveCurrentLearnLineForTesting() {
+        if (!this.opening || !this.linePgn || this.completed || this.mode !== 'learn') {
+            return false;
+        }
+
+        try { window.board.disableMoveInput(); } catch (e) {}
+        let lastMove = null;
+        while (this.moveIndex < this.moves.length) {
+            const expected = this.moves[this.moveIndex];
+            const moveResult = window.game.move(expected.san);
+            if (!moveResult) return false;
+            this.moveIndex++;
+            lastMove = expected;
+        }
+
+        window.board.setPosition(window.game.fen(), true);
+        if (lastMove) highlightLastMove(lastMove.from, lastMove.to);
+        renderMoveHistory(window.game.history({ verbose: false }));
+        updateProgress(100);
+        updateEvalBar();
+        this.onComplete();
+        return true;
+    }
+
     onComplete() {
         if (this.completed) return;
         this.completed = true;

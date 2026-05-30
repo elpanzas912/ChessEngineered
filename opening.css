@@ -904,6 +904,14 @@ body { overflow: hidden; }
   background: var(--color-paper-3);
   border-color: var(--color-rule-light);
 }
+.qa-solve-btn {
+  border-color: rgba(251, 191, 36, 0.45);
+  color: var(--color-warning);
+}
+.qa-solve-btn:hover {
+  border-color: rgba(251, 191, 36, 0.75);
+  background: rgba(251, 191, 36, 0.08);
+}
 .toolbar-btn.icon-only {
   padding: var(--space-xs);
   width: 36px;

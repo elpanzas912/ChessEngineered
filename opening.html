@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="lib/cm-chessboard-assets/extensions/markers/markers.css">
     <link rel="stylesheet" href="tokens.css">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="opening.css?v=11">
+    <link rel="stylesheet" href="opening.css?v=12">
 </head>
 <body>
     <!-- Access Check -->
@@ -377,6 +377,9 @@
                         </svg>
                         <span>Hint</span>
                     </button>
+                    <button class="toolbar-btn qa-solve-btn" id="btnQaSolve" type="button" title="Temporary QA action: complete the current Learn line">
+                        <span>Solve QA</span>
+                    </button>
                 </div>
                 <div class="toolbar-group">
                     <button class="toolbar-btn mobile-mode-toggle" type="button" aria-label="Change mode" onclick="document.body.classList.toggle('show-mobile-modes')">Mode</button>
@@ -481,7 +484,7 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="supabaseClient.js"></script>
-    <script type="module" src="app.js?v=73"></script>
+    <script type="module" src="app.js?v=74"></script>
 
     <!-- Auth Modal Controls (non-module, always works) -->
     <script>
