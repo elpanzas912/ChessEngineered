@@ -2500,7 +2500,7 @@ body {
 @media (max-width: 800px) {
   .instruction-dialog {
     position: fixed;
-    top: 96px;
+    top: 312px;
     left: 0;
     right: 0;
     z-index: 5;
@@ -2508,8 +2508,8 @@ body {
     min-height: 0;
     max-height: none;
     overflow: visible;
-    padding: 0 12px 16px !important;
-    transform: none;
+    padding: 0 12px 6px !important;
+    transform: translateY(-100%);
     pointer-events: none;
   }
 
