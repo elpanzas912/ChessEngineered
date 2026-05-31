@@ -459,25 +459,50 @@ body {
 }
 
 .accuracy-controls select {
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
-  border-radius: 8px !important;
-  background: rgba(255, 255, 255, 0.02) !important;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 10px !important;
+  background-color: rgba(18, 18, 24, 0.6) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23fbbf24' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-size: 12px !important;
+  background-position: right 12px center !important;
   color: #fafafa !important;
-  padding: 6px 10px !important;
+  padding: 6px 36px 6px 14px !important;
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 13px !important;
+  font-weight: 600 !important;
   cursor: pointer;
   outline: none;
-  transition: all 0.2s !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
 
 .accuracy-controls select:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.04) !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(251, 191, 36, 0.4) !important;
+  box-shadow: 0 4px 20px rgba(251, 191, 36, 0.05) !important;
 }
 
 .accuracy-controls select:focus {
-  border-color: rgba(251, 191, 36, 0.45) !important;
+  border-color: #fbbf24 !important;
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.15) !important;
+  background-color: rgba(18, 18, 24, 0.8) !important;
+}
+
+.accuracy-controls select option {
+  background-color: #0d0d12 !important;
+  color: #a1a1aa !important;
+  font-family: var(--font-body) !important;
+  font-size: 13px !important;
+  padding: 10px !important;
+}
+
+.accuracy-controls select option:checked {
+  background-color: rgba(251, 191, 36, 0.15) !important;
+  color: #fbbf24 !important;
 }
 
 .accuracy-chart {
@@ -679,14 +704,50 @@ body {
 }
 
 .zen-pref-row select {
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
-  border-radius: 8px !important;
-  background: rgba(255, 255, 255, 0.02) !important;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 10px !important;
+  background-color: rgba(18, 18, 24, 0.6) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23fbbf24' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-size: 12px !important;
+  background-position: right 12px center !important;
   color: #fafafa !important;
-  padding: 6px 12px !important;
+  padding: 6px 36px 6px 14px !important;
+  font-family: var(--font-body);
+  font-size: 13px !important;
+  font-weight: 600 !important;
   cursor: pointer;
   outline: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.zen-pref-row select:hover {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(251, 191, 36, 0.4) !important;
+  box-shadow: 0 4px 20px rgba(251, 191, 36, 0.05) !important;
+}
+
+.zen-pref-row select:focus {
+  border-color: #fbbf24 !important;
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.15) !important;
+  background-color: rgba(18, 18, 24, 0.8) !important;
+}
+
+.zen-pref-row select option {
+  background-color: #0d0d12 !important;
+  color: #a1a1aa !important;
+  font-family: var(--font-body) !important;
   font-size: 13px !important;
+  padding: 10px !important;
+}
+
+.zen-pref-row select option:checked {
+  background-color: rgba(251, 191, 36, 0.15) !important;
+  color: #fbbf24 !important;
 }
 
 .board-preview-wrap-zen {
