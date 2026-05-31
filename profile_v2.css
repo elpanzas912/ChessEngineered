@@ -513,19 +513,12 @@ body {
 
 .accuracy-summary b { color: #ffffff !important; }
 
-/* ── Bottom Section (Asymmetric Columns) ── */
+/* ── Bottom Section (Full Width Vertical Stack) ── */
 .zen-bottom-section {
-  display: grid;
-  grid-template-columns: 1.15fr 1fr;
-  gap: var(--space-xl);
-  align-items: start;
-}
-
-.zen-bottom-column {
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
-  min-width: 0;
+  gap: var(--space-xl);
+  width: 100%;
 }
 
 /* Training Breakdown (Visual Meters) */

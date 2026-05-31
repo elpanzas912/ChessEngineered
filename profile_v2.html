@@ -120,97 +120,92 @@
 
         <!-- ASYMMETRICAL BOTTOM LAYOUT: Breakdown & Preferences -->
         <section class="zen-bottom-section">
-            <!-- Left Column: Training Breakdown & Most Practiced -->
-            <div class="zen-bottom-column">
-                <!-- Training Breakdown (Visual Meters) -->
-                <div class="zen-canvas-card training-time-card">
-                    <div class="zen-canvas-header">
-                        <h2 class="zen-canvas-title">Training Time Distribution</h2>
-                        <span class="zen-total-time-badge" id="trainingTotalBadge">Total: 0m</span>
-                    </div>
-                    <div class="zen-breakdown-list">
-                        <div class="zen-breakdown-row">
-                            <span class="zen-breakdown-label">Learn</span>
-                            <div class="zen-bar-track"><div class="zen-bar-fill" id="barLearn" style="width:0%;"></div></div>
-                            <span class="zen-breakdown-val" id="timeLearn">0m</span>
-                        </div>
-                        <div class="zen-breakdown-row">
-                            <span class="zen-breakdown-label">Practice</span>
-                            <div class="zen-bar-track"><div class="zen-bar-fill" id="barPractice" style="width:0%;"></div></div>
-                            <span class="zen-breakdown-val" id="timePractice">0m</span>
-                        </div>
-                        <div class="zen-breakdown-row">
-                            <span class="zen-breakdown-label">Drill</span>
-                            <div class="zen-bar-track"><div class="zen-bar-fill" id="barDrill" style="width:0%;"></div></div>
-                            <span class="zen-breakdown-val" id="timeDrill">0m</span>
-                        </div>
-                        <div class="zen-breakdown-row">
-                            <span class="zen-breakdown-label">Time Trials</span>
-                            <div class="zen-bar-track"><div class="zen-bar-fill" id="barTrial" style="width:0%;"></div></div>
-                            <span class="zen-breakdown-val" id="timeTrial">0m</span>
-                        </div>
-                        <div class="zen-breakdown-row">
-                            <span class="zen-breakdown-label">Puzzles</span>
-                            <div class="zen-bar-track"><div class="zen-bar-fill" id="barPuzzle" style="width:0%;"></div></div>
-                            <span class="zen-breakdown-val" id="timePuzzle">0m</span>
-                        </div>
-                    </div>
+            <!-- Training Breakdown (Visual Meters) -->
+            <div class="zen-canvas-card training-time-card">
+                <div class="zen-canvas-header">
+                    <h2 class="zen-canvas-title">Training Time Distribution</h2>
+                    <span class="zen-total-time-badge" id="trainingTotalBadge">Total: 0m</span>
                 </div>
-
-                <!-- Most Practiced -->
-                <div class="zen-canvas-card favorites-card-v2" id="favoritesCard" style="display:none">
-                    <h2 class="zen-canvas-title">Most Practiced</h2>
-                    <div class="favorites-list" id="favoritesList"></div>
+                <div class="zen-breakdown-list">
+                    <div class="zen-breakdown-row">
+                        <span class="zen-breakdown-label">Learn</span>
+                        <div class="zen-bar-track"><div class="zen-bar-fill" id="barLearn" style="width:0%;"></div></div>
+                        <span class="zen-breakdown-val" id="timeLearn">0m</span>
+                    </div>
+                    <div class="zen-breakdown-row">
+                        <span class="zen-breakdown-label">Practice</span>
+                        <div class="zen-bar-track"><div class="zen-bar-fill" id="barPractice" style="width:0%;"></div></div>
+                        <span class="zen-breakdown-val" id="timePractice">0m</span>
+                    </div>
+                    <div class="zen-breakdown-row">
+                        <span class="zen-breakdown-label">Drill</span>
+                        <div class="zen-bar-track"><div class="zen-bar-fill" id="barDrill" style="width:0%;"></div></div>
+                        <span class="zen-breakdown-val" id="timeDrill">0m</span>
+                    </div>
+                    <div class="zen-breakdown-row">
+                        <span class="zen-breakdown-label">Time Trials</span>
+                        <div class="zen-bar-track"><div class="zen-bar-fill" id="barTrial" style="width:0%;"></div></div>
+                        <span class="zen-breakdown-val" id="timeTrial">0m</span>
+                    </div>
+                    <div class="zen-breakdown-row">
+                        <span class="zen-breakdown-label">Puzzles</span>
+                        <div class="zen-bar-track"><div class="zen-bar-fill" id="barPuzzle" style="width:0%;"></div></div>
+                        <span class="zen-breakdown-val" id="timePuzzle">0m</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Right Column: Preferences & Controls -->
-            <div class="zen-bottom-column">
-                <div class="zen-canvas-card zen-preferences-card">
-                    <h2 class="zen-canvas-title">Board Configuration</h2>
-                    <section class="board-appearance-zen">
-                        <div class="zen-pref-row">
-                            <span>Board Theme</span>
-                            <select id="boardTheme" onchange="saveBoardAppearance('boardTheme', this.value)">
-                                <option value="green">Green</option>
-                                <option value="white-violet">White Violet</option>
-                                <option value="white-blue">White Blue</option>
-                                <option value="blue">Blue</option>
-                                <option value="chessboard-js">Brown</option>
-                                <option value="default">Classic</option>
-                                <option value="black-and-white">Black & White</option>
-                            </select>
-                        </div>
-                        <div class="zen-pref-row">
-                            <span>Piece Set</span>
-                            <select id="pieceSet" onchange="saveBoardAppearance('pieceSet', this.value)">
-                                <option value="staunty">Staunty</option>
-                                <option value="maestro">Maestro</option>
-                                <option value="standard">Standard</option>
-                            </select>
-                        </div>
-                        <div class="board-preview-wrap-zen">
-                            <div class="board-preview" id="boardAppearancePreview" aria-label="Board appearance preview"></div>
-                        </div>
-                    </section>
-                    
-                    <div class="settings-list-zen">
-                        <div class="zen-pref-row">
-                            <span>Sound Effects</span>
-                            <label class="toggle-switch-zen">
-                                <input type="checkbox" id="soundToggle" checked onchange="saveSetting('sound', this.checked)">
-                                <span class="toggle-slider-zen"></span>
-                            </label>
-                        </div>
-                        <div class="zen-pref-row">
-                            <span>Training Hints</span>
-                            <label class="toggle-switch-zen">
-                                <input type="checkbox" id="hintsToggle" checked onchange="saveSetting('hints', this.checked)">
-                                <span class="toggle-slider-zen"></span>
-                            </label>
-                        </div>
-                        <button class="zen-danger-btn" onclick="handleLogout()">Log out</button>
+            <!-- Most Practiced -->
+            <div class="zen-canvas-card favorites-card-v2" id="favoritesCard" style="display:none">
+                <h2 class="zen-canvas-title">Most Practiced</h2>
+                <div class="favorites-list" id="favoritesList"></div>
+            </div>
+
+            <!-- Preferences & Controls -->
+            <div class="zen-canvas-card zen-preferences-card">
+                <h2 class="zen-canvas-title">Board Configuration</h2>
+                <section class="board-appearance-zen">
+                    <div class="zen-pref-row">
+                        <span>Board Theme</span>
+                        <select id="boardTheme" onchange="saveBoardAppearance('boardTheme', this.value)">
+                            <option value="green">Green</option>
+                            <option value="white-violet">White Violet</option>
+                            <option value="white-blue">White Blue</option>
+                            <option value="blue">Blue</option>
+                            <option value="chessboard-js">Brown</option>
+                            <option value="default">Classic</option>
+                            <option value="black-and-white">Black & White</option>
+                        </select>
                     </div>
+                    <div class="zen-pref-row">
+                        <span>Piece Set</span>
+                        <select id="pieceSet" onchange="saveBoardAppearance('pieceSet', this.value)">
+                            <option value="staunty">Staunty</option>
+                            <option value="maestro">Maestro</option>
+                            <option value="standard">Standard</option>
+                        </select>
+                    </div>
+                    <div class="board-preview-wrap-zen">
+                        <div class="board-preview" id="boardAppearancePreview" aria-label="Board appearance preview"></div>
+                    </div>
+                </section>
+                
+                <div class="settings-list-zen">
+                    <div class="zen-pref-row">
+                        <span>Sound Effects</span>
+                        <label class="toggle-switch-zen">
+                            <input type="checkbox" id="soundToggle" checked onchange="saveSetting('sound', this.checked)">
+                            <span class="toggle-slider-zen"></span>
+                        </label>
+                    </div>
+                    <div class="zen-pref-row">
+                        <span>Training Hints</span>
+                        <label class="toggle-switch-zen">
+                            <input type="checkbox" id="hintsToggle" checked onchange="saveSetting('hints', this.checked)">
+                            <span class="toggle-slider-zen"></span>
+                        </label>
+                    </div>
+                    <button class="zen-danger-btn" onclick="handleLogout()">Log out</button>
                 </div>
             </div>
         </section>
