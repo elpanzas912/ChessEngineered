@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Cockpit v2 — ChessEngineered</title>
+    <link rel="stylesheet" href="lib/cm-chessboard-assets/chessboard.css">
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="profile_v2.css?v=1">
+</head>
+<body>
+
+    <!-- Ambient background layers -->
+    <div class="bg-glows" aria-hidden="true">
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+    </div>
+
+    <!-- ── Nav ── -->
+    <nav class="nav">
+        <a href="/openings.html" class="nav-logo">
+            <div class="nav-logo-icon">♟</div>
+            chessengineered
+        </a>
+        <ul class="nav-links">
+            <li><a href="/openings.html">Repertoire</a></li>
+            <li><a href="/openings.html">Trainer</a></li>
+            <li><a href="/plans.html">Pricing</a></li>
+        </ul>
+        <div class="nav-right" id="userMenu">
+            <button class="btn-login" onclick="openAuthModal()">Log in</button>
+        </div>
+    </nav>
+
+    <!-- ── Main Cockpit Container ── -->
+    <div class="profile-v2-container">
+        <!-- ── Left Sidebar (Identity & Settings Control) ── -->
+        <aside class="profile-v2-sidebar">
+            <!-- User Identity Hub -->
+            <div class="sidebar-user-card">
+                <div class="profile-avatar" id="profileAvatar">?</div>
+                <div class="profile-info-wrap">
+                    <h1 class="profile-name" id="profileName">Guest</h1>
+                    <p class="profile-email" id="profileEmail">—</p>
+                    <p class="profile-meta">Practicing since <span id="profileJoined">—</span></p>
+                </div>
+                <a href="/plans.html" class="btn btn-primary" id="upgradeBtn" style="display:none;width:100%;margin-top:var(--space-md);">Upgrade to Unlimited</a>
+            </div>
+
+            <!-- Subscription Status -->
+            <div class="profile-card" id="subscriptionCard">
+                <h2 class="card-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Subscription
+                </h2>
+                <div class="subscription-status" id="subscriptionStatus">
+                    <span class="status-badge status-free">Free</span>
+                    <span class="status-text">1 opening unlocked</span>
+                </div>
+                <p class="subscription-desc" id="subscriptionDesc">Upgrade to unlock all 30+ openings and sync across devices.</p>
+                <div class="subscription-actions">
+                    <a href="/plans.html" class="btn btn-primary" id="subActionBtn" style="width:100%;">Upgrade — $11.99/year</a>
+                </div>
+            </div>
+
+            <!-- Cockpit Settings Panel -->
+            <div class="profile-card settings-card-v2">
+                <h2 class="card-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Appearance & Control
+                </h2>
+                <section class="board-appearance">
+                    <h3 class="settings-section-title">Board Style</h3>
+                    <div class="appearance-row">
+                        <span class="appearance-label">Board Color</span>
+                        <label class="appearance-select-wrap">
+                            <select class="appearance-select" id="boardTheme" onchange="saveBoardAppearance('boardTheme', this.value)">
+                                <option value="green">Green</option>
+                                <option value="white-violet">White Violet</option>
+                                <option value="white-blue">White Blue</option>
+                                <option value="blue">Blue</option>
+                                <option value="chessboard-js">Brown</option>
+                                <option value="default">Classic</option>
+                                <option value="black-and-white">Black & White</option>
+                            </select>
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                        </label>
+                    </div>
+                    <div class="appearance-row">
+                        <span class="appearance-label">Piece Set</span>
+                        <label class="appearance-select-wrap">
+                            <select class="appearance-select" id="pieceSet" onchange="saveBoardAppearance('pieceSet', this.value)">
+                                <option value="staunty">Staunty</option>
+                                <option value="maestro">Maestro</option>
+                                <option value="standard">Standard</option>
+                            </select>
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                        </label>
+                    </div>
+                    <div class="board-preview-wrap">
+                        <div class="board-preview" id="boardAppearancePreview" aria-label="Board appearance preview"></div>
+                    </div>
+                </section>
+
+                <div class="settings-list">
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <span class="setting-label">Sound effects</span>
+                            <span class="setting-desc">Play sounds on move</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="soundToggle" checked onchange="saveSetting('sound', this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <span class="setting-label">Show hints</span>
+                            <span class="setting-desc">Display move hints</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="hintsToggle" checked onchange="saveSetting('hints', this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-divider"></div>
+                    <div class="setting-row setting-danger">
+                        <button class="btn btn-ghost" onclick="handleLogout()" style="width:100%;justify-content:center;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                            Log out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ── Right Main Pane (Analytics & Activities Grid) ── -->
+        <main class="profile-v2-main">
+            <!-- Sleek Horizontal Cockpit Metrics -->
+            <div class="stats-grid-v2">
+                <div class="stat-box-v2">
+                    <div class="stat-v2-info">
+                        <span class="stat-label-v2">Openings</span>
+                        <span class="stat-value-v2" id="statOpenings">0</span>
+                    </div>
+                    <div class="stat-v2-icon">♟</div>
+                </div>
+                <div class="stat-box-v2">
+                    <div class="stat-v2-info">
+                        <span class="stat-label-v2">Lines Learned</span>
+                        <span class="stat-value-v2" id="statLines">0</span>
+                    </div>
+                    <div class="stat-v2-icon">📖</div>
+                </div>
+                <div class="stat-box-v2">
+                    <div class="stat-v2-info">
+                        <span class="stat-label-v2">Day Streak</span>
+                        <span class="stat-value-v2" id="statStreak">0</span>
+                    </div>
+                    <div class="stat-v2-icon">🔥</div>
+                </div>
+                <div class="stat-box-v2">
+                    <div class="stat-v2-info">
+                        <span class="stat-label-v2">Trained</span>
+                        <span class="stat-value-v2" id="statTime">0h</span>
+                    </div>
+                    <div class="stat-v2-icon">⏱</div>
+                </div>
+            </div>
+
+            <!-- Heatmap Activity Hub Card -->
+            <div class="profile-card activity-card-v2">
+                <div class="activity-heading">
+                    <span class="card-section-title">Activity Hub</span>
+                    <div class="activity-legend" aria-label="Activity intensity">
+                        <span>Less</span>
+                        <i class="activity-legend-cell level-0"></i>
+                        <i class="activity-legend-cell level-1"></i>
+                        <i class="activity-legend-cell level-2"></i>
+                        <i class="activity-legend-cell level-3"></i>
+                        <i class="activity-legend-cell level-4"></i>
+                        <span>More</span>
+                    </div>
+                </div>
+                <div class="activity-chart" id="heatmap"></div>
+            </div>
+
+            <!-- Accuracy Analytics Panel -->
+            <div class="profile-card accuracy-card" id="accuracyCard" style="display:none">
+                <h2 class="card-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-4 4"/></svg>
+                    Accuracy over time
+                </h2>
+                <div class="accuracy-controls">
+                    <label>
+                        <span>Mode</span>
+                        <select id="accuracyMode" onchange="renderAccuracyChart()">
+                            <option value="all">All</option>
+                            <option value="learn">Learn</option>
+                            <option value="practice">Practice</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>Opening</span>
+                        <select id="accuracyOpening" onchange="renderAccuracyChart()"></select>
+                    </label>
+                    <label>
+                        <span>Line</span>
+                        <select id="accuracyLine" onchange="renderAccuracyChart()"></select>
+                    </label>
+                </div>
+                <div class="accuracy-chart" id="accuracyChart"></div>
+                <div class="accuracy-summary" id="accuracySummary"></div>
+            </div>
+
+            <!-- Secondary Cockpit Split: Training Breakdown & Favorites -->
+            <div class="cockpit-split-grid">
+                <!-- Training Breakdown -->
+                <div class="profile-card training-time-card">
+                    <h2 class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Training Breakdown
+                    </h2>
+                    <div class="training-time-list-v2">
+                        <div class="training-time-row-v2">
+                            <span>Learn</span>
+                            <strong id="timeLearn">0m</strong>
+                        </div>
+                        <div class="training-time-row-v2">
+                            <span>Practice</span>
+                            <strong id="timePractice">0m</strong>
+                        </div>
+                        <div class="training-time-row-v2">
+                            <span>Drill</span>
+                            <strong id="timeDrill">0m</strong>
+                        </div>
+                        <div class="training-time-row-v2">
+                            <span>Time Trials</span>
+                            <strong id="timeTrial">0m</strong>
+                        </div>
+                        <div class="training-time-row-v2">
+                            <span>Puzzles</span>
+                            <strong id="timePuzzle">0m</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Favorites Openings -->
+                <div class="profile-card favorites-card-v2" id="favoritesCard" style="display:none">
+                    <h2 class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                        Most Practiced
+                    </h2>
+                    <div class="favorites-list" id="favoritesList"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Auth Modal (for guests) -->
+    <div class="auth-modal-overlay" id="authModal">
+        <div class="auth-modal">
+            <button class="close-btn" onclick="closeAuthModal()">×</button>
+            <h2 id="authTitle">Log in</h2>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="authEmail" placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="authPassword" placeholder="••••••••">
+            </div>
+            <button class="btn-auth" id="authBtn" onclick="handleAuth()">Log in</button>
+            <div style="text-align:center;margin:16px 0;color:var(--color-muted);font-size:0.85rem;">or</div>
+            <button class="btn-auth" style="background:#4285F4;border:none;" onclick="handleGoogleAuth()">
+                <span style="margin-right:8px;">🔍</span> Continue with Google
+            </button>
+            <div class="error-msg" id="authError"></div>
+            <div class="auth-toggle">
+                <span id="authToggleText">Don't have an account?</span>
+                <a onclick="toggleAuthMode()" id="authToggleLink">Sign up</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase Auth & Logic -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="supabaseClient.js"></script>
+    <script>
+        /* ── Supabase ── */
+        let supabaseClient = window.supabaseClient || null;
+        let auth = window.auth || null;
+        let currentUser = null;
+
+        /* ── Load Profile ── */
+        async function loadProfile() {
+            if (!auth) return;
+
+            const { data: { user } } = await auth.getUser();
+            currentUser = user;
+
+            if (!user) {
+                // Guest view
+                document.getElementById('profileAvatar').textContent = '?';
+                document.getElementById('profileName').textContent = 'Guest';
+                document.getElementById('profileEmail').textContent = 'Log in to view your profile';
+                document.getElementById('profileJoined').textContent = '—';
+                document.getElementById('upgradeBtn').style.display = 'inline-flex';
+                openAuthModal();
+                return;
+            }
+            window.prepareLocalProgressForUser?.(user.id);
+
+            // User info
+            const name = user.email.split('@')[0];
+            const initial = name.charAt(0).toUpperCase();
+            document.getElementById('profileAvatar').textContent = initial;
+            document.getElementById('profileName').textContent = name;
+            document.getElementById('profileEmail').textContent = user.email;
+            document.getElementById('profileJoined').textContent = new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+            // Check subscription
+            let hasSub = false;
+
+            if (supabaseClient) {
+                try {
+                    const { data: sub } = await supabaseClient
+                         .from('subscriptions')
+                         .select('status, current_period_end, plan')
+                         .eq('user_id', user.id)
+                         .single();
+
+                    hasSub = sub &&
+                        (sub.status === 'active' || sub.status === 'trialing') &&
+                        new Date(sub.current_period_end) > new Date();
+
+                    if (hasSub) {
+                        document.getElementById('subscriptionStatus').innerHTML = `
+                            <span class="status-badge status-active">Unlimited Pass</span>
+                            <span class="status-text">Active until ${new Date(sub.current_period_end).toLocaleDateString()}</span>
+                        `;
+                        document.getElementById('subscriptionDesc').textContent = 'You have full access to all openings and features.';
+                        document.getElementById('subActionBtn').textContent = 'Manage Subscription';
+                        document.getElementById('subActionBtn').href = 'https://billing.stripe.com/p/login/test'; // Replace with customer portal
+                    }
+                } catch (e) { /* ignore */ }
+            }
+
+            if (!hasSub) {
+                document.getElementById('upgradeBtn').style.display = 'inline-flex';
+            }
+
+            await loadCloudProgress(user.id);
+
+            // Load stats
+            loadStats();
+            renderAccuracyChart();
+            loadHeatmap();
+            loadFavorites();
+            loadSettings();
+        }
+
+        function loadStats() {
+            const progress = JSON.parse(localStorage.getItem('chessengineered_progress') || '{}');
+            const usage = JSON.parse(localStorage.getItem('chessengineered_usage') || '{}');
+
+            const openingsPracticed = Object.keys(usage).length;
+            let linesLearned = 0;
+            for (const slug in progress) {
+                if (!['puzzleELO', 'puzzleStreak', 'dailyStreak', 'trainingTime', 'accuracy'].includes(slug)) {
+                    linesLearned += progress[slug]?.learnedLines?.length || 0;
+                }
+            }
+
+            const streak = Math.max(0, Math.round(Number(progress.dailyStreak?.count) || 0));
+
+            const trainingTime = normalizeTrainingTime(progress.trainingTime);
+            const totalTime = Object.values(trainingTime).reduce((sum, value) => sum + value, 0);
+
+            document.getElementById('statOpenings').textContent = openingsPracticed;
+            document.getElementById('statLines').textContent = linesLearned;
+            document.getElementById('statStreak').textContent = streak;
+            document.getElementById('statTime').textContent = formatDuration(totalTime);
+            document.getElementById('timeLearn').textContent = formatDuration(trainingTime.learn);
+            document.getElementById('timePractice').textContent = formatDuration(trainingTime.practice);
+            document.getElementById('timeDrill').textContent = formatDuration(trainingTime.drill);
+            document.getElementById('timeTrial').textContent = formatDuration(trainingTime.time);
+            document.getElementById('timePuzzle').textContent = formatDuration(trainingTime.puzzle);
+        }
+
+        function normalizeTrainingTime(value) {
+            const source = value && typeof value === 'object' ? value : {};
+            return ['learn', 'practice', 'drill', 'time', 'puzzle'].reduce((acc, mode) => {
+                acc[mode] = Math.max(0, Math.round(Number(source[mode]) || 0));
+                return acc;
+            }, {});
+        }
+
+        function formatDuration(milliseconds) {
+            const safeMilliseconds = Math.max(0, Number(milliseconds) || 0);
+            if (safeMilliseconds > 0 && safeMilliseconds < 60000) return '<1m';
+            const totalMinutes = Math.floor(safeMilliseconds / 60000);
+            if (totalMinutes < 60) return totalMinutes + 'm';
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
+        }
+
+        let openingsCatalogPromise = null;
+        let accuracySelectedLineKey = 'all';
+
+        async function getOpeningsCatalog() {
+            if (!openingsCatalogPromise) {
+                openingsCatalogPromise = fetch('data/openings-catalog.json')
+                    .then(r => r.ok ? r.json() : { openings: {} })
+                    .then(data => data.openings || {})
+                    .catch(() => ({}));
+            }
+            return openingsCatalogPromise;
+        }
+
+        function getLocalDateKey(date = new Date()) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function getRecentDates(days = 7) {
+            const dates = [];
+            const today = new Date();
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(today.getDate() - i);
+                dates.push(getLocalDateKey(date));
+            }
+            return dates;
+        }
+
+        function emptyAccuracyBucket() {
+            return {
+                learn: { correct: 0, incorrect: 0 },
+                practice: { correct: 0, incorrect: 0 }
+            };
+        }
+
+        function normalizeAccuracyBucket(value) {
+            const source = value && typeof value === 'object' ? value : {};
+            return ['learn', 'practice'].reduce((acc, mode) => {
+                const modeData = source[mode] && typeof source[mode] === 'object' ? source[mode] : {};
+                acc[mode] = {
+                    correct: Math.max(0, Math.round(Number(modeData.correct) || 0)),
+                    incorrect: Math.max(0, Math.round(Number(modeData.incorrect) || 0))
+                };
+                return acc;
+            }, {});
+        }
+
+        function getBucketResult(bucket, mode) {
+            const normalized = normalizeAccuracyBucket(bucket);
+            if (mode === 'learn' || mode === 'practice') return normalized[mode];
+            return {
+                correct: normalized.learn.correct + normalized.practice.correct,
+                incorrect: normalized.learn.incorrect + normalized.practice.incorrect
+            };
+        }
+
+        function lineLabel(slug, linePgn, catalog) {
+            const lines = catalog[slug]?.lines || [];
+            const index = lines.findIndex(line => line.trim() === linePgn.trim());
+            return index >= 0 ? `Line ${index + 1}` : `Line ${linePgn.slice(0, 18)}...`;
+        }
+
+        async function renderAccuracyChart() {
+            const progress = JSON.parse(localStorage.getItem('chessengineered_progress') || '{}');
+            const accuracy = progress.accuracy && typeof progress.accuracy === 'object' ? progress.accuracy : null;
+            const card = document.getElementById('accuracyCard');
+            if (!card || !accuracy?.openings || Object.keys(accuracy.openings).length === 0) return;
+
+            card.style.display = '';
+            const catalog = await getOpeningsCatalog();
+            const modeSelect = document.getElementById('accuracyMode');
+            const openingSelect = document.getElementById('accuracyOpening');
+            const lineSelect = document.getElementById('accuracyLine');
+            const selectedMode = modeSelect.value || 'all';
+            const previousOpening = openingSelect.value || 'all';
+            const selectedLineValue = lineSelect.value || 'all';
+            if (selectedLineValue === 'all') {
+                accuracySelectedLineKey = 'all';
+            } else {
+                const previousKey = lineSelect.options[lineSelect.selectedIndex]?.dataset?.lineKey;
+                if (previousKey) accuracySelectedLineKey = previousKey;
+            }
+            const openingSlugs = Object.keys(accuracy.openings).sort((a, b) => {
+                const an = catalog[a]?.displayName || a;
+                const bn = catalog[b]?.displayName || b;
+                return an.localeCompare(bn);
+            });
+
+            openingSelect.innerHTML = [
+                '<option value="all">All openings</option>',
+                ...openingSlugs.map(slug => `<option value="${escapeHtml(slug)}">${escapeHtml(catalog[slug]?.displayName || slug)}</option>`)
+            ].join('');
+            openingSelect.value = openingSlugs.includes(previousOpening) ? previousOpening : 'all';
+
+            const selectedOpening = openingSelect.value;
+            if (selectedOpening === 'all') accuracySelectedLineKey = 'all';
+            const lineEntries = selectedOpening === 'all'
+                ? []
+                : sortAccuracyLines(selectedOpening, Object.keys(accuracy.openings[selectedOpening]?.lines || {}), catalog);
+            lineSelect.disabled = selectedOpening === 'all';
+            lineSelect.innerHTML = [
+                '<option value="all">All lines</option>',
+                ...lineEntries.map((linePgn, index) => `<option value="${index}" data-line-key="${escapeHtml(linePgn)}">${escapeHtml(lineLabel(selectedOpening, linePgn, catalog))}</option>`)
+            ].join('');
+            const selectedLineIndex = lineEntries.indexOf(accuracySelectedLineKey);
+            lineSelect.value = selectedLineIndex >= 0 ? String(selectedLineIndex) : 'all';
+            if (lineSelect.value === 'all') accuracySelectedLineKey = 'all';
+
+            const selectedLine = accuracySelectedLineKey;
+            const daily = selectedOpening === 'all'
+                ? accuracy.daily
+                : selectedLine === 'all'
+                    ? accuracy.openings[selectedOpening]?.daily
+                    : accuracy.openings[selectedOpening]?.lines?.[selectedLine]?.daily;
+            drawAccuracyChart(daily || {}, selectedMode);
+        }
+
+        function sortAccuracyLines(slug, lineEntries, catalog) {
+            const catalogLines = catalog[slug]?.lines || [];
+            return [...lineEntries].sort((a, b) => {
+                const ai = catalogLines.findIndex(line => line.trim() === a.trim());
+                const bi = catalogLines.findIndex(line => line.trim() === b.trim());
+                if (ai >= 0 && bi >= 0) return ai - bi;
+                if (ai >= 0) return -1;
+                if (bi >= 0) return 1;
+                return a.localeCompare(b);
+            });
+        }
+
+        function drawAccuracyChart(daily, mode) {
+            const dates = getRecentDates(7);
+            const points = dates.map(date => {
+                const result = getBucketResult(daily[date] || emptyAccuracyBucket(), mode);
+                return { date, ...result, total: result.correct + result.incorrect };
+            });
+            const maxTotal = Math.max(1, ...points.map(point => point.total));
+            const chart = document.getElementById('accuracyChart');
+            const summary = document.getElementById('accuracySummary');
+            const width = 560;
+            const height = 180;
+            const padding = 24;
+            const gap = 8;
+            const barWidth = (width - padding * 2 - gap * (points.length - 1)) / points.length;
+            const chartHeight = height - 52;
+
+            const bars = points.map((point, index) => {
+                const x = padding + index * (barWidth + gap);
+                const correctHeight = chartHeight * (point.correct / maxTotal);
+                const incorrectHeight = chartHeight * (point.incorrect / maxTotal);
+                const incorrectY = padding + chartHeight - incorrectHeight;
+                const correctY = incorrectY - correctHeight;
+                const label = point.date.slice(5).replace('-', '/');
+                return `
+                    <g>
+                        <rect x="${x}" y="${correctY}" width="${barWidth}" height="${correctHeight}" rx="2" class="accuracy-correct"></rect>
+                        <rect x="${x}" y="${incorrectY}" width="${barWidth}" height="${incorrectHeight}" rx="2" class="accuracy-incorrect"></rect>
+                        <text x="${x + barWidth / 2}" y="${height - 12}" text-anchor="middle">${label}</text>
+                    </g>
+                `;
+            }).join('');
+
+            chart.innerHTML = `
+                <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Accuracy chart">
+                    <line x1="${padding}" y1="${padding + chartHeight}" x2="${width - padding}" y2="${padding + chartHeight}" class="accuracy-axis"></line>
+                    ${bars}
+                </svg>
+            `;
+
+            const correct = points.reduce((sum, point) => sum + point.correct, 0);
+            const incorrect = points.reduce((sum, point) => sum + point.incorrect, 0);
+            const total = correct + incorrect;
+            const pct = total ? Math.round((correct / total) * 100) : 0;
+            summary.innerHTML = `
+                <span><b>${correct}</b> correct</span>
+                <span><b>${incorrect}</b> errors</span>
+                <span><b>${pct}%</b> accuracy</span>
+            `;
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        window.renderAccuracyChart = renderAccuracyChart;
+
+        async function loadCloudProgress(userId) {
+            if (!supabaseClient) return;
+            try {
+                const { data } = await supabaseClient
+                    .from('profiles')
+                    .select('user_progress')
+                    .eq('id', userId)
+                    .single();
+                if (data?.user_progress) {
+                    const local = JSON.parse(localStorage.getItem('chessengineered_progress') || '{}');
+                    localStorage.setItem('chessengineered_progress', JSON.stringify(mergeProgress(local, data.user_progress)));
+                }
+            } catch (e) { /* ignore */ }
+        }
+
+        function mergeProgress(local, cloud) {
+            const merged = { ...(cloud || {}) };
+            merged.trainingTime = mergeTrainingTime(local?.trainingTime, cloud?.trainingTime);
+            merged.accuracy = mergeAccuracy(local?.accuracy, cloud?.accuracy);
+            for (const slug in local || {}) {
+                if (['puzzleELO', 'puzzleStreak', 'dailyStreak', 'trainingTime', 'accuracy'].includes(slug)) {
+                    if (merged[slug] === undefined) merged[slug] = local[slug];
+                    continue;
+                }
+                if (!merged[slug]) {
+                    merged[slug] = local[slug];
+                    continue;
+                }
+                const localResetAt = local[slug]?.resetAt || '';
+                const cloudResetAt = merged[slug]?.resetAt || '';
+                if (localResetAt > cloudResetAt) {
+                     merged[slug] = local[slug];
+                     continue;
+                }
+                if (cloudResetAt > localResetAt) continue;
+                const localLearned = local[slug].learnedLines || [];
+                const cloudLearned = merged[slug].learnedLines || [];
+                merged[slug].learnedLines = [...new Set([...cloudLearned, ...localLearned])];
+                const localLines = local[slug].lines || {};
+                const cloudLines = merged[slug].lines || {};
+                for (const pgn in localLines) {
+                    cloudLines[pgn] = mergeLineProgress(localLines[pgn], cloudLines[pgn]);
+                }
+                merged[slug].lines = cloudLines;
+            }
+            return merged;
+        }
+
+        function mergeTrainingTime(local, cloud) {
+            const localTime = normalizeTrainingTime(local);
+            const cloudTime = normalizeTrainingTime(cloud);
+            return ['learn', 'practice', 'drill', 'time', 'puzzle'].reduce((acc, mode) => {
+                acc[mode] = Math.max(localTime[mode], cloudTime[mode]);
+                return acc;
+            }, {});
+        }
+
+        function mergeAccuracy(local, cloud) {
+            const localSource = local && typeof local === 'object' ? local : {};
+            const cloudSource = cloud && typeof cloud === 'object' ? cloud : {};
+            const openings = {};
+            const slugs = new Set([
+                ...Object.keys(localSource.openings || {}),
+                ...Object.keys(cloudSource.openings || {})
+            ]);
+
+            for (const slug of slugs) {
+                const localOpening = localSource.openings?.[slug] || {};
+                const cloudOpening = cloudSource.openings?.[slug] || {};
+                const lines = {};
+                const lineKeys = new Set([
+                    ...Object.keys(localOpening.lines || {}),
+                    ...Object.keys(cloudOpening.lines || {})
+                ]);
+                for (const linePgn of lineKeys) {
+                    lines[linePgn] = {
+                        totals: mergeAccuracyBucket(localOpening.lines?.[linePgn]?.totals, cloudOpening.lines?.[linePgn]?.totals),
+                        daily: mergeAccuracyDaily(localOpening.lines?.[linePgn]?.daily, cloudOpening.lines?.[linePgn]?.daily)
+                    };
+                }
+                openings[slug] = {
+                    totals: mergeAccuracyBucket(localOpening.totals, cloudOpening.totals),
+                    daily: mergeAccuracyDaily(localOpening.daily, cloudOpening.daily),
+                    lines
+                };
+            }
+
+            return {
+                totals: mergeAccuracyBucket(localSource.totals, cloudSource.totals),
+                daily: mergeAccuracyDaily(localSource.daily, cloudSource.daily),
+                openings
+            };
+        }
+
+        function mergeAccuracyDaily(local, cloud) {
+            const localDaily = normalizeAccuracyDaily(local);
+            const cloudDaily = normalizeAccuracyDaily(cloud);
+            const merged = {};
+            const dates = new Set([...Object.keys(localDaily), ...Object.keys(cloudDaily)]);
+            for (const date of dates) {
+                merged[date] = mergeAccuracyBucket(localDaily[date], cloudDaily[date]);
+            }
+            return merged;
+        }
+
+        function normalizeAccuracyDaily(value) {
+            const daily = {};
+            const source = value && typeof value === 'object' ? value : {};
+            for (const [date, bucket] of Object.entries(source)) {
+                if (/^\d{4}-\d{2}-\d{2}$/.test(date)) daily[date] = normalizeAccuracyBucket(bucket);
+            }
+            return daily;
+        }
+
+        function mergeAccuracyBucket(local, cloud) {
+            const localBucket = normalizeAccuracyBucket(local);
+            const cloudBucket = normalizeAccuracyBucket(cloud);
+            return ['learn', 'practice'].reduce((acc, mode) => {
+                acc[mode] = {
+                    correct: Math.max(localBucket[mode].correct, cloudBucket[mode].correct),
+                    incorrect: Math.max(localBucket[mode].incorrect, cloudBucket[mode].incorrect)
+                };
+                return acc;
+            }, {});
+        }
+
+        function mergeLineProgress(localLine = {}, cloudLine = {}) {
+            const localTimestamp = Number(localLine?.lastAttemptTimestamp) || 0;
+            const cloudTimestamp = Number(cloudLine?.lastAttemptTimestamp) || 0;
+            const newer = localTimestamp >= cloudTimestamp ? localLine : cloudLine;
+            return {
+                ...cloudLine,
+                ...localLine,
+                ...newer,
+                completions: Math.max(Number(localLine?.completions) || 0, Number(cloudLine?.completions) || 0),
+                perfectAttempts: Math.max(Number(localLine?.perfectAttempts) || 0, Number(cloudLine?.perfectAttempts) || 0),
+                practiceCompletions: Math.max(Number(localLine?.practiceCompletions) || 0, Number(cloudLine?.practiceCompletions) || 0),
+                practicePerfectAttempts: Math.max(Number(localLine?.practicePerfectAttempts) || 0, Number(cloudLine?.practicePerfectAttempts) || 0),
+                confidence: Math.max(Number(localLine?.confidence) || 0, Number(cloudLine?.confidence) || 0),
+                lastAttemptTimestamp: Math.max(localTimestamp, cloudTimestamp) || null
+            };
+        }
+
+        function loadHeatmap() {
+            const container = document.getElementById('heatmap');
+            const progress = JSON.parse(localStorage.getItem('chessengineered_progress') || '{}');
+            const activityDates = getPracticeActivityDates(progress);
+
+            const weeks = 53;
+            const days = 7;
+            const endDate = new Date();
+            endDate.setHours(0, 0, 0, 0);
+            endDate.setDate(endDate.getDate() - (endDate.getDay() || 7) + 7); // Next Sunday
+            const startDate = new Date(endDate);
+            startDate.setDate(endDate.getDate() - (weeks * days - 1));
+
+            const monthLabels = [];
+            let previousMonth = -1;
+            for (let w = 0; w < weeks; w++) {
+                const weekDate = new Date(startDate);
+                weekDate.setDate(startDate.getDate() + w * days);
+                const month = weekDate.getMonth();
+                if (w === 0 || month !== previousMonth) {
+                    const label = weekDate.toLocaleDateString('en-US', { month: 'short' });
+                    monthLabels.push(`<span style="grid-column:${w + 1};">${label}</span>`);
+                }
+                previousMonth = month;
+            }
+
+            let cells = '';
+
+            for (let w = 0; w < weeks; w++) {
+                for (let d = 0; d < days; d++) {
+                    const date = new Date(startDate);
+                    date.setDate(startDate.getDate() + w * days + d);
+                    const dateStr = getLocalDateKey(date);
+
+                    const count = Number(activityDates[dateStr]) || 0;
+                    let intensity = 0;
+                    if (count > 0) intensity = 1;
+                    if (count >= 2) intensity = 2;
+                    if (count >= 4) intensity = 3;
+                    if (count >= 7) intensity = 4;
+
+                    const tooltip = `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} · ${count} ${count === 1 ? 'line' : 'lines'} practiced`;
+                    cells += `<div class="activity-cell level-${intensity}" style="grid-area:${d + 1} / ${w + 1};" data-tooltip="${escapeHtml(tooltip)}" aria-label="${escapeHtml(tooltip)}"></div>`;
+                }
+            }
+
+            container.innerHTML = `
+                <div class="activity-layout">
+                    <div class="activity-weekdays" aria-hidden="true">
+                        <span></span>
+                        <span>Mon</span>
+                        <span></span>
+                        <span>Wed</span>
+                        <span></span>
+                        <span>Fri</span>
+                        <span></span>
+                    </div>
+                    <div class="activity-scroll">
+                        <div class="activity-month-row" style="grid-template-columns: repeat(${weeks}, 1fr);">${monthLabels.join('')}</div>
+                        <div class="activity-grid" style="grid-template-columns: repeat(${weeks}, 1fr);">${cells}</div>
+                    </div>
+                </div>
+            `;
+
+            let tooltip = document.getElementById('activityTooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.id = 'activityTooltip';
+                tooltip.className = 'activity-tooltip';
+                tooltip.setAttribute('role', 'status');
+                document.body.appendChild(tooltip);
+            }
+            const positionTooltip = (cell) => {
+                if (!tooltip) return;
+                const cellRect = cell.getBoundingClientRect();
+                const left = cellRect.left + cellRect.width / 2;
+                const top = cellRect.top - 8;
+                tooltip.style.left = `${left}px`;
+                tooltip.style.top = `${top}px`;
+            };
+
+            container.querySelectorAll('.activity-cell').forEach((cell) => {
+                cell.addEventListener('mouseenter', () => {
+                    if (!tooltip) return;
+                    tooltip.textContent = cell.dataset.tooltip || '';
+                    positionTooltip(cell);
+                    tooltip.classList.add('is-visible');
+                });
+                cell.addEventListener('mousemove', () => positionTooltip(cell));
+                cell.addEventListener('mouseleave', () => {
+                    if (tooltip) tooltip.classList.remove('is-visible');
+                });
+            });
+        }
+
+        function getPracticeActivityDates(progress) {
+            const openings = progress.accuracy?.openings && typeof progress.accuracy.openings === 'object'
+                ? progress.accuracy.openings
+                : {};
+            const dates = {};
+
+            for (const opening of Object.values(openings)) {
+                const lines = opening?.lines && typeof opening.lines === 'object' ? opening.lines : {};
+                for (const line of Object.values(lines)) {
+                    const daily = line?.daily && typeof line.daily === 'object' ? line.daily : {};
+                    for (const [date, bucket] of Object.entries(daily)) {
+                        const result = getBucketResult(bucket, 'all');
+                        if (result.correct + result.incorrect > 0) {
+                            dates[date] = (dates[date] || 0) + 1;
+                        }
+                    }
+                }
+            }
+
+            if (Object.keys(dates).length > 0) return dates;
+
+            const fallback = progress.dailyStreak?.activityDates || {};
+            return Object.entries(fallback).reduce((acc, [date, count]) => {
+                acc[date] = Math.max(0, Math.round(Number(count) || 0));
+                return acc;
+            }, {});
+        }
+
+        function loadFavorites() {
+            const usage = JSON.parse(localStorage.getItem('chessengineered_usage') || '{}');
+            const sorted = Object.entries(usage).sort((a, b) => (b[1].count || 0) - (a[1].count || 0)).slice(0, 5);
+
+            if (sorted.length === 0) return;
+
+            document.getElementById('favoritesCard').style.display = 'block';
+            const list = document.getElementById('favoritesList');
+            list.innerHTML = '';
+
+            sorted.forEach(([slug, data]) => {
+                const item = document.createElement('a');
+                item.className = 'favorite-item';
+                item.href = `opening.html?slug=${slug}`;
+                item.innerHTML = `
+                    <img src="boards/${slug}.png" alt="${slug}" class="favorite-thumb">
+                    <div class="favorite-info">
+                        <span class="favorite-name">${slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                        <span class="favorite-count">${data.count || 0} sessions</span>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function loadSettings() {
+            let boardTheme = localStorage.getItem('chessengineered_board_theme') || localStorage.getItem('chessengineered_boardTheme') || 'green';
+            if (boardTheme === 'brown') boardTheme = 'chessboard-js';
+            const pieceSet = localStorage.getItem('chessengineered_piece_set') || 'staunty';
+            const soundEnabled = localStorage.getItem('chessengineered_sound') !== 'false';
+            const hintsEnabled = localStorage.getItem('chessengineered_hints') !== 'false';
+
+            document.getElementById('boardTheme').value = boardTheme;
+            document.getElementById('pieceSet').value = pieceSet;
+            document.getElementById('soundToggle').checked = soundEnabled;
+            document.getElementById('hintsToggle').checked = hintsEnabled;
+            window.dispatchEvent(new CustomEvent('boardAppearanceChanged'));
+        }
+
+        function saveBoardAppearance(key, value) {
+            const storageKey = key === 'pieceSet' ? 'chessengineered_piece_set' : 'chessengineered_board_theme';
+            localStorage.setItem(storageKey, value);
+            window.dispatchEvent(new CustomEvent('boardAppearanceChanged'));
+        }
+
+        function saveSetting(key, value) {
+            localStorage.setItem('chessengineered_' + key, value);
+        }
+
+        /* ── Auth Modal ── */
+        let authMode = 'login';
+
+        function openAuthModal() {
+            document.getElementById('authModal').classList.add('open');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('open');
+            document.getElementById('authError').style.display = 'none';
+        }
+
+        function toggleAuthMode() {
+            authMode = authMode === 'login' ? 'signup' : 'login';
+            document.getElementById('authTitle').textContent = authMode === 'login' ? 'Log in' : 'Sign up';
+            document.getElementById('authBtn').textContent = authMode === 'login' ? 'Log in' : 'Sign up';
+            document.getElementById('authToggleText').textContent = authMode === 'login' ? "Don't have an account?" : 'Already have an account?';
+            document.getElementById('authToggleLink').textContent = authMode === 'login' ? 'Sign up' : 'Log in';
+        }
+
+        async function handleAuth() {
+            if (!supabaseClient) return;
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            const errorEl = document.getElementById('authError');
+
+            if (!email || !password) {
+                errorEl.textContent = 'Please enter email and password';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            let result;
+            try {
+                if (authMode === 'login') {
+                    result = await auth.signInWithPassword({ email, password });
+                } else {
+                    result = await auth.signUp({ email, password });
+                }
+            } catch (err) {
+                errorEl.textContent = 'Error: ' + err.message;
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            if (result.error) {
+                errorEl.textContent = result.error.message;
+                errorEl.style.display = 'block';
+            } else {
+                errorEl.style.display = 'none';
+                closeAuthModal();
+                loadProfile();
+            }
+        }
+
+        async function handleGoogleAuth() {
+            if (!supabaseClient) return;
+            try {
+                const { error } = await auth.signInWithOAuth({
+                    provider: 'google',
+                    options: { redirectTo: window.location.origin + '/profile_v2.html' }
+                });
+                if (error) {
+                    document.getElementById('authError').textContent = error.message;
+                    document.getElementById('authError').style.display = 'block';
+                }
+            } catch (err) {
+                document.getElementById('authError').textContent = 'Google Sign-In failed';
+                document.getElementById('authError').style.display = 'block';
+            }
+        }
+
+        async function handleLogout() {
+            if (!supabaseClient) return;
+            window.clearLocalUserData?.();
+            await auth.signOut();
+            window.location.reload();
+        }
+
+        function updateUserMenu(user) {
+            const menu = document.getElementById('userMenu');
+            if (user) {
+                const name = user.email.split('@')[0];
+                const initial = name.charAt(0).toUpperCase();
+                menu.innerHTML = `
+                    <a href="/profile_v2.html" class="nav-avatar-link">
+                        <div class="nav-avatar">${initial}</div>
+                    </a>
+                `;
+            } else {
+                menu.innerHTML = `<button class="btn-login" onclick="openAuthModal()">Log in</button>`;
+            }
+        }
+
+        // Init
+        if (auth) {
+            auth.getUser().then(({ data }) => {
+                updateUserMenu(data.user);
+                loadProfile();
+            });
+            auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_OUT') window.clearLocalUserData?.();
+                updateUserMenu(session?.user || null);
+            });
+        }
+    </script>
+    <script type="module">
+        import { Chessboard, COLOR, BORDER_TYPE, FEN } from './lib/cm-chessboard-src/Chessboard.js';
+
+        const boardThemes = new Set(['default', 'green', 'blue', 'white-violet', 'white-blue', 'chessboard-js', 'black-and-white']);
+        const pieceSets = new Set(['staunty', 'standard', 'maestro']);
+        let previewBoard = null;
+
+        function readAppearance() {
+            let theme = localStorage.getItem('chessengineered_board_theme') || localStorage.getItem('chessengineered_boardTheme') || 'green';
+            if (theme === 'brown') theme = 'chessboard-js';
+            const pieces = localStorage.getItem('chessengineered_piece_set') || 'staunty';
+            return {
+                theme: boardThemes.has(theme) ? theme : 'green',
+                pieces: pieceSets.has(pieces) ? pieces : 'staunty'
+            };
+        }
+
+        function renderBoardPreview() {
+            const target = document.getElementById('boardAppearancePreview');
+            if (!target) return;
+            const appearance = readAppearance();
+            if (previewBoard) {
+                previewBoard.destroy();
+                previewBoard = null;
+            }
+            target.innerHTML = '';
+            previewBoard = new Chessboard(target, {
+                assetsUrl: './lib/cm-chessboard-assets/',
+                assetsCache: false,
+                position: 'rn1qkbnr/ppp1pppp/8/3p4/3P4/2N2N2/PPP1PPPP/R1BQKB1R b KQkq - 2 3',
+                orientation: COLOR.white,
+                style: {
+                    cssClass: appearance.theme,
+                    borderType: BORDER_TYPE.none,
+                    pieces: { file: `pieces/${appearance.pieces}.svg`, tileSize: 40 },
+                    animationDuration: 0
+                }
+            });
+        }
+
+        window.addEventListener('boardAppearanceChanged', renderBoardPreview);
+        window.addEventListener('DOMContentLoaded', renderBoardPreview);
+        renderBoardPreview();
+    </script>
+</body>
+</html>
