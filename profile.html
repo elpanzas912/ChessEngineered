@@ -782,10 +782,16 @@
                         <div class="activity-grid" style="grid-template-columns: repeat(${weeks}, 1fr);">${cells}</div>
                     </div>
                 </div>
-                <div class="activity-tooltip" id="activityTooltip" role="status"></div>
             `;
 
-            const tooltip = container.querySelector('#activityTooltip');
+            let tooltip = document.getElementById('activityTooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.id = 'activityTooltip';
+                tooltip.className = 'activity-tooltip';
+                tooltip.setAttribute('role', 'status');
+                document.body.appendChild(tooltip);
+            }
             const positionTooltip = (cell) => {
                 if (!tooltip) return;
                 const cellRect = cell.getBoundingClientRect();
