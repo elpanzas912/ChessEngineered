@@ -326,6 +326,7 @@ body {
   display: flex;
   gap: 6px;
   min-width: 640px;
+  width: 100% !important;
 }
 
 .activity-weekdays {
