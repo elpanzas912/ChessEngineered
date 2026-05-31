@@ -39,6 +39,8 @@ npm-debug.log*
 # Build
 /dist
 /build
+.next/
+out/
 
 # Antigravity CLI and Windows temp files
 .commandcode/
