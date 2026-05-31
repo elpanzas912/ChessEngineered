@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!DOCTYPE html>
-<html lang="en">
-<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile — ChessEngineered</title>
+    <title>Zen Profile v2 — ChessEngineered</title>
     <link rel="stylesheet" href="lib/cm-chessboard-assets/chessboard.css">
     <link rel="stylesheet" href="tokens.css">
-    <link rel="stylesheet" href="profile.css?v=11">
+    <link rel="stylesheet" href="profile.css?v=2">
 </head>
 <body>
 
@@ -35,237 +32,190 @@
         </div>
     </nav>
 
-    <div class="profile-wrap">
-        <!-- Profile Header -->
-        <div class="profile-header">
-            <div class="profile-avatar" id="profileAvatar">?</div>
-            <div class="profile-info">
-                <h1 class="profile-name" id="profileName">Guest</h1>
-                <p class="profile-email" id="profileEmail">—</p>
-                <p class="profile-meta">Member since <span id="profileJoined">—</span></p>
+    <!-- ── Zen Asymmetrical Container ── -->
+    <div class="zen-container">
+        <!-- HERO SEGMENT: Bold Typography Identity & subscription -->
+        <header class="zen-hero">
+            <div class="zen-identity">
+                <div class="profile-avatar" id="profileAvatar">?</div>
+                <div class="zen-identity-text">
+                    <h1 class="zen-name" id="profileName">Guest</h1>
+                    <p class="zen-email" id="profileEmail">—</p>
+                    <p class="zen-joined">Joined <span id="profileJoined">—</span></p>
+                </div>
             </div>
-            <a href="/plans.html" class="btn btn-primary" id="upgradeBtn" style="display:none">Upgrade to Unlimited</a>
-        </div>
+            
+            <!-- Tier Info -->
+            <div class="zen-tier-hub" id="subscriptionCard">
+                <div class="subscription-status" id="subscriptionStatus">
+                    <span class="status-badge status-free">Free Tier</span>
+                </div>
+                <p class="subscription-desc" id="subscriptionDesc">Unlock all 30+ openings.</p>
+                <a href="/plans.html" class="zen-link-btn" id="subActionBtn">Upgrade pass →</a>
+                <a href="/plans.html" class="btn btn-primary" id="upgradeBtn" style="display:none">Upgrade</a>
+            </div>
+        </header>
 
-        <!-- Subscription Card -->
-        <div class="profile-card" id="subscriptionCard">
-            <h2 class="card-title">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                Subscription
-            </h2>
-            <div class="subscription-status" id="subscriptionStatus">
-                <span class="status-badge status-free">Free</span>
-                <span class="status-text">1 opening unlocked</span>
+        <!-- ASYMMETRICAL STATS GRID (The Big Numbers) -->
+        <section class="zen-stats-section">
+            <div class="zen-stat-metric main-metric">
+                <div class="zen-metric-wrap">
+                    <span class="zen-stat-num" id="statStreak">0</span>
+                    <span class="zen-stat-label">Day Streak 🔥</span>
+                </div>
             </div>
-            <p class="subscription-desc" id="subscriptionDesc">Upgrade to unlock all 30+ openings and sync across devices.</p>
-            <div class="subscription-actions">
-                <a href="/plans.html" class="btn btn-primary" id="subActionBtn">Upgrade — $11.99/year</a>
+            <div class="zen-stats-subgrid">
+                <div class="zen-stat-metric">
+                    <span class="zen-stat-num" id="statOpenings">0</span>
+                    <span class="zen-stat-label">Openings practiced</span>
+                </div>
+                <div class="zen-stat-metric">
+                    <span class="zen-stat-num" id="statLines">0</span>
+                    <span class="zen-stat-label">Lines learned</span>
+                </div>
+                <div class="zen-stat-metric">
+                    <span class="zen-stat-num" id="statTime">0h</span>
+                    <span class="zen-stat-label">Time trained</span>
+                </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-            <div class="stat-box">
-                <span class="stat-value" id="statOpenings">0</span>
-                <span class="stat-label">Openings practiced</span>
-            </div>
-            <div class="stat-box">
-                <span class="stat-value" id="statLines">0</span>
-                <span class="stat-label">Lines learned</span>
-            </div>
-            <div class="stat-box">
-                <span class="stat-value" id="statStreak">0</span>
-                <span class="stat-label">Day streak</span>
-            </div>
-            <div class="stat-box">
-                <span class="stat-value" id="statTime">0h</span>
-                <span class="stat-label">Time trained</span>
-            </div>
-        </div>
-
-        <div class="profile-card training-time-card">
-            <div class="card-header-with-badge" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-md); flex-wrap: wrap; gap: 8px;">
-                <h2 class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Training time
-                </h2>
-                <span class="total-time-badge" id="trainingTotalBadge" style="font-size: var(--text-xs); font-weight: 600; color: #fbbf24 !important; background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.15); padding: 3px 8px; border-radius: 12px; font-family: var(--font-body); letter-spacing: -0.01em;">Total: 0m</span>
-            </div>
-            <div class="training-time-list">
-                <div class="training-time-row">
-                    <span>Learn</span>
-                    <strong id="timeLearn">0m</strong>
-                </div>
-                <div class="training-time-row">
-                    <span>Practice</span>
-                    <strong id="timePractice">0m</strong>
-                </div>
-                <div class="training-time-row">
-                    <span>Drill</span>
-                    <strong id="timeDrill">0m</strong>
-                </div>
-                <div class="training-time-row">
-                    <span>Time Trials</span>
-                    <strong id="timeTrial">0m</strong>
-                </div>
-                <div class="training-time-row">
-                    <span>Puzzles</span>
-                    <strong id="timePuzzle">0m</strong>
-                </div>
-            </div>
-        </div>
-
-        <div class="profile-card accuracy-card" id="accuracyCard" style="display:none">
-            <h2 class="card-title">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-4 4"/></svg>
-                Accuracy over time
-            </h2>
-            <div class="accuracy-controls">
-                <label>
-                    <span>Mode</span>
-                    <select id="accuracyMode" onchange="renderAccuracyChart()">
-                        <option value="all">All</option>
-                        <option value="learn">Learn</option>
-                        <option value="practice">Practice</option>
-                    </select>
-                </label>
-                <label>
-                    <span>Opening</span>
-                    <select id="accuracyOpening" onchange="renderAccuracyChart()"></select>
-                </label>
-                <label>
-                    <span>Line</span>
-                    <select id="accuracyLine" onchange="renderAccuracyChart()"></select>
-                </label>
-            </div>
-            <div class="accuracy-chart" id="accuracyChart"></div>
-            <div class="accuracy-summary" id="accuracySummary"></div>
-        </div>
-
-        <!-- Activity Heatmap -->
-        <div class="profile-card activity-card">
-            <div class="activity-heading">
-                <span>Activity</span>
-                <div class="activity-legend" aria-label="Activity intensity">
-                    <span>Less</span>
-                    <i class="activity-legend-cell level-0"></i>
-                    <i class="activity-legend-cell level-1"></i>
-                    <i class="activity-legend-cell level-2"></i>
-                    <i class="activity-legend-cell level-3"></i>
-                    <i class="activity-legend-cell level-4"></i>
-                    <span>More</span>
-                </div>
-            </div>
-            <div class="activity-chart" id="heatmap"></div>
-        </div>
-
-        <!-- Favorite Openings -->
-        <div class="profile-card" id="favoritesCard" style="display:none">
-            <h2 class="card-title">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                Most practiced
-            </h2>
-            <div class="favorites-list" id="favoritesList"></div>
-        </div>
-
-        <!-- Settings -->
-        <div class="profile-card">
-            <h2 class="card-title">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-                Settings
-            </h2>
-            <section class="board-appearance">
-                <h3 class="settings-section-title">Board Appearance</h3>
-                <div class="appearance-row">
-                    <span class="appearance-label">Board Color</span>
-                    <label class="appearance-select-wrap">
-                        <select class="appearance-select" id="boardTheme" onchange="saveBoardAppearance('boardTheme', this.value)">
-                            <option value="green">Green</option>
-                            <option value="white-violet">White Violet</option>
-                            <option value="white-blue">White Blue</option>
-                            <option value="blue">Blue</option>
-                            <option value="chessboard-js">Brown</option>
-                            <option value="default">Classic</option>
-                            <option value="black-and-white">Black & White</option>
-                        </select>
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-                    </label>
-                </div>
-                <div class="appearance-row">
-                    <span class="appearance-label">Piece Set</span>
-                    <label class="appearance-select-wrap">
-                        <select class="appearance-select" id="pieceSet" onchange="saveBoardAppearance('pieceSet', this.value)">
-                            <option value="staunty">Staunty</option>
-                            <option value="maestro">Maestro</option>
-                            <option value="standard">Standard</option>
-                        </select>
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-                    </label>
-                </div>
-                <div class="board-preview-wrap">
-                    <div class="board-preview" id="boardAppearancePreview" aria-label="Board appearance preview"></div>
-                </div>
-            </section>
-
-            <div class="settings-list">
-                <div class="setting-row">
-                    <div class="setting-info">
-                        <span class="setting-label">Sound effects</span>
-                        <span class="setting-desc">Play sounds on move and capture</span>
+        <!-- MAIN CANVAS: HEATMAP & ACCURACY -->
+        <section class="zen-canvas-section">
+            <!-- Heatmap Activity Canvas -->
+            <div class="zen-canvas-card activity-card-v2">
+                <div class="zen-canvas-header">
+                    <h2 class="zen-canvas-title">Activity Calendar</h2>
+                    <div class="activity-legend" aria-label="Activity intensity">
+                        <span>Less</span>
+                        <i class="activity-legend-cell level-0"></i>
+                        <i class="activity-legend-cell level-1"></i>
+                        <i class="activity-legend-cell level-2"></i>
+                        <i class="activity-legend-cell level-3"></i>
+                        <i class="activity-legend-cell level-4"></i>
+                        <span>More</span>
                     </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="soundToggle" checked onchange="saveSetting('sound', this.checked)">
-                        <span class="toggle-slider"></span>
-                    </label>
                 </div>
-                <div class="setting-row">
-                    <div class="setting-info">
-                        <span class="setting-label">Show hints</span>
-                        <span class="setting-desc">Display move hints during practice</span>
+                <div class="activity-chart" id="heatmap"></div>
+            </div>
+
+            <!-- Accuracy Chart Canvas -->
+            <div class="zen-canvas-card accuracy-card" id="accuracyCard" style="display:none">
+                <div class="zen-canvas-header-controls">
+                    <h2 class="zen-canvas-title">Performance Accuracy</h2>
+                    <div class="accuracy-controls">
+                        <select id="accuracyMode" onchange="renderAccuracyChart()">
+                            <option value="all">All modes</option>
+                            <option value="learn">Learn</option>
+                            <option value="practice">Practice</option>
+                        </select>
+                        <select id="accuracyOpening" onchange="renderAccuracyChart()"></select>
+                        <select id="accuracyLine" onchange="renderAccuracyChart()"></select>
                     </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="hintsToggle" checked onchange="saveSetting('hints', this.checked)">
-                        <span class="toggle-slider"></span>
-                    </label>
                 </div>
-                <div class="setting-divider"></div>
-                <div class="setting-row setting-danger">
-                    <button class="btn btn-ghost" onclick="handleLogout()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
-                        Log out
-                    </button>
+                <div class="accuracy-chart" id="accuracyChart"></div>
+                <div class="accuracy-summary" id="accuracySummary"></div>
+            </div>
+        </section>
+
+        <!-- ASYMMETRICAL BOTTOM LAYOUT: Breakdown & Preferences -->
+        <section class="zen-bottom-section">
+            <!-- Training Breakdown (Visual Meters) -->
+            <div class="zen-canvas-card training-time-card">
+                <div class="zen-canvas-header">
+                    <h2 class="zen-canvas-title">Training Time Distribution</h2>
+                    <span class="zen-total-time-badge" id="trainingTotalBadge">Total: 0m</span>
+                </div>
+                <div class="zen-breakdown-list">
+                    <div class="zen-breakdown-row">
+                        <span class="zen-breakdown-label">Learn</span>
+                        <div class="zen-bar-track"><div class="zen-bar-fill" id="barLearn" style="width:0%;"></div></div>
+                        <span class="zen-breakdown-val" id="timeLearn">0m</span>
+                    </div>
+                    <div class="zen-breakdown-row">
+                        <span class="zen-breakdown-label">Practice</span>
+                        <div class="zen-bar-track"><div class="zen-bar-fill" id="barPractice" style="width:0%;"></div></div>
+                        <span class="zen-breakdown-val" id="timePractice">0m</span>
+                    </div>
+                    <div class="zen-breakdown-row">
+                        <span class="zen-breakdown-label">Drill</span>
+                        <div class="zen-bar-track"><div class="zen-bar-fill" id="barDrill" style="width:0%;"></div></div>
+                        <span class="zen-breakdown-val" id="timeDrill">0m</span>
+                    </div>
+                    <div class="zen-breakdown-row">
+                        <span class="zen-breakdown-label">Time Trials</span>
+                        <div class="zen-bar-track"><div class="zen-bar-fill" id="barTrial" style="width:0%;"></div></div>
+                        <span class="zen-breakdown-val" id="timeTrial">0m</span>
+                    </div>
+                    <div class="zen-breakdown-row">
+                        <span class="zen-breakdown-label">Puzzles</span>
+                        <div class="zen-bar-track"><div class="zen-bar-fill" id="barPuzzle" style="width:0%;"></div></div>
+                        <span class="zen-breakdown-val" id="timePuzzle">0m</span>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <!-- Most Practiced -->
+            <div class="zen-canvas-card favorites-card-v2" id="favoritesCard" style="display:none">
+                <h2 class="zen-canvas-title">Most Practiced</h2>
+                <div class="favorites-list" id="favoritesList"></div>
+            </div>
+
+            <!-- Preferences & Controls -->
+            <div class="zen-canvas-card zen-preferences-card">
+                <h2 class="zen-canvas-title">Board Configuration</h2>
+                <section class="board-appearance-zen">
+                    <div class="board-appearance-selectors">
+                        <div class="zen-pref-row">
+                            <span>Board Theme</span>
+                            <select id="boardTheme" onchange="saveBoardAppearance('boardTheme', this.value)">
+                                <option value="green">Green</option>
+                                <option value="white-violet">White Violet</option>
+                                <option value="white-blue">White Blue</option>
+                                <option value="blue">Blue</option>
+                                <option value="chessboard-js">Brown</option>
+                                <option value="default">Classic</option>
+                                <option value="black-and-white">Black & White</option>
+                            </select>
+                        </div>
+                        <div class="zen-pref-row">
+                            <span>Piece Set</span>
+                            <select id="pieceSet" onchange="saveBoardAppearance('pieceSet', this.value)">
+                                <option value="staunty">Staunty</option>
+                                <option value="maestro">Maestro</option>
+                                <option value="standard">Standard</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="board-preview-wrap-zen">
+                        <div class="board-preview" id="boardAppearancePreview" aria-label="Board appearance preview"></div>
+                    </div>
+                </section>
+                
+                <div class="settings-list-zen">
+                    <div class="zen-pref-row">
+                        <span>Sound Effects</span>
+                        <label class="toggle-switch-zen">
+                            <input type="checkbox" id="soundToggle" checked onchange="saveSetting('sound', this.checked)">
+                            <span class="toggle-slider-zen"></span>
+                        </label>
+                    </div>
+                    <div class="zen-pref-row">
+                        <span>Training Hints</span>
+                        <label class="toggle-switch-zen">
+                            <input type="checkbox" id="hintsToggle" checked onchange="saveSetting('hints', this.checked)">
+                            <span class="toggle-slider-zen"></span>
+                        </label>
+                    </div>
+                    <button class="zen-danger-btn" onclick="handleLogout()">Log out</button>
+                </div>
+            </div>
+        </section>
     </div>
 
-    <!-- Auth Modal (for guests) -->
-    <div class="auth-modal-overlay" id="authModal">
-        <div class="auth-modal">
-            <button class="close-btn" onclick="closeAuthModal()">×</button>
-            <h2 id="authTitle">Log in</h2>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="authEmail" placeholder="you@example.com">
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="authPassword" placeholder="••••••••">
-            </div>
-            <button class="btn-auth" id="authBtn" onclick="handleAuth()">Log in</button>
-            <div style="text-align:center;margin:16px 0;color:var(--color-muted);font-size:0.85rem;">or</div>
-            <button class="btn-auth" style="background:#4285F4;border:none;" onclick="handleGoogleAuth()">
-                <span style="margin-right:8px;">🔍</span> Continue with Google
-            </button>
-            <div class="error-msg" id="authError"></div>
-            <div class="auth-toggle">
-                <span id="authToggleText">Don't have an account?</span>
-                <a onclick="toggleAuthMode()" id="authToggleLink">Sign up</a>
-            </div>
-        </div>
-    </div>
+    <!-- Auth Modal removed as requested -->
 
-    <!-- Supabase Auth -->
+    <!-- Supabase Auth & Logic -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="supabaseClient.js"></script>
     <script>
@@ -307,10 +257,10 @@
             if (supabaseClient) {
                 try {
                     const { data: sub } = await supabaseClient
-                        .from('subscriptions')
-                        .select('status, current_period_end, plan')
-                        .eq('user_id', user.id)
-                        .single();
+                         .from('subscriptions')
+                         .select('status, current_period_end, plan')
+                         .eq('user_id', user.id)
+                         .single();
 
                     hasSub = sub &&
                         (sub.status === 'active' || sub.status === 'trialing') &&
@@ -358,6 +308,7 @@
 
             const trainingTime = normalizeTrainingTime(progress.trainingTime);
             const totalTime = Object.values(trainingTime).reduce((sum, value) => sum + value, 0);
+            const totalTimeDivisor = totalTime > 0 ? totalTime : 1;
 
             const formatTimeWithPct = (milliseconds, total) => {
                 const duration = formatDuration(milliseconds);
@@ -380,6 +331,13 @@
             if (document.getElementById('trainingTotalBadge')) {
                 document.getElementById('trainingTotalBadge').textContent = `Total: ${formatDuration(totalTime)}`;
             }
+
+            // Render Zen Progress Bars relative to totalTime
+            if (document.getElementById('barLearn')) document.getElementById('barLearn').style.width = (trainingTime.learn / totalTimeDivisor * 100) + '%';
+            if (document.getElementById('barPractice')) document.getElementById('barPractice').style.width = (trainingTime.practice / totalTimeDivisor * 100) + '%';
+            if (document.getElementById('barDrill')) document.getElementById('barDrill').style.width = (trainingTime.drill / totalTimeDivisor * 100) + '%';
+            if (document.getElementById('barTrial')) document.getElementById('barTrial').style.width = (trainingTime.time / totalTimeDivisor * 100) + '%';
+            if (document.getElementById('barPuzzle')) document.getElementById('barPuzzle').style.width = (trainingTime.puzzle / totalTimeDivisor * 100) + '%';
         }
 
         function normalizeTrainingTime(value) {
@@ -623,8 +581,8 @@
                 const localResetAt = local[slug]?.resetAt || '';
                 const cloudResetAt = merged[slug]?.resetAt || '';
                 if (localResetAt > cloudResetAt) {
-                    merged[slug] = local[slug];
-                    continue;
+                     merged[slug] = local[slug];
+                     continue;
                 }
                 if (cloudResetAt > localResetAt) continue;
                 const localLearned = local[slug].learnedLines || [];
@@ -913,31 +871,43 @@
         let authMode = 'login';
 
         function openAuthModal() {
-            document.getElementById('authModal').classList.add('open');
+            const modal = document.getElementById('authModal');
+            if (modal) modal.classList.add('open');
         }
 
         function closeAuthModal() {
-            document.getElementById('authModal').classList.remove('open');
-            document.getElementById('authError').style.display = 'none';
+            const modal = document.getElementById('authModal');
+            if (modal) modal.classList.remove('open');
+            const errorEl = document.getElementById('authError');
+            if (errorEl) errorEl.style.display = 'none';
         }
 
         function toggleAuthMode() {
             authMode = authMode === 'login' ? 'signup' : 'login';
-            document.getElementById('authTitle').textContent = authMode === 'login' ? 'Log in' : 'Sign up';
-            document.getElementById('authBtn').textContent = authMode === 'login' ? 'Log in' : 'Sign up';
-            document.getElementById('authToggleText').textContent = authMode === 'login' ? "Don't have an account?" : 'Already have an account?';
-            document.getElementById('authToggleLink').textContent = authMode === 'login' ? 'Sign up' : 'Log in';
+            const title = document.getElementById('authTitle');
+            if (title) title.textContent = authMode === 'login' ? 'Log in' : 'Sign up';
+            const btn = document.getElementById('authBtn');
+            if (btn) btn.textContent = authMode === 'login' ? 'Log in' : 'Sign up';
+            const text = document.getElementById('authToggleText');
+            if (text) text.textContent = authMode === 'login' ? "Don't have an account?" : 'Already have an account?';
+            const link = document.getElementById('authToggleLink');
+            if (link) link.textContent = authMode === 'login' ? 'Sign up' : 'Log in';
         }
 
         async function handleAuth() {
             if (!supabaseClient) return;
-            const email = document.getElementById('authEmail').value;
-            const password = document.getElementById('authPassword').value;
+            const emailEl = document.getElementById('authEmail');
+            const passwordEl = document.getElementById('authPassword');
             const errorEl = document.getElementById('authError');
 
+            const email = emailEl ? emailEl.value : '';
+            const password = passwordEl ? passwordEl.value : '';
+
             if (!email || !password) {
-                errorEl.textContent = 'Please enter email and password';
-                errorEl.style.display = 'block';
+                if (errorEl) {
+                    errorEl.textContent = 'Please enter email and password';
+                    errorEl.style.display = 'block';
+                }
                 return;
             }
 
@@ -949,16 +919,20 @@
                     result = await auth.signUp({ email, password });
                 }
             } catch (err) {
-                errorEl.textContent = 'Error: ' + err.message;
-                errorEl.style.display = 'block';
+                if (errorEl) {
+                    errorEl.textContent = 'Error: ' + err.message;
+                    errorEl.style.display = 'block';
+                }
                 return;
             }
 
             if (result.error) {
-                errorEl.textContent = result.error.message;
-                errorEl.style.display = 'block';
+                if (errorEl) {
+                    errorEl.textContent = result.error.message;
+                    errorEl.style.display = 'block';
+                }
             } else {
-                errorEl.style.display = 'none';
+                if (errorEl) errorEl.style.display = 'none';
                 closeAuthModal();
                 loadProfile();
             }
