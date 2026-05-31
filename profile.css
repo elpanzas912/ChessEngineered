@@ -1083,6 +1083,14 @@ body {
   .accuracy-controls {
     grid-template-columns: 1fr;
   }
+  .accuracy-chart {
+    overflow-x: hidden !important;
+  }
+  .accuracy-chart svg {
+    min-width: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+  }
   .activity-card {
     padding: var(--space-md) !important;
   }
@@ -1091,8 +1099,22 @@ body {
     flex-direction: column;
     gap: var(--space-xs);
   }
+  .activity-chart {
+    overflow-x: hidden !important;
+  }
   .activity-layout {
-    min-width: 600px;
+    min-width: 0 !important;
+    width: 100% !important;
+    gap: 2px !important;
+  }
+  .activity-weekdays {
+    flex: 0 0 18px !important;
+  }
+  .activity-weekdays span {
+    font-size: 8px !important;
+  }
+  .activity-grid {
+    gap: 1px !important;
   }
 }
 
