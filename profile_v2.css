@@ -516,9 +516,16 @@ body {
 /* ── Bottom Section (Asymmetric Columns) ── */
 .zen-bottom-section {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-lg);
+  grid-template-columns: 1.15fr 1fr;
+  gap: var(--space-xl);
   align-items: start;
+}
+
+.zen-bottom-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  min-width: 0;
 }
 
 /* Training Breakdown (Visual Meters) */
