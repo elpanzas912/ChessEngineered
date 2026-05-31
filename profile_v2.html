@@ -165,25 +165,27 @@
             <div class="zen-canvas-card zen-preferences-card">
                 <h2 class="zen-canvas-title">Board Configuration</h2>
                 <section class="board-appearance-zen">
-                    <div class="zen-pref-row">
-                        <span>Board Theme</span>
-                        <select id="boardTheme" onchange="saveBoardAppearance('boardTheme', this.value)">
-                            <option value="green">Green</option>
-                            <option value="white-violet">White Violet</option>
-                            <option value="white-blue">White Blue</option>
-                            <option value="blue">Blue</option>
-                            <option value="chessboard-js">Brown</option>
-                            <option value="default">Classic</option>
-                            <option value="black-and-white">Black & White</option>
-                        </select>
-                    </div>
-                    <div class="zen-pref-row">
-                        <span>Piece Set</span>
-                        <select id="pieceSet" onchange="saveBoardAppearance('pieceSet', this.value)">
-                            <option value="staunty">Staunty</option>
-                            <option value="maestro">Maestro</option>
-                            <option value="standard">Standard</option>
-                        </select>
+                    <div class="board-appearance-selectors">
+                        <div class="zen-pref-row">
+                            <span>Board Theme</span>
+                            <select id="boardTheme" onchange="saveBoardAppearance('boardTheme', this.value)">
+                                <option value="green">Green</option>
+                                <option value="white-violet">White Violet</option>
+                                <option value="white-blue">White Blue</option>
+                                <option value="blue">Blue</option>
+                                <option value="chessboard-js">Brown</option>
+                                <option value="default">Classic</option>
+                                <option value="black-and-white">Black & White</option>
+                            </select>
+                        </div>
+                        <div class="zen-pref-row">
+                            <span>Piece Set</span>
+                            <select id="pieceSet" onchange="saveBoardAppearance('pieceSet', this.value)">
+                                <option value="staunty">Staunty</option>
+                                <option value="maestro">Maestro</option>
+                                <option value="standard">Standard</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="board-preview-wrap-zen">
                         <div class="board-preview" id="boardAppearancePreview" aria-label="Board appearance preview"></div>
