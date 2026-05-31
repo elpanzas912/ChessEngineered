@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile Cockpit v2 — ChessEngineered</title>
+    <title>Zen Profile v2 — ChessEngineered</title>
     <link rel="stylesheet" href="lib/cm-chessboard-assets/chessboard.css">
     <link rel="stylesheet" href="tokens.css">
-    <link rel="stylesheet" href="profile_v2.css?v=1">
+    <link rel="stylesheet" href="profile_v2.css?v=2">
 </head>
 <body>
 
@@ -32,146 +32,60 @@
         </div>
     </nav>
 
-    <!-- ── Main Cockpit Container ── -->
-    <div class="profile-v2-container">
-        <!-- ── Left Sidebar (Identity & Settings Control) ── -->
-        <aside class="profile-v2-sidebar">
-            <!-- User Identity Hub -->
-            <div class="sidebar-user-card">
+    <!-- ── Zen Asymmetrical Container ── -->
+    <div class="zen-container">
+        <!-- HERO SEGMENT: Bold Typography Identity & subscription -->
+        <header class="zen-hero">
+            <div class="zen-identity">
                 <div class="profile-avatar" id="profileAvatar">?</div>
-                <div class="profile-info-wrap">
-                    <h1 class="profile-name" id="profileName">Guest</h1>
-                    <p class="profile-email" id="profileEmail">—</p>
-                    <p class="profile-meta">Practicing since <span id="profileJoined">—</span></p>
+                <div class="zen-identity-text">
+                    <h1 class="zen-name" id="profileName">Guest</h1>
+                    <p class="zen-email" id="profileEmail">—</p>
+                    <p class="zen-joined">Joined <span id="profileJoined">—</span></p>
                 </div>
-                <a href="/plans.html" class="btn btn-primary" id="upgradeBtn" style="display:none;width:100%;margin-top:var(--space-md);">Upgrade to Unlimited</a>
             </div>
-
-            <!-- Subscription Status -->
-            <div class="profile-card" id="subscriptionCard">
-                <h2 class="card-title">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    Subscription
-                </h2>
+            
+            <!-- Tier Info -->
+            <div class="zen-tier-hub" id="subscriptionCard">
                 <div class="subscription-status" id="subscriptionStatus">
-                    <span class="status-badge status-free">Free</span>
-                    <span class="status-text">1 opening unlocked</span>
+                    <span class="status-badge status-free">Free Tier</span>
                 </div>
-                <p class="subscription-desc" id="subscriptionDesc">Upgrade to unlock all 30+ openings and sync across devices.</p>
-                <div class="subscription-actions">
-                    <a href="/plans.html" class="btn btn-primary" id="subActionBtn" style="width:100%;">Upgrade — $11.99/year</a>
+                <p class="subscription-desc" id="subscriptionDesc">Unlock all 30+ openings.</p>
+                <a href="/plans.html" class="zen-link-btn" id="subActionBtn">Upgrade pass →</a>
+                <a href="/plans.html" class="btn btn-primary" id="upgradeBtn" style="display:none">Upgrade</a>
+            </div>
+        </header>
+
+        <!-- ASYMMETRICAL STATS GRID (The Big Numbers) -->
+        <section class="zen-stats-section">
+            <div class="zen-stat-metric main-metric">
+                <div class="zen-metric-wrap">
+                    <span class="zen-stat-num" id="statStreak">0</span>
+                    <span class="zen-stat-label">Day Streak 🔥</span>
                 </div>
             </div>
-
-            <!-- Cockpit Settings Panel -->
-            <div class="profile-card settings-card-v2">
-                <h2 class="card-title">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-                    Appearance & Control
-                </h2>
-                <section class="board-appearance">
-                    <h3 class="settings-section-title">Board Style</h3>
-                    <div class="appearance-row">
-                        <span class="appearance-label">Board Color</span>
-                        <label class="appearance-select-wrap">
-                            <select class="appearance-select" id="boardTheme" onchange="saveBoardAppearance('boardTheme', this.value)">
-                                <option value="green">Green</option>
-                                <option value="white-violet">White Violet</option>
-                                <option value="white-blue">White Blue</option>
-                                <option value="blue">Blue</option>
-                                <option value="chessboard-js">Brown</option>
-                                <option value="default">Classic</option>
-                                <option value="black-and-white">Black & White</option>
-                            </select>
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-                        </label>
-                    </div>
-                    <div class="appearance-row">
-                        <span class="appearance-label">Piece Set</span>
-                        <label class="appearance-select-wrap">
-                            <select class="appearance-select" id="pieceSet" onchange="saveBoardAppearance('pieceSet', this.value)">
-                                <option value="staunty">Staunty</option>
-                                <option value="maestro">Maestro</option>
-                                <option value="standard">Standard</option>
-                            </select>
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-                        </label>
-                    </div>
-                    <div class="board-preview-wrap">
-                        <div class="board-preview" id="boardAppearancePreview" aria-label="Board appearance preview"></div>
-                    </div>
-                </section>
-
-                <div class="settings-list">
-                    <div class="setting-row">
-                        <div class="setting-info">
-                            <span class="setting-label">Sound effects</span>
-                            <span class="setting-desc">Play sounds on move</span>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="soundToggle" checked onchange="saveSetting('sound', this.checked)">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <div class="setting-row">
-                        <div class="setting-info">
-                            <span class="setting-label">Show hints</span>
-                            <span class="setting-desc">Display move hints</span>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="hintsToggle" checked onchange="saveSetting('hints', this.checked)">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <div class="setting-divider"></div>
-                    <div class="setting-row setting-danger">
-                        <button class="btn btn-ghost" onclick="handleLogout()" style="width:100%;justify-content:center;">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
-                            Log out
-                        </button>
-                    </div>
+            <div class="zen-stats-subgrid">
+                <div class="zen-stat-metric">
+                    <span class="zen-stat-num" id="statOpenings">0</span>
+                    <span class="zen-stat-label">Openings practiced</span>
+                </div>
+                <div class="zen-stat-metric">
+                    <span class="zen-stat-num" id="statLines">0</span>
+                    <span class="zen-stat-label">Lines learned</span>
+                </div>
+                <div class="zen-stat-metric">
+                    <span class="zen-stat-num" id="statTime">0h</span>
+                    <span class="zen-stat-label">Time trained</span>
                 </div>
             </div>
-        </aside>
+        </section>
 
-        <!-- ── Right Main Pane (Analytics & Activities Grid) ── -->
-        <main class="profile-v2-main">
-            <!-- Sleek Horizontal Cockpit Metrics -->
-            <div class="stats-grid-v2">
-                <div class="stat-box-v2">
-                    <div class="stat-v2-info">
-                        <span class="stat-label-v2">Openings</span>
-                        <span class="stat-value-v2" id="statOpenings">0</span>
-                    </div>
-                    <div class="stat-v2-icon">♟</div>
-                </div>
-                <div class="stat-box-v2">
-                    <div class="stat-v2-info">
-                        <span class="stat-label-v2">Lines Learned</span>
-                        <span class="stat-value-v2" id="statLines">0</span>
-                    </div>
-                    <div class="stat-v2-icon">📖</div>
-                </div>
-                <div class="stat-box-v2">
-                    <div class="stat-v2-info">
-                        <span class="stat-label-v2">Day Streak</span>
-                        <span class="stat-value-v2" id="statStreak">0</span>
-                    </div>
-                    <div class="stat-v2-icon">🔥</div>
-                </div>
-                <div class="stat-box-v2">
-                    <div class="stat-v2-info">
-                        <span class="stat-label-v2">Trained</span>
-                        <span class="stat-value-v2" id="statTime">0h</span>
-                    </div>
-                    <div class="stat-v2-icon">⏱</div>
-                </div>
-            </div>
-
-            <!-- Heatmap Activity Hub Card -->
-            <div class="profile-card activity-card-v2">
-                <div class="activity-heading">
-                    <span class="card-section-title">Activity Hub</span>
+        <!-- MAIN CANVAS: HEATMAP & ACCURACY -->
+        <section class="zen-canvas-section">
+            <!-- Heatmap Activity Canvas -->
+            <div class="zen-canvas-card activity-card-v2">
+                <div class="zen-canvas-header">
+                    <h2 class="zen-canvas-title">Activity Calendar</h2>
                     <div class="activity-legend" aria-label="Activity intensity">
                         <span>Less</span>
                         <i class="activity-legend-cell level-0"></i>
@@ -185,76 +99,113 @@
                 <div class="activity-chart" id="heatmap"></div>
             </div>
 
-            <!-- Accuracy Analytics Panel -->
-            <div class="profile-card accuracy-card" id="accuracyCard" style="display:none">
-                <h2 class="card-title">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-4 4"/></svg>
-                    Accuracy over time
-                </h2>
-                <div class="accuracy-controls">
-                    <label>
-                        <span>Mode</span>
+            <!-- Accuracy Chart Canvas -->
+            <div class="zen-canvas-card accuracy-card" id="accuracyCard" style="display:none">
+                <div class="zen-canvas-header-controls">
+                    <h2 class="zen-canvas-title">Performance Accuracy</h2>
+                    <div class="accuracy-controls">
                         <select id="accuracyMode" onchange="renderAccuracyChart()">
-                            <option value="all">All</option>
+                            <option value="all">All modes</option>
                             <option value="learn">Learn</option>
                             <option value="practice">Practice</option>
                         </select>
-                    </label>
-                    <label>
-                        <span>Opening</span>
                         <select id="accuracyOpening" onchange="renderAccuracyChart()"></select>
-                    </label>
-                    <label>
-                        <span>Line</span>
                         <select id="accuracyLine" onchange="renderAccuracyChart()"></select>
-                    </label>
+                    </div>
                 </div>
                 <div class="accuracy-chart" id="accuracyChart"></div>
                 <div class="accuracy-summary" id="accuracySummary"></div>
             </div>
+        </section>
 
-            <!-- Secondary Cockpit Split: Training Breakdown & Favorites -->
-            <div class="cockpit-split-grid">
-                <!-- Training Breakdown -->
-                <div class="profile-card training-time-card">
-                    <h2 class="card-title">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                        Training Breakdown
-                    </h2>
-                    <div class="training-time-list-v2">
-                        <div class="training-time-row-v2">
-                            <span>Learn</span>
-                            <strong id="timeLearn">0m</strong>
-                        </div>
-                        <div class="training-time-row-v2">
-                            <span>Practice</span>
-                            <strong id="timePractice">0m</strong>
-                        </div>
-                        <div class="training-time-row-v2">
-                            <span>Drill</span>
-                            <strong id="timeDrill">0m</strong>
-                        </div>
-                        <div class="training-time-row-v2">
-                            <span>Time Trials</span>
-                            <strong id="timeTrial">0m</strong>
-                        </div>
-                        <div class="training-time-row-v2">
-                            <span>Puzzles</span>
-                            <strong id="timePuzzle">0m</strong>
-                        </div>
+        <!-- ASYMMETRICAL BOTTOM LAYOUT: Breakdown & Preferences -->
+        <section class="zen-bottom-section">
+            <!-- Training Breakdown (Visual Meters) -->
+            <div class="zen-canvas-card training-time-card">
+                <h2 class="zen-canvas-title">Training Time Distribution</h2>
+                <div class="zen-breakdown-list">
+                    <div class="zen-breakdown-row">
+                        <span class="zen-breakdown-label">Learn</span>
+                        <div class="zen-bar-track"><div class="zen-bar-fill" id="barLearn" style="width:0%;"></div></div>
+                        <span class="zen-breakdown-val" id="timeLearn">0m</span>
+                    </div>
+                    <div class="zen-breakdown-row">
+                        <span class="zen-breakdown-label">Practice</span>
+                        <div class="zen-bar-track"><div class="zen-bar-fill" id="barPractice" style="width:0%;"></div></div>
+                        <span class="zen-breakdown-val" id="timePractice">0m</span>
+                    </div>
+                    <div class="zen-breakdown-row">
+                        <span class="zen-breakdown-label">Drill</span>
+                        <div class="zen-bar-track"><div class="zen-bar-fill" id="barDrill" style="width:0%;"></div></div>
+                        <span class="zen-breakdown-val" id="timeDrill">0m</span>
+                    </div>
+                    <div class="zen-breakdown-row">
+                        <span class="zen-breakdown-label">Time Trials</span>
+                        <div class="zen-bar-track"><div class="zen-bar-fill" id="barTrial" style="width:0%;"></div></div>
+                        <span class="zen-breakdown-val" id="timeTrial">0m</span>
+                    </div>
+                    <div class="zen-breakdown-row">
+                        <span class="zen-breakdown-label">Puzzles</span>
+                        <div class="zen-bar-track"><div class="zen-bar-fill" id="barPuzzle" style="width:0%;"></div></div>
+                        <span class="zen-breakdown-val" id="timePuzzle">0m</span>
                     </div>
                 </div>
+            </div>
 
-                <!-- Favorites Openings -->
-                <div class="profile-card favorites-card-v2" id="favoritesCard" style="display:none">
-                    <h2 class="card-title">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                        Most Practiced
-                    </h2>
-                    <div class="favorites-list" id="favoritesList"></div>
+            <!-- Most Practiced -->
+            <div class="zen-canvas-card favorites-card-v2" id="favoritesCard" style="display:none">
+                <h2 class="zen-canvas-title">Most Practiced</h2>
+                <div class="favorites-list" id="favoritesList"></div>
+            </div>
+            
+            <!-- Preferences & Controls -->
+            <div class="zen-canvas-card zen-preferences-card">
+                <h2 class="zen-canvas-title">Board Configuration</h2>
+                <section class="board-appearance-zen">
+                    <div class="zen-pref-row">
+                        <span>Board Theme</span>
+                        <select id="boardTheme" onchange="saveBoardAppearance('boardTheme', this.value)">
+                            <option value="green">Green</option>
+                            <option value="white-violet">White Violet</option>
+                            <option value="white-blue">White Blue</option>
+                            <option value="blue">Blue</option>
+                            <option value="chessboard-js">Brown</option>
+                            <option value="default">Classic</option>
+                            <option value="black-and-white">Black & White</option>
+                        </select>
+                    </div>
+                    <div class="zen-pref-row">
+                        <span>Piece Set</span>
+                        <select id="pieceSet" onchange="saveBoardAppearance('pieceSet', this.value)">
+                            <option value="staunty">Staunty</option>
+                            <option value="maestro">Maestro</option>
+                            <option value="standard">Standard</option>
+                        </select>
+                    </div>
+                    <div class="board-preview-wrap-zen">
+                        <div class="board-preview" id="boardAppearancePreview" aria-label="Board appearance preview"></div>
+                    </div>
+                </section>
+                
+                <div class="settings-list-zen">
+                    <div class="zen-pref-row">
+                        <span>Sound Effects</span>
+                        <label class="toggle-switch-zen">
+                            <input type="checkbox" id="soundToggle" checked onchange="saveSetting('sound', this.checked)">
+                            <span class="toggle-slider-zen"></span>
+                        </label>
+                    </div>
+                    <div class="zen-pref-row">
+                        <span>Training Hints</span>
+                        <label class="toggle-switch-zen">
+                            <input type="checkbox" id="hintsToggle" checked onchange="saveSetting('hints', this.checked)">
+                            <span class="toggle-slider-zen"></span>
+                        </label>
+                    </div>
+                    <button class="zen-danger-btn" onclick="handleLogout()">Log out</button>
                 </div>
             </div>
-        </main>
+        </section>
     </div>
 
     <!-- Auth Modal (for guests) -->
@@ -386,6 +337,14 @@
             document.getElementById('timeDrill').textContent = formatDuration(trainingTime.drill);
             document.getElementById('timeTrial').textContent = formatDuration(trainingTime.time);
             document.getElementById('timePuzzle').textContent = formatDuration(trainingTime.puzzle);
+
+            // Render Zen Progress Bars
+            const maxVal = Math.max(1, trainingTime.learn, trainingTime.practice, trainingTime.drill, trainingTime.time, trainingTime.puzzle);
+            if (document.getElementById('barLearn')) document.getElementById('barLearn').style.width = (trainingTime.learn / maxVal * 100) + '%';
+            if (document.getElementById('barPractice')) document.getElementById('barPractice').style.width = (trainingTime.practice / maxVal * 100) + '%';
+            if (document.getElementById('barDrill')) document.getElementById('barDrill').style.width = (trainingTime.drill / maxVal * 100) + '%';
+            if (document.getElementById('barTrial')) document.getElementById('barTrial').style.width = (trainingTime.time / maxVal * 100) + '%';
+            if (document.getElementById('barPuzzle')) document.getElementById('barPuzzle').style.width = (trainingTime.puzzle / maxVal * 100) + '%';
         }
 
         function normalizeTrainingTime(value) {
