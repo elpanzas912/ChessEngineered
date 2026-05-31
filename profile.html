@@ -709,13 +709,15 @@
 
             const monthLabels = [];
             let previousMonth = -1;
+            let lastLabelWeek = -99;
             for (let w = 0; w < weeks; w++) {
                 const weekDate = new Date(startDate);
                 weekDate.setDate(startDate.getDate() + w * days);
                 const month = weekDate.getMonth();
-                if (w === 0 || month !== previousMonth) {
+                if (w === 0 || (month !== previousMonth && (w - lastLabelWeek >= 4))) {
                     const label = weekDate.toLocaleDateString('en-US', { month: 'short' });
                     monthLabels.push(`<span style="grid-column:${w + 1};">${label}</span>`);
+                    lastLabelWeek = w;
                 }
                 previousMonth = month;
             }
@@ -753,7 +755,7 @@
                     </div>
                     <div class="activity-scroll">
                         <div class="activity-month-row" style="grid-template-columns: repeat(${weeks}, 1fr);">${monthLabels.join('')}</div>
-                        <div class="activity-grid" style="grid-template-columns: repeat(${weeks}, 1fr);">${cells}</div>
+                        <div class="activity-grid" style="grid-template-columns: repeat(${weeks}, 1fr); aspect-ratio: ${weeks} / 7;">${cells}</div>
                     </div>
                 </div>
             `;
