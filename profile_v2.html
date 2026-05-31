@@ -122,7 +122,10 @@
         <section class="zen-bottom-section">
             <!-- Training Breakdown (Visual Meters) -->
             <div class="zen-canvas-card training-time-card">
-                <h2 class="zen-canvas-title">Training Time Distribution</h2>
+                <div class="zen-canvas-header">
+                    <h2 class="zen-canvas-title">Training Time Distribution</h2>
+                    <span class="zen-total-time-badge" id="trainingTotalBadge">Total: 0m</span>
+                </div>
                 <div class="zen-breakdown-list">
                     <div class="zen-breakdown-row">
                         <span class="zen-breakdown-label">Learn</span>
@@ -327,24 +330,36 @@
 
             const trainingTime = normalizeTrainingTime(progress.trainingTime);
             const totalTime = Object.values(trainingTime).reduce((sum, value) => sum + value, 0);
+            const totalTimeDivisor = totalTime > 0 ? totalTime : 1;
+
+            const formatTimeWithPct = (milliseconds, total) => {
+                const duration = formatDuration(milliseconds);
+                if (total <= 0) return `${duration} (0%)`;
+                const pct = Math.round((Number(milliseconds) || 0) / total * 100);
+                return `${duration} (${pct}%)`;
+            };
 
             document.getElementById('statOpenings').textContent = openingsPracticed;
             document.getElementById('statLines').textContent = linesLearned;
             document.getElementById('statStreak').textContent = streak;
             document.getElementById('statTime').textContent = formatDuration(totalTime);
-            document.getElementById('timeLearn').textContent = formatDuration(trainingTime.learn);
-            document.getElementById('timePractice').textContent = formatDuration(trainingTime.practice);
-            document.getElementById('timeDrill').textContent = formatDuration(trainingTime.drill);
-            document.getElementById('timeTrial').textContent = formatDuration(trainingTime.time);
-            document.getElementById('timePuzzle').textContent = formatDuration(trainingTime.puzzle);
+            
+            document.getElementById('timeLearn').textContent = formatTimeWithPct(trainingTime.learn, totalTime);
+            document.getElementById('timePractice').textContent = formatTimeWithPct(trainingTime.practice, totalTime);
+            document.getElementById('timeDrill').textContent = formatTimeWithPct(trainingTime.drill, totalTime);
+            document.getElementById('timeTrial').textContent = formatTimeWithPct(trainingTime.time, totalTime);
+            document.getElementById('timePuzzle').textContent = formatTimeWithPct(trainingTime.puzzle, totalTime);
 
-            // Render Zen Progress Bars
-            const maxVal = Math.max(1, trainingTime.learn, trainingTime.practice, trainingTime.drill, trainingTime.time, trainingTime.puzzle);
-            if (document.getElementById('barLearn')) document.getElementById('barLearn').style.width = (trainingTime.learn / maxVal * 100) + '%';
-            if (document.getElementById('barPractice')) document.getElementById('barPractice').style.width = (trainingTime.practice / maxVal * 100) + '%';
-            if (document.getElementById('barDrill')) document.getElementById('barDrill').style.width = (trainingTime.drill / maxVal * 100) + '%';
-            if (document.getElementById('barTrial')) document.getElementById('barTrial').style.width = (trainingTime.time / maxVal * 100) + '%';
-            if (document.getElementById('barPuzzle')) document.getElementById('barPuzzle').style.width = (trainingTime.puzzle / maxVal * 100) + '%';
+            if (document.getElementById('trainingTotalBadge')) {
+                document.getElementById('trainingTotalBadge').textContent = `Total: ${formatDuration(totalTime)}`;
+            }
+
+            // Render Zen Progress Bars relative to totalTime
+            if (document.getElementById('barLearn')) document.getElementById('barLearn').style.width = (trainingTime.learn / totalTimeDivisor * 100) + '%';
+            if (document.getElementById('barPractice')) document.getElementById('barPractice').style.width = (trainingTime.practice / totalTimeDivisor * 100) + '%';
+            if (document.getElementById('barDrill')) document.getElementById('barDrill').style.width = (trainingTime.drill / totalTimeDivisor * 100) + '%';
+            if (document.getElementById('barTrial')) document.getElementById('barTrial').style.width = (trainingTime.time / totalTimeDivisor * 100) + '%';
+            if (document.getElementById('barPuzzle')) document.getElementById('barPuzzle').style.width = (trainingTime.puzzle / totalTimeDivisor * 100) + '%';
         }
 
         function normalizeTrainingTime(value) {
@@ -705,7 +720,8 @@
             const progress = JSON.parse(localStorage.getItem('chessengineered_progress') || '{}');
             const activityDates = getPracticeActivityDates(progress);
 
-            const weeks = 53;
+            const isMobile = window.innerWidth <= 768;
+            const weeks = isMobile ? 22 : 53;
             const days = 7;
             const endDate = new Date();
             endDate.setHours(0, 0, 0, 0);
@@ -1022,6 +1038,12 @@
         window.addEventListener('boardAppearanceChanged', renderBoardPreview);
         window.addEventListener('DOMContentLoaded', renderBoardPreview);
         renderBoardPreview();
+
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(loadHeatmap, 100);
+        });
     </script>
 </body>
 </html>
