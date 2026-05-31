@@ -29,7 +29,8 @@ You need to create OAuth 2.0 credentials in Google Cloud Console:
    - Application type: Web application
    - Name: ChessEngineered Web
    - Authorized redirect URIs: `https://mvvnqkixgxjblgyrnvte.supabase.co/auth/v1/callback`
-   - Also add for local dev: `http://localhost:8080/openings.html`
+   - Add your deployed app origin to the Supabase redirect allow list.
+   - Also add for local dev: `http://localhost:3000/openings`
 7. Copy **Client ID** and **Client Secret**
 
 ### 4. Configure in Supabase
@@ -38,10 +39,11 @@ You need to create OAuth 2.0 credentials in Google Cloud Console:
 - Save
 
 ### 5. Test
-1. Open http://localhost:8080/openings.html
-2. Click **Log in**
-3. Click **Continue with Google**
-4. Should redirect to Google sign-in page
+1. Run `npm run dev`
+2. Open http://localhost:3000/openings
+3. Click **Log in**
+4. Click **Continue with Google**
+5. Confirm that Google redirects back to `/openings`
 
 ## Troubleshooting
 
@@ -56,4 +58,4 @@ The frontend code is ready and includes:
 - Google OAuth button in login modal
 - Proper redirect handling
 - Session persistence
-- Works on both `openings.html` and `opening.html`
+- Uses the Next.js routes `/openings` and `/opening/[slug]`

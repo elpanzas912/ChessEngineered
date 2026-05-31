@@ -1,16 +1,16 @@
 const sounds = {
-    gameStart: new Audio('sounds/game-start.mp3'),
-    gameEnd: new Audio('sounds/game-end.mp3'),
-    capture: new Audio('sounds/capture.mp3'),
-    castle: new Audio('sounds/castle.mp3'),
-    premove: new Audio('sounds/premove.mp3'),
-    moveSelf: new Audio('sounds/move-self.mp3'),
-    moveOpponent: new Audio('sounds/move-opponent.mp3'),
-    check: new Audio('sounds/move-check.mp3'),
-    promote: new Audio('sounds/promote.mp3'),
-    notify: new Audio('sounds/notify.mp3'),
-    illegal: new Audio('sounds/illegal.mp3'),
-    tenSeconds: new Audio('sounds/tenseconds.mp3')
+    gameStart: new Audio('/sounds/game-start.mp3'),
+    gameEnd: new Audio('/sounds/game-end.mp3'),
+    capture: new Audio('/sounds/capture.mp3'),
+    castle: new Audio('/sounds/castle.mp3'),
+    premove: new Audio('/sounds/premove.mp3'),
+    moveSelf: new Audio('/sounds/move-self.mp3'),
+    moveOpponent: new Audio('/sounds/move-opponent.mp3'),
+    check: new Audio('/sounds/move-check.mp3'),
+    promote: new Audio('/sounds/promote.mp3'),
+    notify: new Audio('/sounds/notify.mp3'),
+    illegal: new Audio('/sounds/illegal.mp3'),
+    tenSeconds: new Audio('/sounds/tenseconds.mp3')
 };
 
 function soundsEnabled() {

@@ -16,7 +16,7 @@ const corsHeaders = {
 };
 
 const priceIds: Record<string, string> = {
-  yearly: Deno.env.get('STRIPE_YEARLY_PRICE_ID') || 'price_1TYzsE0bRhmsCmKquPAdLmh3',
+  yearly: Deno.env.get('STRIPE_YEARLY_PRICE_ID') || '',
 };
 
 serve(async (req) => {
@@ -111,8 +111,8 @@ serve(async (req) => {
       },
       client_reference_id: user.id,
       allow_promotion_codes: true,
-      success_url: `${appOrigin}/openings.html?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appOrigin}/checkout.html`,
+      success_url: `${appOrigin}/openings?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appOrigin}/checkout`,
       metadata: {
         plan,
         user_id: user.id,

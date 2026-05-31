@@ -76,17 +76,18 @@ Necesitás estos 7 valores:
 
 ## Paso 6: Probar
 
-1. Abrí `http://localhost:8085/checkout.html`
-2. Logueate con tu cuenta
-3. Click **Pay $11.99**
-4. Te redirige a Stripe Checkout
-5. Usá esta tarjeta de prueba:
+1. Ejecutá `npm run dev`
+2. Abrí `http://localhost:3000/checkout`
+3. Logueate con tu cuenta
+4. Click **Pay $11.99**
+5. Te redirige a Stripe Checkout
+6. Usá esta tarjeta de prueba:
    - Número: `4242 4242 4242 4242`
    - Fecha: cualquiera futura
    - CVC: cualquier 3 dígitos
    - ZIP: cualquiera
-6. Completá el pago
-7. Te redirige a `openings.html?checkout=success`
+7. Completá el pago
+8. Te redirige a `/openings?checkout=success`
 
 Nota: la app ofrece una apertura gratis sin tarjeta. Stripe no tiene trial configurado; el checkout cobra la suscripción anual cuando el usuario quiere desbloquear más aperturas.
 

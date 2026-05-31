@@ -1,29 +1,35 @@
-import { initBoard, moveInputHandler, applyBoardAppearance } from './modules/board.js';
-import { loadLocalProgress, syncToCloud, recordTrainingTime, saveOpeningHighScores } from './modules/progress.js';
-import { Trainer } from './modules/trainer.js';
-import { stats } from './modules/stats.js';
-import { renderLinesList, renderLineDropdown, updateLineHeader, updateProgress, updateStats, updateModeStats, showFeedback } from './modules/ui.js';
-import { updateEvalBar } from './modules/evaluator.js';
-import { getLearnedLines, getPuzzleELO, getPuzzleStreak } from './modules/progress.js';
-import { playTenSecondsSound } from './modules/audio.js';
+import { initBoard, applyBoardAppearance } from './board.js';
+import { loadLocalProgress, recordTrainingTime, saveOpeningHighScores } from './progress.js';
+import { Trainer } from './trainer.js';
+import { stats } from './stats.js';
+import { updateStats, showFeedback } from './ui.js';
+import { getLearnedLines, getPuzzleELO, getPuzzleStreak } from './progress.js';
+import { playTenSecondsSound } from './audio.js';
+import chessPackage from 'chess.js';
+
+const Chess = chessPackage.Chess || chessPackage;
 
 let db = {};
 let catalog = {};
 let game = null;
 let board = null;
 let trainer = null;
+let lifecycleController = null;
 
-window.db = db;
-window.game = game;
-window.board = board;
-window.trainer = trainer;
-window.stats = stats;
-window.getPuzzleELO = getPuzzleELO;
-window.getPuzzleStreak = getPuzzleStreak;
-window.saveOpeningHighScores = saveOpeningHighScores;
-window.playTenSecondsSound = playTenSecondsSound;
+function exposeLegacyGlobals() {
+    window.db = db;
+    window.game = game;
+    window.board = board;
+    window.trainer = trainer;
+    window.stats = stats;
+    window.getPuzzleELO = getPuzzleELO;
+    window.getPuzzleStreak = getPuzzleStreak;
+    window.saveOpeningHighScores = saveOpeningHighScores;
+    window.playTenSecondsSound = playTenSecondsSound;
+    window.applyBoardAppearance = applyBoardAppearance;
+}
 
-function installDailyStreakToast() {
+function installDailyStreakToast(signal) {
     window.addEventListener('chessengineered:daily-streak-earned', (event) => {
         const count = Number(event.detail?.count) || 1;
         const existing = document.querySelector('.daily-streak-toast');
@@ -47,12 +53,10 @@ function installDailyStreakToast() {
         document.body.appendChild(toast);
         window.setTimeout(() => toast.classList.add('leaving'), 2100);
         window.setTimeout(() => toast.remove(), 2600);
-    });
+    }, { signal });
 }
 
-installDailyStreakToast();
-
-function installTrainingTimeTracker() {
+function installTrainingTimeTracker(signal) {
     const trackedModes = new Set(['learn', 'practice', 'drill', 'time', 'puzzle']);
     let activeMode = null;
     let startedAt = 0;
@@ -91,28 +95,11 @@ function installTrainingTimeTracker() {
         } else if (window.trainer) {
             start(window.trainer.mode);
         }
-    });
+    }, { signal });
 
-    window.addEventListener('beforeunload', stop);
+    window.addEventListener('beforeunload', stop, { signal });
     window.trainingTimeTracker = { start, stop, switchMode };
 }
-
-installTrainingTimeTracker();
-
-// ── Load Catalog ──
-fetch('data/openings-catalog.json')
-    .then(r => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-    })
-    .then(data => {
-        catalog = data.openings || {};
-        populateSelector();
-        initApp();
-    })
-    .catch(err => {
-        showLoadError('Error loading opening catalog: ' + err.message);
-    });
 
 function showLoadError(message) {
     const fb = document.getElementById('feedback');
@@ -226,7 +213,7 @@ async function copyText(text) {
     }
 }
 
-function installSettingsMenu() {
+function installSettingsMenu(signal) {
     const button = document.getElementById('btnSettings');
     const menu = document.getElementById('settingsMenu');
     if (!button || !menu) return;
@@ -245,7 +232,7 @@ function installSettingsMenu() {
     button.addEventListener('click', event => {
         event.stopPropagation();
         menu.classList.contains('open') ? closeMenu() : openMenu();
-    });
+    }, { signal });
 
     menu.addEventListener('click', event => {
         event.stopPropagation();
@@ -279,14 +266,14 @@ function installSettingsMenu() {
             trainer?.resetOpeningProgress?.();
             closeMenu();
         }
-    });
+    }, { signal });
 
     const pieceSelect = document.getElementById('settingsPieceSet');
     if (pieceSelect) {
         pieceSelect.addEventListener('change', () => {
             localStorage.setItem('chessengineered_piece_set', pieceSelect.value);
             applyBoardAppearance(window.board, { pieceSet: pieceSelect.value });
-        });
+        }, { signal });
     }
 
     const themeSelect = document.getElementById('settingsBoardTheme');
@@ -294,7 +281,7 @@ function installSettingsMenu() {
         themeSelect.addEventListener('change', () => {
             localStorage.setItem('chessengineered_board_theme', themeSelect.value);
             applyBoardAppearance(window.board, { theme: themeSelect.value });
-        });
+        }, { signal });
     }
 
     const arrowSelect = document.getElementById('settingsTrainingArrows');
@@ -305,7 +292,7 @@ function installSettingsMenu() {
                 window.board?.removeArrows?.();
                 window.board?.removeMarkers?.();
             }
-        });
+        }, { signal });
     }
 
     const dialogSelect = document.getElementById('settingsDialogBehavior');
@@ -313,66 +300,66 @@ function installSettingsMenu() {
         dialogSelect.addEventListener('change', () => {
             localStorage.setItem('chessengineered_dialog_behavior', dialogSelect.value);
             applyTrainerSettings();
-        });
+        }, { signal });
     }
 
-    document.addEventListener('click', closeMenu);
+    document.addEventListener('click', closeMenu, { signal });
     document.addEventListener('keydown', event => {
         if (event.key === 'Escape') closeMenu();
-    });
+    }, { signal });
 
     applyTrainerSettings();
     updateSettingsMenuState();
 }
 
 // ── Init ──
-function initApp() {
+function initApp(signal) {
     loadLocalProgress();
     game = new Chess();
     window.game = game;
     board = initBoard(document.getElementById('board'));
     window.board = board;
-    installSettingsMenu();
+    installSettingsMenu(signal);
 
     const selectEl = document.getElementById('openingSelect');
     if (selectEl) {
-        selectEl.addEventListener('change', onOpeningChange);
+        selectEl.addEventListener('change', onOpeningChange, { signal });
     }
-    document.getElementById('btnNext').addEventListener('click', () => {
+    document.getElementById('btnNext')?.addEventListener('click', () => {
         if (!trainer) return;
         trainer.navigateMoveHistory(1);
-    });
+    }, { signal });
     const prevBtn = document.getElementById('btnPrev');
     if (prevBtn) {
         prevBtn.addEventListener('click', () => {
             if (!trainer) return;
             trainer.navigateMoveHistory(-1);
-        });
+        }, { signal });
     }
     const resetBtn = document.getElementById('btnReset');
-    if (resetBtn) resetBtn.addEventListener('click', () => trainer && trainer.resetLine());
+    if (resetBtn) resetBtn.addEventListener('click', () => trainer && trainer.resetLine(), { signal });
     const completeRestartBtn = document.getElementById('btnCompleteRestart');
     if (completeRestartBtn) {
         completeRestartBtn.addEventListener('click', () => {
             document.body.classList.remove('line-complete-mobile');
             trainer && trainer.resetLine();
-        });
+        }, { signal });
     }
     const completeNextBtn = document.getElementById('btnCompleteNext');
     if (completeNextBtn) {
         completeNextBtn.addEventListener('click', () => {
             document.body.classList.remove('line-complete-mobile');
             trainer && trainer.nextLine();
-        });
+        }, { signal });
     }
-    document.getElementById('btnHint').addEventListener('click', () => trainer && trainer.showHint());
+    document.getElementById('btnHint')?.addEventListener('click', () => trainer && trainer.showHint(), { signal });
     const qaSolveBtn = document.getElementById('btnQaSolve');
     if (qaSolveBtn) {
         qaSolveBtn.addEventListener('click', () => {
             if (!trainer?.solveCurrentLearnLineForTesting()) {
                 showFeedback('Solve QA is only available for an active Learn line.', 'error');
             }
-        });
+        }, { signal });
     }
 
     document.addEventListener('keydown', (e) => {
@@ -400,12 +387,12 @@ function initApp() {
             if (!trainer) return;
             trainer.navigateMoveHistory(1);
         }
-    });
+    }, { signal });
 
     window.addEventListener('resize', () => {
         if (board?.resize) board.resize();
         else if (board?.view?.handleResize) board.view.handleResize();
-    });
+    }, { signal });
 
     // Auto-load from URL or global variable if slug present
     const params = new URLSearchParams(window.location.search);
@@ -480,3 +467,49 @@ window.debugProgress = function () {
         localStorage: JSON.parse(localStorage.getItem('chessengineered_progress') || '{}')
     };
 };
+
+export async function startLegacyTrainerApp() {
+    destroyLegacyTrainerApp();
+    lifecycleController = new AbortController();
+    const { signal } = lifecycleController;
+
+    db = {};
+    catalog = {};
+    game = null;
+    board = null;
+    trainer = null;
+    exposeLegacyGlobals();
+    installDailyStreakToast(signal);
+    installTrainingTimeTracker(signal);
+
+    try {
+        const response = await fetch('/data/openings-catalog.json', { signal });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (signal.aborted) return;
+        catalog = data.openings || {};
+        window.db = db;
+        populateSelector();
+        initApp(signal);
+    } catch (error) {
+        if (error.name !== 'AbortError') {
+            showLoadError('Error loading opening catalog: ' + error.message);
+        }
+    }
+}
+
+export function destroyLegacyTrainerApp() {
+    lifecycleController?.abort();
+    lifecycleController = null;
+    window.trainingTimeTracker?.stop?.();
+    board?.destroy?.();
+    db = {};
+    catalog = {};
+    game = null;
+    board = null;
+    trainer = null;
+    delete window.trainingTimeTracker;
+    delete window.trainer;
+    delete window.board;
+    delete window.game;
+}

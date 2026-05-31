@@ -30,7 +30,7 @@ function getBoardAppearance(overrides = {}) {
 export function initBoard(element) {
     const appearance = getBoardAppearance();
     const board = new Chessboard(element, {
-        assetsUrl: "../lib/cm-chessboard-assets/",
+        assetsUrl: "/lib/cm-chessboard-assets/",
         assetsCache: false,
         position: FEN.start,
         style: {

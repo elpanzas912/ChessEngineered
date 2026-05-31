@@ -1,7 +1,5 @@
 # Dependencies
 node_modules/
-package-lock.json
-yarn.lock
 
 # Environment variables
 .env
@@ -12,15 +10,6 @@ yarn.lock
 supabase/.temp/
 supabase/.private/
 supabase/config.toml
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
 
 # OS
 .DS_Store

@@ -5,8 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
-import { supabase } from '@/lib/supabase';
-import { Chess } from 'chess.js';
+import { supabase, SUPABASE_KEY, SUPABASE_URL } from '@/lib/supabase';
 import confetti from 'canvas-confetti';
 import '@/styles/opening.css';
 
@@ -22,7 +21,7 @@ export default function OpeningTrainerPage() {
     const [paywallVisible, setPaywallVisible] = useState(false);
 
     // References to avoid double-initialization
-    const initializedRef = useRef(false);
+    const initializedSlugRef = useRef<string | null>(null);
 
     useEffect(() => {
         if (!slug || !catalog || Object.keys(catalog).length === 0) return;
@@ -42,25 +41,26 @@ export default function OpeningTrainerPage() {
             return;
         }
 
+        setPaywallVisible(false);
         setOpeningData(catalog[slug]);
         setLoading(false);
-    }, [slug, catalog, hasActiveSubscription, serverFreeOpening]);
+    }, [slug, catalog, hasActiveSubscription, serverFreeOpening, router]);
 
     // Bootstrap legacy JS modules in browser environment
     useEffect(() => {
-        if (loading || !openingData || initializedRef.current) return;
-        initializedRef.current = true;
+        if (loading || !openingData || initializedSlugRef.current === slug) return;
+        initializedSlugRef.current = slug;
+        let disposed = false;
+        let legacyApp: typeof import('@/modules/legacy-trainer-app.js') | null = null;
 
-        // Bridge NPM packages to legacy UMD globals
-        (window as any).Chess = Chess;
+        // Bridge browser-only packages used by the compatibility adapter.
         (window as any).confetti = confetti;
         (window as any).openingSlug = slug;
         (window as any).supabaseClient = supabase;
         (window as any).auth = supabase.auth;
-        (window as any).userProgress = userProgress;
-        (window as any).currentUser = user;
-
-        // Inline actions in opening.html
+        (window as any).SUPABASE_URL = SUPABASE_URL;
+        (window as any).SUPABASE_KEY = SUPABASE_KEY;
+        // Compatibility actions used by the DOM-based trainer adapter.
         (window as any).openAuthModal = () => {
             const el = document.getElementById('authModal');
             if (el) el.classList.add('open');
@@ -323,30 +323,29 @@ export default function OpeningTrainerPage() {
             if (trainer) trainer.nextLine();
         };
 
-        // Load modules & app.js orchestration
-        Promise.all([
-            import('@/modules/board.js'),
-            import('@/modules/progress.js'),
-            import('@/modules/trainer.js'),
-            import('@/modules/ui.js'),
-            import('@/modules/evaluator.js'),
-            import('@/modules/audio.js'),
-            import('@/app.js')
-        ]).then(() => {
-            console.log('ChessEngineered legacy module framework loaded.');
+        // Start the DOM-based trainer adapter after React has rendered its host elements.
+        import('@/modules/legacy-trainer-app.js').then(module => {
+            if (disposed) return;
+            legacyApp = module;
+            return module.startLegacyTrainerApp();
         }).catch(err => {
             console.error('Failed to load training ES modules:', err);
         });
 
         return () => {
-            // Cleanup on unmount
+            disposed = true;
             clearInterval(timeInterval);
-            delete (window as any).trainer;
-            delete (window as any).board;
-            delete (window as any).game;
+            legacyApp?.destroyLegacyTrainerApp();
+            initializedSlugRef.current = null;
         };
 
-    }, [loading, openingData]);
+    }, [loading, openingData, slug]);
+
+    // Keep mutable legacy state current without rebuilding the trainer.
+    useEffect(() => {
+        (window as any).userProgress = userProgress;
+        (window as any).currentUser = user;
+    }, [user, userProgress]);
 
     // Apply board configurations (theme, piece set) dynamically
     useEffect(() => {

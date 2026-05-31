@@ -67,11 +67,7 @@ serve(async (req) => {
     const databaseRequest = getOpeningDatabase(supabaseAdmin);
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      const database = await databaseRequest;
-      const opening = database[slug];
-      return opening
-        ? jsonResponse({ opening })
-        : jsonResponse({ error: 'Opening not found' }, 404);
+      return jsonResponse({ error: 'Authentication required' }, 401);
     }
 
     const supabaseUser = createClient(supabaseUrl, anonKey, {

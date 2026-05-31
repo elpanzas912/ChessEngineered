@@ -5,8 +5,11 @@ import { highlightHintSquare, clearHintSquare, highlightLastMove, clearLastMove,
 import { renderMoveHistory, updateLineHeader, updateProgress, showFeedback, updateModeStats, renderLinesList, renderLineDropdown, updateStats } from './ui.js';
 import { updateEvalBar } from './evaluator.js';
 import { stats } from './stats.js';
+import chessPackage from 'chess.js';
 
 export { stats };
+
+const Chess = chessPackage.Chess || chessPackage;
 
 export class Trainer {
     constructor() {
@@ -281,7 +284,7 @@ export class Trainer {
     async loadPuzzles() {
         if (this.puzzles.length > 0) return;
         try {
-            const res = await fetch(`puzzles/${this.slug}.json`);
+            const res = await fetch(`/puzzles/${this.slug}.json`);
             if (!res.ok) return;
             this.puzzles = await res.json();
             for (let i = this.puzzles.length - 1; i > 0; i--) {
