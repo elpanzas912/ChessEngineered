@@ -260,29 +260,35 @@ body {
 
 /* ── Main Canvas Panels ── */
 .zen-canvas-card {
-  background: rgba(18, 18, 24, 0.3) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.04) !important;
-  border-radius: 24px !important;
-  padding: var(--space-xl) !important;
-  margin-bottom: var(--space-lg);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3) !important;
-  transition: border-color var(--dur-short), box-shadow var(--dur-short) !important;
-}
-
-.zen-canvas-card:hover {
-  border-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-/* Float Borderless overrides for charts */
-.accuracy-card, .activity-card-v2 {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+  border-radius: 0 !important;
+  transition: none !important;
+}
+
+.zen-canvas-card:hover {
+  border-color: transparent !important;
+}
+
+/* ── Section Separators & Spacing ── */
+.zen-stats-section,
+.activity-card-v2,
+.accuracy-card,
+.training-time-card,
+.favorites-card-v2 {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  padding-bottom: var(--space-xl) !important;
+  margin-bottom: var(--space-xl) !important;
+}
+
+.zen-preferences-card {
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
 }
 
 .zen-canvas-header {
