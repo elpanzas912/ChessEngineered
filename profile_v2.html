@@ -211,31 +211,7 @@
         </section>
     </div>
 
-    <!-- Auth Modal (for guests) -->
-    <div class="auth-modal-overlay" id="authModal">
-        <div class="auth-modal">
-            <button class="close-btn" onclick="closeAuthModal()">×</button>
-            <h2 id="authTitle">Log in</h2>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="authEmail" placeholder="you@example.com">
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="authPassword" placeholder="••••••••">
-            </div>
-            <button class="btn-auth" id="authBtn" onclick="handleAuth()">Log in</button>
-            <div style="text-align:center;margin:16px 0;color:var(--color-muted);font-size:0.85rem;">or</div>
-            <button class="btn-auth" style="background:#4285F4;border:none;" onclick="handleGoogleAuth()">
-                <span style="margin-right:8px;">🔍</span> Continue with Google
-            </button>
-            <div class="error-msg" id="authError"></div>
-            <div class="auth-toggle">
-                <span id="authToggleText">Don't have an account?</span>
-                <a onclick="toggleAuthMode()" id="authToggleLink">Sign up</a>
-            </div>
-        </div>
-    </div>
+    <!-- Auth Modal removed as requested -->
 
     <!-- Supabase Auth & Logic -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -893,31 +869,43 @@
         let authMode = 'login';
 
         function openAuthModal() {
-            document.getElementById('authModal').classList.add('open');
+            const modal = document.getElementById('authModal');
+            if (modal) modal.classList.add('open');
         }
 
         function closeAuthModal() {
-            document.getElementById('authModal').classList.remove('open');
-            document.getElementById('authError').style.display = 'none';
+            const modal = document.getElementById('authModal');
+            if (modal) modal.classList.remove('open');
+            const errorEl = document.getElementById('authError');
+            if (errorEl) errorEl.style.display = 'none';
         }
 
         function toggleAuthMode() {
             authMode = authMode === 'login' ? 'signup' : 'login';
-            document.getElementById('authTitle').textContent = authMode === 'login' ? 'Log in' : 'Sign up';
-            document.getElementById('authBtn').textContent = authMode === 'login' ? 'Log in' : 'Sign up';
-            document.getElementById('authToggleText').textContent = authMode === 'login' ? "Don't have an account?" : 'Already have an account?';
-            document.getElementById('authToggleLink').textContent = authMode === 'login' ? 'Sign up' : 'Log in';
+            const title = document.getElementById('authTitle');
+            if (title) title.textContent = authMode === 'login' ? 'Log in' : 'Sign up';
+            const btn = document.getElementById('authBtn');
+            if (btn) btn.textContent = authMode === 'login' ? 'Log in' : 'Sign up';
+            const text = document.getElementById('authToggleText');
+            if (text) text.textContent = authMode === 'login' ? "Don't have an account?" : 'Already have an account?';
+            const link = document.getElementById('authToggleLink');
+            if (link) link.textContent = authMode === 'login' ? 'Sign up' : 'Log in';
         }
 
         async function handleAuth() {
             if (!supabaseClient) return;
-            const email = document.getElementById('authEmail').value;
-            const password = document.getElementById('authPassword').value;
+            const emailEl = document.getElementById('authEmail');
+            const passwordEl = document.getElementById('authPassword');
             const errorEl = document.getElementById('authError');
 
+            const email = emailEl ? emailEl.value : '';
+            const password = passwordEl ? passwordEl.value : '';
+
             if (!email || !password) {
-                errorEl.textContent = 'Please enter email and password';
-                errorEl.style.display = 'block';
+                if (errorEl) {
+                    errorEl.textContent = 'Please enter email and password';
+                    errorEl.style.display = 'block';
+                }
                 return;
             }
 
@@ -929,16 +917,20 @@
                     result = await auth.signUp({ email, password });
                 }
             } catch (err) {
-                errorEl.textContent = 'Error: ' + err.message;
-                errorEl.style.display = 'block';
+                if (errorEl) {
+                    errorEl.textContent = 'Error: ' + err.message;
+                    errorEl.style.display = 'block';
+                }
                 return;
             }
 
             if (result.error) {
-                errorEl.textContent = result.error.message;
-                errorEl.style.display = 'block';
+                if (errorEl) {
+                    errorEl.textContent = result.error.message;
+                    errorEl.style.display = 'block';
+                }
             } else {
-                errorEl.style.display = 'none';
+                if (errorEl) errorEl.style.display = 'none';
                 closeAuthModal();
                 loadProfile();
             }
