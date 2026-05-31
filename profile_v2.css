@@ -463,17 +463,19 @@ body {
 }
 
 .accuracy-chart {
-  overflow-x: auto;
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.01) !important;
+  overflow-x: hidden !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .accuracy-chart svg {
   display: block;
-  width: 100%;
-  min-width: 520px;
-  height: auto;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
 }
 
 .accuracy-axis {
